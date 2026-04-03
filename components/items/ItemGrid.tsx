@@ -19,7 +19,7 @@ export default function ItemGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div className="flex flex-col divide-y divide-cream-dark">
       {items.map((item) => (
         <ItemCard key={item.id} item={item} />
       ))}

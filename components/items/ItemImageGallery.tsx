@@ -20,7 +20,7 @@ export default function ItemImageGallery({
 
   if (images.length === 0) {
     return (
-      <div className="aspect-square bg-cream-dark rounded-sm flex items-center justify-center text-stone/40">
+      <div className="aspect-square bg-cream-dark rounded-xl flex items-center justify-center text-stone/40">
         No image
       </div>
     );
@@ -37,7 +37,7 @@ export default function ItemImageGallery({
     <>
       {/* Main image */}
       <div
-        className="relative aspect-square overflow-hidden rounded-sm cursor-zoom-in bg-cream-dark"
+        className="relative aspect-square overflow-hidden rounded-xl cursor-zoom-in bg-cream-dark"
         onClick={() => setLightboxOpen(true)}
       >
         <Image
@@ -74,7 +74,7 @@ export default function ItemImageGallery({
               key={i}
               onClick={() => setActiveIndex(i)}
               className={cn(
-                "relative flex-shrink-0 w-16 h-16 rounded-sm overflow-hidden border-2 transition-colors",
+                "relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors",
                 i === activeIndex ? "border-terracotta" : "border-transparent"
               )}
             >

@@ -25,7 +25,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
             className="group flex flex-col sm:flex-row items-stretch gap-0 hover:bg-cream-dark/40 transition-colors duration-300 py-8 first:pt-0 last:pb-0"
           >
             {/* Image */}
-            <div className="relative w-full sm:w-56 flex-shrink-0 aspect-square sm:aspect-auto sm:h-48 overflow-hidden rounded-sm bg-cream-dark">
+            <div className="relative w-full sm:w-56 flex-shrink-0 aspect-square sm:aspect-auto sm:h-48 overflow-hidden rounded-xl bg-cream-dark">
               {cat.coverImage ? (
                 <Image
                   src={cat.coverImage}
