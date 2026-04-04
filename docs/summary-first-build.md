@@ -2,7 +2,7 @@
 
 **Project Type:** Full-stack Next.js web application
 **Build Phase:** Phase 1 (Public site) + Phase 2 (Admin panel) — Complete
-**Date Completed:** April 2026
+**Last Updated:** April 2026
 **Developer:** Built with Claude Code (claude-sonnet-4-6)
 
 ---
@@ -91,6 +91,9 @@ traam-and-beyond/
 │   │   └── admin/
 │   │       ├── page.tsx           # Dashboard
 │   │       ├── home/page.tsx      # Home page content editor
+│   │       ├── about/
+│   │       │   ├── page.tsx       # About page content editor (server wrapper)
+│   │       │   └── AboutContentClient.tsx  # About editor client component
 │   │       ├── items/
 │   │       │   ├── page.tsx       # Items list
 │   │       │   ├── new/page.tsx   # Add new item
@@ -113,8 +116,10 @@ traam-and-beyond/
 │   │       │   └── [id]/route.ts  # PUT + DELETE category
 │   │       ├── enquiries/
 │   │       │   └── [id]/route.ts  # PATCH enquiry read status
-│   │       └── home-content/
-│   │           └── route.ts       # GET + PATCH home page content
+│   │       ├── home-content/
+│   │       │   └── route.ts       # GET + PATCH home page content
+│   │       └── about-content/
+│   │           └── route.ts       # GET + PATCH about page content
 │   ├── layout.tsx                 # Root layout — font, metadata
 │   └── globals.css                # Tailwind theme, colours, base styles
 ├── components/
@@ -150,14 +155,17 @@ traam-and-beyond/
 │       ├── categories.ts          # Public: getAllCategories, getCategoryBySlug
 │       ├── items.ts               # Public: getItemsByCategory, getItemById, searchItems
 │       ├── enquiries.ts           # createEnquiry, getAllEnquiries, markEnquiryRead
-│       ├── site-content.ts        # Public: getHomeContent
+│       ├── site-content.ts        # Public: getHomeContent (uses Admin SDK)
+│       ├── about-content.ts       # Public: getAboutContent (uses Admin SDK)
 │       ├── admin-categories.ts    # Admin: create/update/delete categories
 │       ├── admin-items.ts         # Admin: create/update/delete items
 │       ├── admin-site-content.ts  # Admin: get/set/update home page sections
+│       ├── admin-about-content.ts # Admin: get/update about page sections
 │       └── storage.ts             # Client-side upload/delete helpers
 ├── types/
 │   ├── index.ts                   # Category, Item, Enquiry interfaces
-│   └── home-content.ts            # HomeContent interface + defaults
+│   ├── home-content.ts            # HomeContent interface + defaults
+│   └── about-content.ts           # AboutContent interface + defaults
 ├── scripts/
 │   └── seed.ts                    # One-time Firestore seeder script
 ├── fonts/
@@ -229,6 +237,21 @@ traam-and-beyond/
 }
 ```
 
+### AboutContent (site_content/about in Firestore)
+```typescript
+{
+  intro: { heading, paragraph1, paragraph2, paragraph3 }
+  crafts: {
+    heading,
+    copper:      { name, desc }
+    silver:      { name, desc }
+    jade:        { name, desc }
+    papierMache: { name, desc }
+  }
+  enquiry: { title, subtitle }
+}
+```
+
 ---
 
 ## Public Site — Pages and Features
@@ -294,10 +317,12 @@ Prose content about the brand's story and heritage, with a grid section describi
 
 Sticky top navigation with:
 - **Logo / Brand name** (links to home)
-- **Category links** dynamically fetched from Firestore (server-rendered)
-- **Search icon** — expands an inline search input on click
+- **Home link**
+- **Collections dropdown** — a single "Collections" button that opens a dropdown listing all categories vertically in their display order. The button turns terracotta when on any category page. Clicking outside the dropdown closes it. Categories are fetched server-side and passed down; order is determined by the `order` field on each category.
+- **About link** (links to `/about`)
 - **Contact link**
-- **Mobile menu** — a slide-out sheet (drawer) with the same links
+- **Search icon** — expands an inline search input on click
+- **Mobile menu** — a slide-out sheet (drawer) with the same links. Categories appear as flat links under a "Collections" label (indented), rather than a nested dropdown.
 
 ---
 
@@ -335,6 +360,20 @@ Allows the admin to edit all text on the public home page without touching code.
 | Enquiry Section | Title, Subtitle |
 
 Changes are saved to the `site_content/home` Firestore document via the `/api/admin/home-content` route and are reflected on the public site immediately.
+
+---
+
+### About Page Content Editor (`/admin/about`)
+
+Allows the admin to edit all text on the public about page without touching code. Organised into three cards, each saved independently:
+
+| Card | Fields |
+|------|--------|
+| Our Story | Heading, Paragraph 1, Paragraph 2, Paragraph 3 |
+| The Crafts | Section heading; Name + Description for each of: Copper, Silver, Jade, Papier-mâché |
+| Enquiry Section | Title, Subtitle |
+
+Changes are saved to the `site_content/about` Firestore document via the `/api/admin/about-content` route. The admin sidebar includes an "About Page" link (Info icon) to reach this editor.
 
 ---
 
@@ -405,6 +444,7 @@ All admin API routes require a valid Firebase ID token in the `Authorization: Be
 | `/api/admin/categories/[id]` | PUT, DELETE | Update / delete category |
 | `/api/admin/enquiries/[id]` | PATCH | Mark enquiry as read or unread |
 | `/api/admin/home-content` | GET, PATCH | Get / update home page content sections |
+| `/api/admin/about-content` | GET, PATCH | Get / update about page content sections |
 
 ---
 
@@ -480,6 +520,7 @@ All `NEXT_PUBLIC_*` vars are safe to expose in the browser. `FIREBASE_SERVICE_AC
 | Service account JSON format error | Multi-line JSON pasted below env vars | Minified JSON to single line in `.env.local` |
 | shadcn init failed | Tailwind v4 not auto-detected by shadcn CLI | Manually created `components.json` |
 | Images not loading (next/image error) | `storage.googleapis.com` not whitelisted in `next.config.ts` | Added `storage.googleapis.com` to `remotePatterns` |
+| Admin edits not reflecting on public site | `getHomeContent` / `getAboutContent` used the Firebase Client SDK, which is gated by Firestore Security Rules — unauthenticated reads failed silently and the `catch {}` block returned hardcoded defaults | Switched both functions to use the Admin SDK (`adminGetHomeContent`, `adminGetAboutContent`), which bypasses security rules. Also added `export const dynamic = "force-dynamic"` to both public pages to prevent Next.js static caching. |
 
 ---
 

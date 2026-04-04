@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
+
 import HeroSection from "@/components/home/HeroSection";
 import CategoryHighlights from "@/components/home/CategoryHighlights";
 import EnquiryForm from "@/components/forms/EnquiryForm";

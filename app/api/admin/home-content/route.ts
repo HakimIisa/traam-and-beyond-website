@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { verifyAdminRequest } from "@/lib/admin-auth";
 import { adminGetHomeContent, adminUpdateHomeSection } from "@/lib/firebase/admin-site-content";
 import { DEFAULT_HOME_CONTENT, type HomeContent } from "@/types/home-content";
@@ -33,5 +34,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Invalid section" }, { status: 400 });
 
   await adminUpdateHomeSection(section, data as HomeContent[typeof section]);
+  revalidatePath("/");
   return NextResponse.json({ ok: true });
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, ChevronDown } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
@@ -18,11 +18,23 @@ export default function Navbar({ categories }: NavbarProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
   }, [searchOpen]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setCategoriesOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -33,9 +45,13 @@ export default function Navbar({ categories }: NavbarProps) {
     }
   }
 
-  const navLinks = [
+  const isCategoryActive = categories.some((c) =>
+    pathname.startsWith(`/category/${c.slug}`)
+  );
+
+  const staticLinks = [
     { href: "/", label: "Home" },
-    ...categories.map((c) => ({ href: `/category/${c.slug}`, label: c.name })),
+    { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];
 
@@ -52,18 +68,70 @@ export default function Navbar({ categories }: NavbarProps) {
 
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
+          <Link
+            href="/"
+            className={cn(
+              "text-sm text-stone hover:text-terracotta transition-colors",
+              pathname === "/" && "text-terracotta font-medium"
+            )}
+          >
+            Home
+          </Link>
+
+          {/* Categories dropdown */}
+          <div ref={dropdownRef} className="relative">
+            <button
+              onClick={() => setCategoriesOpen((o) => !o)}
               className={cn(
-                "text-sm text-stone hover:text-terracotta transition-colors",
-                pathname === link.href && "text-terracotta font-medium"
+                "flex items-center gap-1 text-sm text-stone hover:text-terracotta transition-colors",
+                isCategoryActive && "text-terracotta font-medium"
               )}
             >
-              {link.label}
-            </Link>
-          ))}
+              Collections
+              <ChevronDown
+                size={14}
+                className={cn("transition-transform duration-200", categoriesOpen && "rotate-180")}
+              />
+            </button>
+
+            {categoriesOpen && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 bg-cream border border-cream-dark rounded-sm shadow-md py-1 z-50">
+                {categories.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/category/${c.slug}`}
+                    onClick={() => setCategoriesOpen(false)}
+                    className={cn(
+                      "block px-4 py-2.5 text-sm text-stone hover:text-terracotta hover:bg-cream-dark transition-colors",
+                      pathname.startsWith(`/category/${c.slug}`) && "text-terracotta font-medium"
+                    )}
+                  >
+                    {c.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Link
+            href="/about"
+            className={cn(
+              "text-sm text-stone hover:text-terracotta transition-colors",
+              pathname === "/about" && "text-terracotta font-medium"
+            )}
+          >
+            About
+          </Link>
+
+          <Link
+            href="/contact"
+            className={cn(
+              "text-sm text-stone hover:text-terracotta transition-colors",
+              pathname === "/contact" && "text-terracotta font-medium"
+            )}
+          >
+            Contact
+          </Link>
         </div>
 
         {/* Right side: search + mobile menu */}
@@ -108,7 +176,36 @@ export default function Navbar({ categories }: NavbarProps) {
             </SheetTrigger>
             <SheetContent side="right" className="bg-cream w-72 pt-12">
               <nav className="flex flex-col gap-1">
-                {navLinks.map((link) => (
+                <Link
+                  href="/"
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "text-base py-3 px-2 border-b border-cream-dark text-stone hover:text-terracotta transition-colors",
+                    pathname === "/" && "text-terracotta font-medium"
+                  )}
+                >
+                  Home
+                </Link>
+
+                {/* Category links flat in mobile menu */}
+                <p className="text-xs uppercase tracking-widest text-stone/50 px-2 pt-3 pb-1">
+                  Collections
+                </p>
+                {categories.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/category/${c.slug}`}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "text-base py-2.5 px-4 border-b border-cream-dark text-stone hover:text-terracotta transition-colors",
+                      pathname.startsWith(`/category/${c.slug}`) && "text-terracotta font-medium"
+                    )}
+                  >
+                    {c.name}
+                  </Link>
+                ))}
+
+                {staticLinks.slice(1).map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}

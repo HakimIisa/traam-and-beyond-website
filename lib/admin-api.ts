@@ -88,6 +88,24 @@ export async function apiUpdateHomeSection(section: string, data: object): Promi
   if (!res.ok) throw new Error("Failed to update home content");
 }
 
+// ── About Content ───────────────────────────────────────────────────────────
+export async function apiGetAboutContent(): Promise<object> {
+  const headers = await getAuthHeader();
+  const res = await fetch("/api/admin/about-content", { method: "GET", headers });
+  if (!res.ok) throw new Error("Failed to fetch about content");
+  return res.json();
+}
+
+export async function apiUpdateAboutSection(section: string, data: object): Promise<void> {
+  const headers = await getAuthHeader();
+  const res = await fetch("/api/admin/about-content", {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({ section, data }),
+  });
+  if (!res.ok) throw new Error("Failed to update about content");
+}
+
 // ── Enquiries ───────────────────────────────────────────────────────────────
 export async function apiMarkEnquiryRead(id: string, read: boolean): Promise<void> {
   const headers = await getAuthHeader();
