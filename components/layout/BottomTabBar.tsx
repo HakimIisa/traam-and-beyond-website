@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Package, Search, Mail } from "lucide-react";
+import { Home, Package, Search, Info, Mail } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import type { Category } from "@/types";
 
@@ -45,41 +45,51 @@ export default function BottomTabBar({ categories }: BottomTabBarProps) {
         <div className="flex items-center justify-around h-16">
           <Link
             href="/"
-            className={`flex flex-col items-center gap-1 px-4 py-2 ${
+            className={`flex flex-col items-center gap-1 px-3 py-2 ${
               isActive("/") ? "text-terracotta" : "text-stone"
             }`}
           >
-            <Home size={22} />
+            <Home size={20} />
             <span className="text-[10px]">Home</span>
           </Link>
 
           <button
             onClick={() => setCollectionsOpen(true)}
-            className={`flex flex-col items-center gap-1 px-4 py-2 ${
+            className={`flex flex-col items-center gap-1 px-3 py-2 ${
               isCollections ? "text-terracotta" : "text-stone"
             }`}
           >
-            <Package size={22} />
+            <Package size={20} />
             <span className="text-[10px]">Collections</span>
           </button>
 
           <Link
             href="/search"
-            className={`flex flex-col items-center gap-1 px-4 py-2 ${
+            className={`flex flex-col items-center gap-1 px-3 py-2 ${
               isActive("/search") ? "text-terracotta" : "text-stone"
             }`}
           >
-            <Search size={22} />
+            <Search size={20} />
             <span className="text-[10px]">Search</span>
           </Link>
 
           <Link
+            href="/about"
+            className={`flex flex-col items-center gap-1 px-3 py-2 ${
+              isActive("/about") ? "text-terracotta" : "text-stone"
+            }`}
+          >
+            <Info size={20} />
+            <span className="text-[10px]">About</span>
+          </Link>
+
+          <Link
             href="/contact"
-            className={`flex flex-col items-center gap-1 px-4 py-2 ${
+            className={`flex flex-col items-center gap-1 px-3 py-2 ${
               isActive("/contact") ? "text-terracotta" : "text-stone"
             }`}
           >
-            <Mail size={22} />
+            <Mail size={20} />
             <span className="text-[10px]">Contact</span>
           </Link>
         </div>
