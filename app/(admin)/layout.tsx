@@ -18,7 +18,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="light-theme min-h-screen bg-white flex items-center justify-center">
         <p className="text-stone text-sm">Loading...</p>
       </div>
     );
@@ -29,7 +29,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   if (pathname === "/login") return <>{children}</>;
 
   return (
-    <div className="flex min-h-screen bg-cream">
+    <div className="light-theme flex min-h-screen bg-white">
       <AdminSidebar />
       <main className="flex-1 overflow-auto">{children}</main>
     </div>

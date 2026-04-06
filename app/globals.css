@@ -1,21 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  /* Kashmiri brand palette */
-  --color-terracotta: #C25B3F;
-  --color-terracotta-light: #D4735A;
-  --color-terracotta-dark: #A0432A;
-  --color-walnut: #3D2B1F;
-  --color-walnut-light: #5C4033;
+  /* Dark gallery palette */
+  --color-terracotta: #B57031;
+  --color-terracotta-light: #CA9A56;
+  --color-terracotta-dark: #8F5620;
+  --color-walnut: #20180C;
+  --color-walnut-light: #5F4B2B;
   --color-saffron: #D4A017;
   --color-saffron-light: #E8B830;
-  --color-cream: #FAF6F0;
-  --color-cream-dark: #F0E8DC;
-  --color-stone: #8B7355;
-  --color-stone-light: #A8916E;
+  --color-cream: #F8E8D2;
+  --color-cream-dark: #2A1E0F;
+  --color-stone: #A68F67;
+  --color-stone-light: #C4A882;
 
-  /* Fonts — Helvetica loaded via next/font/local, injected as CSS var on <html> */
-  --font-sans: var(--font-helvetica), Helvetica, Arial, sans-serif;
+  /* Fonts */
+  --font-sans: var(--font-raleway), Helvetica, Arial, sans-serif;
+  --font-display: var(--font-cormorant), Georgia, serif;
 }
 
 @layer base {
@@ -24,7 +25,22 @@
   }
 
   body {
-    background-color: var(--color-cream);
-    color: var(--color-walnut);
+    background-color: var(--color-walnut);
+    color: var(--color-cream);
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+
+  /* Admin panel override — applied via wrapper div in admin layout */
+  .light-theme {
+    background-color: #ffffff;
+    color: #111111;
+  }
+  .light-theme h1,
+  .light-theme h2,
+  .light-theme h3 {
+    font-family: var(--font-sans);
   }
 }

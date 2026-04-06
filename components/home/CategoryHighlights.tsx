@@ -1,8 +1,26 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import type { Category } from "@/types";
 import type { HomeContent } from "@/types/home-content";
+import { ScrollReveal } from "@/components/ScrollReveal";
+
+const cardVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.5 } },
+};
+
+const childVariants = {
+  hidden: { opacity: 0, y: 28 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] as const },
+  },
+};
 
 interface CategoryHighlightsProps {
   categories: Category[];
@@ -13,51 +31,99 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
   if (categories.length === 0) return null;
 
   return (
-    <section id="collections" className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <h2 className="text-3xl text-walnut font-semibold mb-2">{content.title}</h2>
-      <p className="text-stone mb-12">{content.subtitle}</p>
+    <section id="collections" className="py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
+          <h2 className="font-display text-4xl text-cream font-semibold mb-2">{content.title}</h2>
+          <p className="text-stone mb-12">{content.subtitle}</p>
+        </ScrollReveal>
+      </div>
 
-      <div className="flex flex-col divide-y divide-cream-dark">
+      <div className="flex flex-col">
         {categories.map((cat, index) => (
-          <Link
-            key={cat.id}
-            href={`/category/${cat.slug}`}
-            className="group flex flex-col sm:flex-row items-stretch gap-0 hover:bg-cream-dark/40 transition-colors duration-300 py-8 first:pt-0 last:pb-0"
-          >
-            {/* Image */}
-            <div className="relative w-full sm:w-56 flex-shrink-0 aspect-square sm:aspect-auto sm:h-48 overflow-hidden rounded-xl bg-cream-dark">
-              {cat.coverImage ? (
-                <Image
-                  src={cat.coverImage}
-                  alt={cat.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, 224px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-stone/30 text-4xl">✦</span>
-                </div>
-              )}
+          <div key={cat.id}>
+            {/* Mobile: full-width stacked card */}
+            <div className="lg:hidden">
+              <motion.div
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, margin: "-60px" }}
+                className="group"
+              >
+                <Link href={`/category/${cat.slug}`} className="block">
+                  <motion.div variants={childVariants} className="relative w-full aspect-square overflow-hidden">
+                    {cat.coverImage ? (
+                      <Image
+                        src={cat.coverImage}
+                        alt={cat.name}
+                        fill
+                        sizes="100vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-walnut-light flex items-center justify-center">
+                        <span className="text-stone/30 text-4xl">✦</span>
+                      </div>
+                    )}
+                  </motion.div>
+
+                  <motion.div variants={childVariants} className="max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-10">
+                    <h3 className="font-display text-3xl text-cream mb-2">{cat.name}</h3>
+                    {cat.description && (
+                      <p className="text-stone text-sm leading-relaxed">{cat.description}</p>
+                    )}
+                    <span className="text-terracotta text-sm mt-3 inline-flex items-center gap-2">
+                      Explore Collection <ArrowRight size={14} />
+                    </span>
+                  </motion.div>
+                </Link>
+              </motion.div>
+              <div className="border-b border-cream-dark/20 mx-4 sm:mx-6" />
             </div>
 
-            {/* Text */}
-            <div className="flex flex-col justify-center sm:pl-10 pt-5 sm:pt-0 flex-1">
-              <h3 className="text-2xl font-semibold text-walnut group-hover:text-terracotta transition-colors mb-3">
-                {cat.name}
-              </h3>
-              {cat.description ? (
-                <p className="text-stone text-sm leading-relaxed max-w-lg">
-                  {cat.description}
-                </p>
-              ) : (
-                <p className="text-stone/40 text-sm italic">No description yet.</p>
-              )}
-              <span className="inline-flex items-center gap-1.5 text-terracotta text-sm mt-5 font-medium group-hover:gap-3 transition-all duration-300">
-                Explore Collection <ArrowRight size={15} />
-              </span>
-            </div>
-          </Link>
+            {/* Desktop: alternating 35/65 split */}
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: false, margin: "-60px" }}
+              className="hidden lg:block group"
+            >
+              <Link href={`/category/${cat.slug}`} className="block">
+                <div className={`flex items-stretch ${index % 2 === 1 ? "flex-row-reverse" : ""}`}>
+                  <motion.div variants={childVariants} className="relative w-[35%] aspect-square overflow-hidden">
+                    {cat.coverImage ? (
+                      <Image
+                        src={cat.coverImage}
+                        alt={cat.name}
+                        fill
+                        sizes="35vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-walnut-light flex items-center justify-center">
+                        <span className="text-stone/30 text-4xl">✦</span>
+                      </div>
+                    )}
+                  </motion.div>
+
+                  <motion.div
+                    variants={childVariants}
+                    className="w-[65%] flex flex-col justify-center px-16 bg-walnut"
+                  >
+                    <h3 className="font-display text-6xl text-cream mb-4">{cat.name}</h3>
+                    {cat.description && (
+                      <p className="text-stone leading-relaxed mb-6">{cat.description}</p>
+                    )}
+                    <span className="text-terracotta inline-flex items-center gap-2 group-hover:gap-4 transition-all duration-300">
+                      Explore Collection <ArrowRight size={16} />
+                    </span>
+                  </motion.div>
+                </div>
+              </Link>
+            </motion.div>
+          </div>
         ))}
       </div>
     </section>
