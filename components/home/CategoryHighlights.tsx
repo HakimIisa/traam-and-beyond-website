@@ -10,15 +10,15 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 
 const cardVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.5 } },
+  visible: { transition: { staggerChildren: 1.0 } },
 };
 
 const childVariants = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 0, scale: 0.8 },
   visible: {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] as const },
+    scale: 1,
+    transition: { duration: 1.2, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
@@ -69,7 +69,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                   </motion.div>
 
                   <motion.div variants={childVariants} className="max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-10">
-                    <h3 className="font-display text-3xl text-cream mb-2">{cat.name}</h3>
+                    <h3 className="font-display text-3xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-2">{cat.name}</h3>
                     {cat.description && (
                       <p className="text-stone text-sm leading-relaxed">{cat.description}</p>
                     )}
@@ -112,7 +112,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                     variants={childVariants}
                     className="w-[65%] flex flex-col justify-center px-16 bg-walnut"
                   >
-                    <h3 className="font-display text-6xl text-cream mb-4">{cat.name}</h3>
+                    <h3 className="font-display text-6xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-4">{cat.name}</h3>
                     {cat.description && (
                       <p className="text-stone leading-relaxed mb-6">{cat.description}</p>
                     )}
