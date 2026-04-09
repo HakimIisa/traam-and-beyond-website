@@ -30,13 +30,13 @@ export default async function AboutPage() {
 
       <div className="prose prose-lg max-w-none text-stone leading-relaxed space-y-6">
         <ScrollReveal delay={0.05}>
-          <p>{content.intro.paragraph1}</p>
+          <p className="whitespace-pre-line">{content.intro.paragraph1}</p>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
-          <p>{content.intro.paragraph2}</p>
+          <p className="whitespace-pre-line">{content.intro.paragraph2}</p>
         </ScrollReveal>
         <ScrollReveal delay={0.15}>
-          <p>{content.intro.paragraph3}</p>
+          <p className="whitespace-pre-line">{content.intro.paragraph3}</p>
         </ScrollReveal>
 
         <ScrollReveal delay={0.2}>
@@ -50,7 +50,7 @@ export default async function AboutPage() {
             <ScrollReveal key={craft.name} delay={index * 0.1}>
               <div className="bg-walnut-light rounded-sm p-5">
                 <p className="font-semibold text-cream mb-1">{craft.name}</p>
-                <p className="text-sm text-stone leading-relaxed">{craft.desc}</p>
+                <p className="text-sm text-stone leading-relaxed whitespace-pre-line">{craft.desc}</p>
               </div>
             </ScrollReveal>
           ))}
@@ -63,7 +63,7 @@ export default async function AboutPage() {
           <h2 className="font-display text-2xl font-semibold text-cream mb-2 text-center">
             {content.enquiry.title}
           </h2>
-          <p className="text-stone text-center text-sm mb-6">
+          <p className="text-stone text-center text-sm mb-6 whitespace-pre-line">
             {content.enquiry.subtitle}
           </p>
           <EnquiryForm type="general" />

@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { getItemById } from "@/lib/firebase/items";
-import { getCategoryBySlug } from "@/lib/firebase/categories";
 import ItemImageGallery from "@/components/items/ItemImageGallery";
 import EnquiryForm from "@/components/forms/EnquiryForm";
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +67,7 @@ export default async function ItemDetailPage({ params }: Props) {
             </p>
           </div>
 
-          <p className="text-stone leading-relaxed">{item.description}</p>
+          <p className="text-stone leading-relaxed whitespace-pre-line">{item.description}</p>
 
           {item.dimensions && (
             <div>

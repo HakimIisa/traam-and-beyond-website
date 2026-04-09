@@ -42,7 +42,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="text-cream/70 text-lg sm:text-xl leading-relaxed mb-10 max-w-xl mx-auto"
+          className="text-cream/70 text-lg sm:text-xl leading-relaxed mb-10 max-w-xl mx-auto whitespace-pre-line"
         >
           {content.subtext}
         </motion.p>

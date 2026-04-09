@@ -71,7 +71,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                   <motion.div variants={childVariants} className="max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-10">
                     <h3 className="font-display text-3xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-2">{cat.name}</h3>
                     {cat.description && (
-                      <p className="text-stone text-sm leading-relaxed">{cat.description}</p>
+                      <p className="text-stone text-sm leading-relaxed whitespace-pre-line">{cat.description}</p>
                     )}
                     <span className="text-terracotta text-sm mt-3 inline-flex items-center gap-2">
                       Explore Collection <ArrowRight size={14} />
@@ -114,7 +114,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                   >
                     <h3 className="font-display text-6xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-4">{cat.name}</h3>
                     {cat.description && (
-                      <p className="text-stone leading-relaxed mb-6">{cat.description}</p>
+                      <p className="text-stone leading-relaxed mb-6 whitespace-pre-line">{cat.description}</p>
                     )}
                     <span className="text-terracotta inline-flex items-center gap-2 group-hover:gap-4 transition-all duration-300">
                       Explore Collection <ArrowRight size={16} />
