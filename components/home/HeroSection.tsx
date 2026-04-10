@@ -12,13 +12,13 @@ export default function HeroSection({ content }: HeroSectionProps) {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background image — full vessel contained on the left */}
-      <div className="absolute inset-y-0 left-0 w-[48%] opacity-40">
+      <div className="absolute inset-y-0 left-0 w-full lg:w-[48%] opacity-40">
         <Image
           src="/hero-bg(2)-Photoroom.png"
           alt="Kashmiri copper vessel"
           fill
           priority
-          className="object-contain object-left-bottom"
+          className="object-contain object-[center_20%] lg:object-left-bottom"
           sizes="48vw"
         />
       </div>
