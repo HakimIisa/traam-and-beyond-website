@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
   for (const [id, newName] of Object.entries(RENAMES)) {
     const ref = adminDb.collection("categories").doc(id);
     const snap = await ref.get();
-    if (snap.exists()) {
+    if (snap.exists) {
       await ref.update({ name: newName });
       results.renamed.push(`${id} → "${newName}"`);
     } else {
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
   for (const cat of NEW_CATEGORIES) {
     const ref = adminDb.collection("categories").doc(cat.id);
     const snap = await ref.get();
-    if (snap.exists()) {
+    if (snap.exists) {
       results.skipped.push(`${cat.id} (already exists)`);
     } else {
       await ref.set({
