@@ -106,6 +106,14 @@ export async function apiUpdateAboutSection(section: string, data: object): Prom
   if (!res.ok) throw new Error("Failed to update about content");
 }
 
+// ── Seed ────────────────────────────────────────────────────────────────────
+export async function apiSeedCategories(): Promise<{ renamed: string[]; created: string[]; skipped: string[] }> {
+  const headers = await getAuthHeader();
+  const res = await fetch("/api/admin/seed-categories", { method: "POST", headers });
+  if (!res.ok) throw new Error("Seed failed");
+  return res.json();
+}
+
 // ── Enquiries ───────────────────────────────────────────────────────────────
 export async function apiMarkEnquiryRead(id: string, read: boolean): Promise<void> {
   const headers = await getAuthHeader();

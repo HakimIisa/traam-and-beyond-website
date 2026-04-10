@@ -24,16 +24,6 @@ export default async function HomePage() {
     <>
       <HeroSection content={content.hero} />
 
-      {/* Intro */}
-      <section className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h2 className="text-3xl text-walnut font-semibold mb-4">
-          {content.intro.title}
-        </h2>
-        <p className="text-stone leading-relaxed text-lg">
-          {content.intro.body}
-        </p>
-      </section>
-
       <CategoryHighlights categories={categories} content={content.collections} />
 
       {/* General Enquiry */}

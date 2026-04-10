@@ -3,39 +3,41 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, X, ChevronDown } from "lucide-react";
+import { Search, X, Menu } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import type { Category } from "@/types";
 
-interface NavbarProps {
-  categories: Category[];
-}
+const CRAFTS = [
+  { label: "Copper Ware",      slug: "copper-ware" },
+  { label: "Papier Mache",     slug: "papier-mch" },
+  { label: "Silverware",       slug: "silver-ware" },
+  { label: "Enamelware",       slug: "enamel-ware" },
+  { label: "Terracotta",       slug: "terracotta" },
+  { label: "Sculptures",       slug: "sculptures" },
+  { label: "Green Serpentine", slug: "green-serpentine" },
+  { label: "Coins",            slug: "coins" },
+  { label: "Shawls",           slug: "shawls" },
+  { label: "Jewellery",        slug: "jewellery" },
+  { label: "Carpets",          slug: "carpets" },
+  { label: "Willow Wicker",    slug: "willow-wicker" },
+  { label: "Woodwork",         slug: "wood-work" },
+  { label: "Brass Ware",       slug: "brass-ware" },
+];
 
-export default function Navbar({ categories }: NavbarProps) {
+export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
   }, [searchOpen]);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setCategoriesOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -49,6 +51,12 @@ export default function Navbar({ categories }: NavbarProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -58,127 +66,198 @@ export default function Navbar({ categories }: NavbarProps) {
     }
   }
 
-  const isCategoryActive = categories.some((c) =>
-    pathname.startsWith(`/category/${c.slug}`)
-  );
+  function closeMenu() {
+    setMenuOpen(false);
+  }
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        hidden ? "-translate-y-full" : "translate-y-0",
-        scrolled
-          ? "bg-walnut/90 backdrop-blur-sm border-b border-cream-dark/10"
-          : "bg-transparent"
-      )}
-    >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="text-xl font-semibold text-cream tracking-wide hover:text-terracotta transition-colors"
-        >
-          Traam and Beyond
-        </Link>
-
-        {/* Desktop nav — hidden on mobile (BottomTabBar handles mobile) */}
-        <div className="hidden lg:flex items-center gap-6">
+    <>
+      <header
+        className={cn(
+          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+          hidden ? "-translate-y-full" : "translate-y-0",
+          scrolled || menuOpen
+            ? "bg-walnut/95 backdrop-blur-sm border-b border-cream-dark/10"
+            : "bg-transparent"
+        )}
+      >
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Logo */}
           <Link
             href="/"
-            className={cn(
-              "text-sm text-stone hover:text-terracotta transition-colors",
-              pathname === "/" && "text-terracotta font-medium"
-            )}
+            onClick={closeMenu}
+            className="text-xl font-semibold text-cream tracking-wide hover:text-terracotta transition-colors"
           >
-            Home
+            Traam and Beyond
           </Link>
 
-          {/* Categories dropdown */}
-          <div ref={dropdownRef} className="relative">
-            <button
-              onClick={() => setCategoriesOpen((o) => !o)}
-              className={cn(
-                "flex items-center gap-1 text-sm text-stone hover:text-terracotta transition-colors",
-                isCategoryActive && "text-terracotta font-medium"
-              )}
-            >
-              Collections
-              <ChevronDown
-                size={14}
-                className={cn("transition-transform duration-200", categoriesOpen && "rotate-180")}
-              />
-            </button>
+          {/* Right side: Search + Hamburger */}
+          <div className="flex items-center gap-3">
+            {searchOpen ? (
+              <form onSubmit={handleSearch} className="flex items-center gap-2">
+                <input
+                  ref={searchRef}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search items..."
+                  className="text-sm border-b border-cream/40 bg-transparent outline-none w-40 sm:w-56 pb-0.5 text-cream placeholder:text-stone"
+                />
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(false)}
+                  className="text-stone hover:text-cream transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </form>
+            ) : (
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="text-stone hover:text-terracotta transition-colors"
+                aria-label="Search"
+              >
+                <Search size={20} />
+              </button>
+            )}
 
-            {categoriesOpen && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 bg-walnut border border-cream-dark/20 rounded-sm shadow-md py-1 z-50">
-                {categories.map((c) => (
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="text-stone hover:text-terracotta transition-colors p-1"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+            >
+              {menuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      {/* Full-screen menu overlay */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            key="menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
+            className="fixed inset-0 z-40 bg-walnut overflow-y-auto"
+          >
+            <div className="max-w-4xl mx-auto px-8 sm:px-12 pt-24 pb-16">
+              <nav className="flex flex-col gap-10">
+
+                {/* 1. Home */}
+                <div>
                   <Link
-                    key={c.id}
-                    href={`/category/${c.slug}`}
-                    onClick={() => setCategoriesOpen(false)}
+                    href="/"
+                    onClick={closeMenu}
                     className={cn(
-                      "block px-4 py-2.5 text-sm text-stone hover:text-terracotta hover:bg-walnut-light/40 transition-colors",
-                      pathname.startsWith(`/category/${c.slug}`) && "text-terracotta font-medium"
+                      "font-display text-5xl sm:text-6xl hover:text-terracotta transition-colors duration-200",
+                      pathname === "/" ? "text-terracotta" : "text-cream"
                     )}
                   >
-                    {c.name}
+                    Home
                   </Link>
-                ))}
-              </div>
-            )}
-          </div>
+                </div>
 
-          <Link
-            href="/about"
-            className={cn(
-              "text-sm text-stone hover:text-terracotta transition-colors",
-              pathname === "/about" && "text-terracotta font-medium"
-            )}
-          >
-            About
-          </Link>
+                {/* 2. About */}
+                <div className="flex flex-col gap-3">
+                  <Link
+                    href="/about"
+                    onClick={closeMenu}
+                    className={cn(
+                      "font-display text-5xl sm:text-6xl hover:text-terracotta transition-colors duration-200",
+                      pathname === "/about" ? "text-terracotta" : "text-cream"
+                    )}
+                  >
+                    About
+                  </Link>
+                  <div className="flex flex-col gap-1.5 pl-6 border-l border-cream-dark/30">
+                    <Link
+                      href="/about#introduction"
+                      onClick={closeMenu}
+                      className="text-stone text-lg hover:text-terracotta transition-colors duration-200"
+                    >
+                      Introduction
+                    </Link>
+                    <Link
+                      href="/about#craft-heritage"
+                      onClick={closeMenu}
+                      className="text-stone text-lg hover:text-terracotta transition-colors duration-200"
+                    >
+                      Craft Heritage of Kashmir
+                    </Link>
+                  </div>
+                </div>
 
-          <Link
-            href="/contact"
-            className={cn(
-              "text-sm text-stone hover:text-terracotta transition-colors",
-              pathname === "/contact" && "text-terracotta font-medium"
-            )}
-          >
-            Contact
-          </Link>
-        </div>
+                {/* 3. Crafts */}
+                <div className="flex flex-col gap-3">
+                  <span className="font-display text-5xl sm:text-6xl text-cream">Crafts</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-1.5 pl-6 border-l border-cream-dark/30">
+                    {CRAFTS.map((craft) => (
+                      <Link
+                        key={craft.slug}
+                        href={`/category/${craft.slug}`}
+                        onClick={closeMenu}
+                        className={cn(
+                          "text-lg hover:text-terracotta transition-colors duration-200",
+                          pathname.startsWith(`/category/${craft.slug}`)
+                            ? "text-terracotta"
+                            : "text-stone"
+                        )}
+                      >
+                        {craft.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
 
-        {/* Search */}
-        <div className="flex items-center">
-          {searchOpen ? (
-            <form onSubmit={handleSearch} className="flex items-center gap-2">
-              <input
-                ref={searchRef}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search items..."
-                className="text-sm border-b border-cream/40 bg-transparent outline-none w-48 pb-0.5 text-cream placeholder:text-stone"
-              />
-              <button
-                type="button"
-                onClick={() => setSearchOpen(false)}
-                className="text-stone hover:text-cream"
-              >
-                <X size={18} />
-              </button>
-            </form>
-          ) : (
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="text-stone hover:text-terracotta transition-colors"
-              aria-label="Search"
-            >
-              <Search size={20} />
-            </button>
-          )}
-        </div>
-      </nav>
-    </header>
+                {/* 4. Stories */}
+                <div>
+                  <Link
+                    href="/stories"
+                    onClick={closeMenu}
+                    className={cn(
+                      "font-display text-5xl sm:text-6xl hover:text-terracotta transition-colors duration-200",
+                      pathname === "/stories" ? "text-terracotta" : "text-cream"
+                    )}
+                  >
+                    Stories
+                  </Link>
+                </div>
+
+                {/* 5. Buy from the Artisans */}
+                <div>
+                  <Link
+                    href="/buy-from-artisans"
+                    onClick={closeMenu}
+                    className={cn(
+                      "font-display text-5xl sm:text-6xl hover:text-terracotta transition-colors duration-200",
+                      pathname === "/buy-from-artisans" ? "text-terracotta" : "text-cream"
+                    )}
+                  >
+                    Buy from the Artisans
+                  </Link>
+                </div>
+
+                {/* 6. Contact */}
+                <div>
+                  <Link
+                    href="/contact"
+                    onClick={closeMenu}
+                    className={cn(
+                      "font-display text-5xl sm:text-6xl hover:text-terracotta transition-colors duration-200",
+                      pathname === "/contact" ? "text-terracotta" : "text-cream"
+                    )}
+                  >
+                    Contact
+                  </Link>
+                </div>
+
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

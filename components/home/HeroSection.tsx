@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import type { HomeContent } from "@/types/home-content";
 
@@ -9,15 +10,22 @@ interface HeroSectionProps {
 
 export default function HeroSection({ content }: HeroSectionProps) {
   return (
-    <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-walnut">
-      {/* Subtle pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, #F8E8D2 1px, transparent 0)`,
-          backgroundSize: "32px 32px",
-        }}
-      />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background image — full vessel contained on the left */}
+      <div className="absolute inset-y-0 left-0 w-[48%] opacity-40">
+        <Image
+          src="/hero-bg(2)-Photoroom.png"
+          alt="Kashmiri copper vessel"
+          fill
+          priority
+          className="object-contain object-left-bottom"
+          sizes="48vw"
+        />
+      </div>
+
+      {/* Left-to-right darkening gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black" />
+
 
       <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
         <motion.p
@@ -42,7 +50,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="text-cream/70 text-lg sm:text-xl leading-relaxed mb-10 max-w-xl mx-auto whitespace-pre-line"
+          className="text-cream/80 text-lg sm:text-xl leading-relaxed mb-10 max-w-xl mx-auto whitespace-pre-line"
         >
           {content.subtext}
         </motion.p>

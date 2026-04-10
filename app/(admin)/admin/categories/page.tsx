@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Plus } from "lucide-react";
 import { adminGetAllCategories } from "@/lib/firebase/admin-categories";
 import DeleteCategoryButton from "./DeleteCategoryButton";
+import SeedCategoriesButton from "./SeedCategoriesButton";
 
 export default async function CategoriesPage() {
   const categories = await adminGetAllCategories();
@@ -14,12 +15,15 @@ export default async function CategoriesPage() {
           <h1 className="text-3xl font-semibold text-walnut">Categories</h1>
           <p className="text-stone text-sm mt-1">{categories.length} categories</p>
         </div>
-        <Link
-          href="/admin/categories/new"
-          className="flex items-center gap-2 px-4 py-2.5 bg-terracotta text-cream text-sm rounded-sm hover:bg-terracotta-dark transition-colors"
-        >
-          <Plus size={16} /> Add Category
-        </Link>
+        <div className="flex items-center gap-2">
+          <SeedCategoriesButton />
+          <Link
+            href="/admin/categories/new"
+            className="flex items-center gap-2 px-4 py-2.5 bg-terracotta text-cream text-sm rounded-sm hover:bg-terracotta-dark transition-colors"
+          >
+            <Plus size={16} /> Add Category
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white border border-cream-dark rounded-sm overflow-hidden">

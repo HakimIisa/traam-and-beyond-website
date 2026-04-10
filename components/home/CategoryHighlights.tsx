@@ -31,7 +31,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
   if (categories.length === 0) return null;
 
   return (
-    <section id="collections" className="py-16">
+    <section id="collections" className="py-16 bg-[#1a130a]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <h2 className="font-display text-4xl text-cream font-semibold mb-2">{content.title}</h2>
@@ -110,7 +110,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
 
                   <motion.div
                     variants={childVariants}
-                    className="w-[65%] flex flex-col justify-center px-16 bg-walnut"
+                    className="w-[65%] flex flex-col justify-center px-16 bg-[#1a130a]"
                   >
                     <h3 className="font-display text-6xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-4">{cat.name}</h3>
                     {cat.description && (
