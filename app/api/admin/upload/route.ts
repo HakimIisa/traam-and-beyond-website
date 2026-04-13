@@ -19,9 +19,9 @@ export async function POST(req: NextRequest) {
 
   await fileRef.save(buffer, {
     metadata: { contentType: file.type },
+    predefinedAcl: "publicRead",
   });
 
-  await fileRef.makePublic();
   const url = `https://storage.googleapis.com/${bucket.name}/${path}`;
 
   return NextResponse.json({ url });

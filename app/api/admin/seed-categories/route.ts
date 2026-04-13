@@ -13,9 +13,9 @@ const RENAMES: Record<string, string> = {
 // New categories to create if they don't already exist
 const NEW_CATEGORIES = [
   {
-    id: "enamelware",
+    id: "enamel-ware",
     name: "Enamelware",
-    slug: "enamelware",
+    slug: "enamel-ware",
     order: 4,
     coverImage: "https://picsum.photos/seed/enamelware-kashmir/600/600",
     description: "Kashmiri enamelware, known as meenakari, features vibrant colours fired onto metal surfaces. Artisans in Srinagar create intricate floral and geometric patterns using age-old techniques passed down through generations.",
@@ -61,9 +61,9 @@ const NEW_CATEGORIES = [
     description: "Kashmir's willow wicker craft produces beautiful baskets, furniture, and decorative items woven from pliable willow branches. This ancient craft remains a vital cottage industry in the villages of the valley.",
   },
   {
-    id: "woodwork",
+    id: "wood-work",
     name: "Woodwork",
-    slug: "woodwork",
+    slug: "wood-work",
     order: 13,
     coverImage: "https://picsum.photos/seed/wood-carving/600/600",
     description: "Kashmiri walnut wood carving is world-famous for its intricate patterns and deep relief work. Master craftsmen carve furniture, screens, and decorative panels with floral, arabesque, and chinar leaf motifs.",

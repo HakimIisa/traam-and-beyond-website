@@ -208,3 +208,209 @@ The stagger delay and scale were tuned across several iterations:
 | `components/items/ItemCard.tsx` | Full rewrite — matches CategoryHighlights |
 | `components/items/ItemGrid.tsx` | Passes index, removes divide-y |
 | `app/(public)/about/page.tsx` | Dark colors + ScrollReveal |
+
+---
+
+---
+
+# Summary — Third Build Session
+
+**Date:** 2026-04-13
+**Scope:** Client-requested content and navigation changes — hamburger menu, hero background image, About page content, whitespace fixes, category seeding, upload reliability
+
+---
+
+## 1. `whitespace-pre-line` — CMS Text Rendering Fix
+
+Admin textareas preserve line breaks in the database, but HTML collapses whitespace by default. Added `whitespace-pre-line` Tailwind class to all public-facing CMS-rendered text fields so newlines in the admin panel appear as paragraph breaks on the site.
+
+**Files changed:**
+- `components/home/HeroSection.tsx` — hero subtext paragraph
+- `components/home/CategoryHighlights.tsx` — category description paragraphs
+- `components/items/ItemCard.tsx` — item description (mobile + desktop)
+- `app/(public)/category/[slug]/[itemId]/page.tsx` — item detail description
+
+---
+
+## 2. Navbar — Full Hamburger Menu Redesign (`components/layout/Navbar.tsx`)
+
+The top Navbar and BottomTabBar were replaced with a single full-screen hamburger menu that works across all screen sizes.
+
+**Removed:**
+- `components/layout/BottomTabBar.tsx` (no longer rendered)
+- `pb-20 lg:pb-0` from `<main>` in `app/(public)/layout.tsx`
+- Category fetching and `categories` prop from the navbar
+- Mobile hamburger sheet drawer from previous design
+
+**Added:**
+- `Menu` / `X` icon (lucide) top-right — toggles a full-screen overlay
+- Full-screen `AnimatePresence` overlay with `bg-walnut` and fade animation
+- Body scroll locked (`document.body.style.overflow = "hidden"`) when menu is open
+- Hardcoded `CRAFTS` array with 14 categories, each linking to `/category/[slug]`
+
+**Menu structure:**
+```
+Home
+About ──► Introduction  /  Craft Heritage of Kashmir
+Crafts ──► (2-col mobile / 3-col sm+, 14 subcategories)
+Stories
+Buy from the Artisans
+Contact
+```
+
+**CRAFTS array (slugs match Firestore document IDs exactly):**
+```tsx
+const CRAFTS = [
+  { label: "Copper Ware",      slug: "copper-ware" },
+  { label: "Papier Mache",     slug: "papier-mch" },   // slugify strips â/é
+  { label: "Silverware",       slug: "silver-ware" },
+  { label: "Enamelware",       slug: "enamel-ware" },
+  { label: "Terracotta",       slug: "terracotta" },
+  { label: "Sculptures",       slug: "sculptures" },
+  { label: "Green Serpentine", slug: "green-serpentine" },
+  { label: "Coins",            slug: "coins" },
+  { label: "Shawls",           slug: "shawls" },
+  { label: "Jewellery",        slug: "jewellery" },
+  { label: "Carpets",          slug: "carpets" },
+  { label: "Willow Wicker",    slug: "willow-wicker" },
+  { label: "Woodwork",         slug: "wood-work" },
+  { label: "Brass Ware",       slug: "brass-ware" },
+];
+```
+
+**About anchor sub-links:**
+- `/about#introduction`
+- `/about#craft-heritage`
+
+Auto-hide on scroll and transparent→frosted glass transition were retained from the previous design.
+
+---
+
+## 3. New Placeholder Pages
+
+| File | Route | Content |
+|------|-------|---------|
+| `app/(public)/stories/page.tsx` | `/stories` | ScrollReveal heading, "Content coming soon." |
+| `app/(public)/buy-from-artisans/page.tsx` | `/buy-from-artisans` | ScrollReveal heading, "Content coming soon." |
+
+---
+
+## 4. Home Page — Removed Intro Section (`app/(public)/page.tsx`)
+
+Removed the centred text block below the hero ("Traam and Beyond brings you...") at client request. The hero now flows directly into the category highlights section.
+
+---
+
+## 5. Hero Section — Full-Bleed Background Image (`components/home/HeroSection.tsx`)
+
+Replaced the plain dark walnut background + dot pattern with a positioned vessel photograph.
+
+**Implementation:**
+- `min-h-screen` for full viewport height
+- `<Image src="/hero-vessel.png" fill priority>` in a `w-[48%]` left-aligned container
+- `opacity-40` on the image container
+- `object-contain object-[center_20%]` on mobile / `object-left-bottom` on desktop
+- Dot pattern overlay removed entirely
+- Left-to-right darkening gradient overlay: `bg-gradient-to-r from-black/20 to-black`
+
+```tsx
+<div className="absolute inset-y-0 left-0 w-full lg:w-[48%] opacity-40">
+  <Image src="/hero-vessel.png" fill priority
+    className="object-contain object-[center_20%] lg:object-left-bottom" sizes="48vw" />
+</div>
+<div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black" />
+```
+
+**Image file:** `public/hero-vessel.png` (client-provided, previously `hero-bg(2)-Photoroom.png` — renamed to fix Next.js parentheses issue)
+
+---
+
+## 6. Category Highlights — Darker Background (`components/home/CategoryHighlights.tsx`)
+
+Section background and text panel changed from `bg-walnut` (`#20180C`) to `bg-[#1a130a]` (20% darker) for stronger contrast against the hero gradient.
+
+---
+
+## 7. About Page — Real Content + Image + Gradient (`app/(public)/about/page.tsx`)
+
+### Content
+Replaced the placeholder with real client-authored text across 5 paragraphs describing the founder's personal journey collecting Kashmiri handicrafts.
+
+### Image Layout
+- **Desktop:** `float-right ml-10 mb-6 w-[380px]` — text wraps around the image
+- **Mobile:** Separate `<Image>` instance between paragraph 1 and 2, `max-w-xs mx-auto`
+- Two `<Image>` tags used (one `hidden lg:block`, one `lg:hidden`) to achieve different placements without JavaScript
+- Image file: `public/about-vessel.png` (client-provided; explicit `width={600} height={800}` props, not `fill`, to avoid zero-height rendering)
+
+### Gradient
+Same left-to-right darkening effect as the hero section — applied as a `fixed` overlay so it covers the full viewport regardless of page scroll position:
+```tsx
+<div className="fixed inset-0 bg-gradient-to-r from-transparent to-black/80 pointer-events-none z-0" />
+```
+
+---
+
+## 8. Category Seeding System (Admin)
+
+Added tooling to bulk-create/rename categories in Firestore from a predefined master list.
+
+### `app/api/admin/seed-categories/route.ts`
+Admin-auth protected POST endpoint:
+- Renames existing documents: `copper` → `copper-ware`, `silver` → `silver-ware`, `jade` → `green-serpentine`
+- Creates 8 new categories if not already in Firestore: Enamelware, Sculptures, Shawls, Jewellery, Carpets, Willow Wicker, Woodwork, Brass Ware
+
+**Key fix:** Firebase Admin SDK `DocumentSnapshot.exists` is a **property**, not a method. Using `snap.exists()` causes a Vercel build error — must be `snap.exists`.
+
+### `app/(admin)/admin/categories/SeedCategoriesButton.tsx`
+Client component with a "Seed All Crafts" button, calls `apiSeedCategories()`, shows loading/success/error state.
+
+### `app/(admin)/admin/categories/page.tsx`
+SeedCategoriesButton added next to the "Add Category" button.
+
+### `lib/admin-api.ts`
+Added `apiSeedCategories()` function.
+
+### `lib/mock-data.ts`
+Updated mock data to match new category names and added 8 new entries with placeholder images and descriptions.
+
+---
+
+## 9. Upload Reliability Fix (`app/api/admin/upload/route.ts`)
+
+**Problem:** Intermittent upload failures where images would sometimes not become publicly accessible.
+
+**Root cause:** The previous implementation called `fileRef.save()` followed by a separate `fileRef.makePublic()`. These are two independent API calls — the second could silently fail under network pressure, leaving the file private.
+
+**Fix:** Replaced with a single `save()` call using `predefinedAcl: "publicRead"`, making the file public atomically at write time:
+```ts
+await fileRef.save(buffer, {
+  metadata: { contentType: file.type },
+  predefinedAcl: "publicRead",
+});
+```
+
+---
+
+## 10. Key Files Modified (Third Build)
+
+| File | Change type |
+|------|-------------|
+| `components/layout/Navbar.tsx` | Full rewrite — hamburger menu, full-screen overlay, 14-craft submenu |
+| `components/layout/BottomTabBar.tsx` | **Removed** (no longer used) |
+| `app/(public)/layout.tsx` | Removed BottomTabBar, removed pb-20 |
+| `app/(public)/page.tsx` | Removed intro text section |
+| `app/(public)/stories/page.tsx` | **New file** — placeholder |
+| `app/(public)/buy-from-artisans/page.tsx` | **New file** — placeholder |
+| `app/(public)/about/page.tsx` | Real content, vessel image, fixed gradient overlay |
+| `components/home/HeroSection.tsx` | Full-bleed bg image, gradient, removed dot pattern |
+| `components/home/CategoryHighlights.tsx` | Darker bg, whitespace-pre-line |
+| `components/items/ItemCard.tsx` | whitespace-pre-line on descriptions |
+| `app/(public)/category/[slug]/[itemId]/page.tsx` | whitespace-pre-line on description |
+| `app/api/admin/upload/route.ts` | predefinedAcl fix for upload reliability |
+| `app/api/admin/seed-categories/route.ts` | **New file** — bulk category seeding endpoint |
+| `app/(admin)/admin/categories/SeedCategoriesButton.tsx` | **New file** — admin UI button |
+| `app/(admin)/admin/categories/page.tsx` | Added SeedCategoriesButton |
+| `lib/admin-api.ts` | Added apiSeedCategories() |
+| `lib/mock-data.ts` | Updated category names + 8 new entries |
+| `public/hero-vessel.png` | Client-provided hero background image |
+| `public/about-vessel.png` | Client-provided about page vessel image |
