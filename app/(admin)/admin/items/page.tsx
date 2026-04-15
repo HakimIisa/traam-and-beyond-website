@@ -4,6 +4,8 @@ import { adminGetAllItems } from "@/lib/firebase/admin-items";
 import { adminGetAllCategories } from "@/lib/firebase/admin-categories";
 import ItemsClient from "./ItemsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function ItemsPage() {
   const [items, categories] = await Promise.all([
     adminGetAllItems(),

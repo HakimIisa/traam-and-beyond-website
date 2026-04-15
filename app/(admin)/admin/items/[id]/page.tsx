@@ -3,6 +3,8 @@ import { adminGetAllItems } from "@/lib/firebase/admin-items";
 import { adminGetAllCategories } from "@/lib/firebase/admin-categories";
 import ItemForm from "@/components/forms/ItemForm";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ id: string }>;
 }

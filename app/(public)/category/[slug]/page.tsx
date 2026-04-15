@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getAllCategories, getCategoryBySlug } from "@/lib/firebase/categories";
+import { getCategoryBySlug } from "@/lib/firebase/categories";
 import { getItemsByCategory } from "@/lib/firebase/items";
 import ItemGrid from "@/components/items/ItemGrid";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ slug: string }>;
-}
-
-export async function generateStaticParams() {
-  const categories = await getAllCategories();
-  return categories.map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
