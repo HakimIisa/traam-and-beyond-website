@@ -126,17 +126,6 @@ export default function HomeContentClient({ content }: { content: HomeContent })
       />
 
       <SectionCard
-        title="Intro Section"
-        description="The centred text block below the hero banner."
-        section="intro"
-        defaultValues={content.intro}
-        fields={[
-          { name: "title", label: "Title", type: "input" },
-          { name: "body", label: "Body Text", type: "textarea", rows: 4 },
-        ]}
-      />
-
-      <SectionCard
         title="Collections Section"
         description="The heading above the list of categories."
         section="collections"

@@ -1,54 +1,30 @@
 export interface AboutContent {
-  intro: {
-    heading: string;
+  introduction: {
     paragraph1: string;
     paragraph2: string;
     paragraph3: string;
+    paragraph4: string;
+    paragraph5: string;
   };
-  crafts: {
-    heading: string;
-    copper: { name: string; desc: string };
-    silver: { name: string; desc: string };
-    jade: { name: string; desc: string };
-    papierMache: { name: string; desc: string };
-  };
-  enquiry: {
-    title: string;
-    subtitle: string;
+  craftHeritage: {
+    body: string;
   };
 }
 
 export const DEFAULT_ABOUT_CONTENT: AboutContent = {
-  intro: {
-    heading: "Our Story",
+  introduction: {
     paragraph1:
-      "Traam and Beyond was born from a deep love for Kashmir\u2019s artistic heritage \u2014 a heritage that spans centuries and is carried forward by generations of dedicated artisans.",
+      "It was during a casual evening stroll in Srinagar with my mother in 2004 that we passed by this shop selling Kashmiri copperware. My eyes fell upon an antique bowl with hand engraved and enamelled floral rim, it's patina worn off, just sitting there on a shelf among its fresh counterparts. Someone had sold it by weight, in exchange for something new, a practice not uncommon even today. My mom got me that for 300 Indian rupees and it became the first item in my collection that I still cherish.",
     paragraph2:
-      "The word Traam (\u062a\u0631\u0627\u0645) refers to copper in Kashmiri \u2014 one of the oldest crafts of the valley. Our collection begins there, but reaches far beyond: into silver filigree work, jade carvings, papier-m\u00e2ch\u00e9, terracotta jewellery, and ancient coins that hold stories of dynasties past.",
+      "Since I was a kid, growing up in a cultural context full of arts and crafts, I subconsciously was developing a taste for Kashmiri handicrafts. Learning about them was my solace. It inspired me to collect Kashmiri antiques as a hobby, which I have unceasingly pursued ever since.",
     paragraph3:
-      "Every item in our collection is carefully sourced directly from craftsmen and families who have practiced these arts for generations. We believe that acquiring a handcrafted item is not just a purchase \u2014 it is an act of preserving culture.",
+      "Even during my education as an architect, the aspect of Kashmiri vernacular architecture that went hand in hand with its handicrafts always amazed me. Much of my local work is therefore aimed at incorporating tractional handicrafts into contemporary architectural practices as a means to their revival.",
+    paragraph4:
+      "However, seeing many of the crafts dead, and the rapid decline in the quality of the ones still being produced, I felt the need to document these masterpieces across different mediums, with an idea of creating a repository, not just of the objects, but their stories, as evidence of a legacy worth remembering, for the new generation to see, and hopefully be inspired from, just as I was.",
+    paragraph5:
+      "Although most of the items in my collection are sourced locally, many have also been brought from Europe and America, back home where they belong.",
   },
-  crafts: {
-    heading: "The Crafts",
-    copper: {
-      name: "Copper (Traam)",
-      desc: "Hand-hammered copper vessels, trays, and decorative items shaped by khar (coppersmiths) using techniques unchanged for centuries.",
-    },
-    silver: {
-      name: "Silver",
-      desc: "Intricate filigree and engraved silverwork \u2014 rings, pendants, boxes, and ornamental pieces.",
-    },
-    jade: {
-      name: "Jade",
-      desc: "Carved jade objects ranging from small figurines to decorative bowls, sourced and finished with extraordinary precision.",
-    },
-    papierMache: {
-      name: "Papier-m\u00e2ch\u00e9",
-      desc: "Lacquered papier-m\u00e2ch\u00e9 boxes, vases, and decorative pieces painted with floral and geometric motifs in vivid natural pigments.",
-    },
-  },
-  enquiry: {
-    title: "Have a Question?",
-    subtitle: "We\u2019re happy to share more about any piece or our story.",
+  craftHeritage: {
+    body: "",
   },
 };

@@ -3,18 +3,14 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { apiUpdateAboutSection } from "@/lib/admin-api";
 import type { AboutContent } from "@/types/about-content";
 
-// ── Generic section card ──────────────────────────────────────────────────────
-
 interface Field {
   name: string;
   label: string;
-  type: "input" | "textarea";
   rows?: number;
 }
 
@@ -23,8 +19,7 @@ interface SectionCardProps<K extends keyof AboutContent> {
   description: string;
   section: K;
   fields: Field[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultValues: Record<string, any>;
+  defaultValues: Record<string, string>;
 }
 
 function SectionCard<K extends keyof AboutContent>({
@@ -37,11 +32,9 @@ function SectionCard<K extends keyof AboutContent>({
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const form = useForm<Record<string, any>>({ defaultValues });
+  const form = useForm<Record<string, string>>({ defaultValues });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async function onSubmit(values: Record<string, any>) {
+  async function onSubmit(values: Record<string, string>) {
     setError(null);
     setSaved(false);
     try {
@@ -71,18 +64,11 @@ function SectionCard<K extends keyof AboutContent>({
                 <FormItem>
                   <FormLabel className="text-walnut">{f.label}</FormLabel>
                   <FormControl>
-                    {f.type === "textarea" ? (
-                      <Textarea
-                        rows={f.rows ?? 3}
-                        className="border-stone/30 focus:border-terracotta resize-none"
-                        {...field}
-                      />
-                    ) : (
-                      <Input
-                        className="border-stone/30 focus:border-terracotta"
-                        {...field}
-                      />
-                    )}
+                    <Textarea
+                      rows={f.rows ?? 3}
+                      className="border-stone/30 focus:border-terracotta resize-y"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -110,64 +96,38 @@ function SectionCard<K extends keyof AboutContent>({
   );
 }
 
-// ── Main page component ───────────────────────────────────────────────────────
-
 export default function AboutContentClient({ content }: { content: AboutContent }) {
   return (
     <div className="space-y-6">
       <SectionCard
-        title="Intro Section"
-        description="The opening section with the page heading and brand story paragraphs."
-        section="intro"
+        title="Introduction"
+        description="The five paragraphs of the founder's story shown on the About page."
+        section="introduction"
         defaultValues={{
-          heading: content.intro.heading,
-          paragraph1: content.intro.paragraph1,
-          paragraph2: content.intro.paragraph2,
-          paragraph3: content.intro.paragraph3,
+          paragraph1: content.introduction.paragraph1,
+          paragraph2: content.introduction.paragraph2,
+          paragraph3: content.introduction.paragraph3,
+          paragraph4: content.introduction.paragraph4,
+          paragraph5: content.introduction.paragraph5,
         }}
         fields={[
-          { name: "heading", label: "Page Heading", type: "input" },
-          { name: "paragraph1", label: "Paragraph 1", type: "textarea", rows: 3 },
-          { name: "paragraph2", label: "Paragraph 2", type: "textarea", rows: 4 },
-          { name: "paragraph3", label: "Paragraph 3", type: "textarea", rows: 3 },
+          { name: "paragraph1", label: "Paragraph 1", rows: 5 },
+          { name: "paragraph2", label: "Paragraph 2", rows: 3 },
+          { name: "paragraph3", label: "Paragraph 3", rows: 3 },
+          { name: "paragraph4", label: "Paragraph 4", rows: 4 },
+          { name: "paragraph5", label: "Paragraph 5", rows: 2 },
         ]}
       />
 
       <SectionCard
-        title="The Crafts Section"
-        description='The heading and four craft description cards ("Copper", "Silver", etc.).'
-        section="crafts"
+        title="Craft Heritage of Kashmir"
+        description='The body text under the "Craft Heritage of Kashmir" heading. Leave blank to hide the section.'
+        section="craftHeritage"
         defaultValues={{
-          heading: content.crafts.heading,
-          copper: { name: content.crafts.copper.name, desc: content.crafts.copper.desc },
-          silver: { name: content.crafts.silver.name, desc: content.crafts.silver.desc },
-          jade: { name: content.crafts.jade.name, desc: content.crafts.jade.desc },
-          papierMache: { name: content.crafts.papierMache.name, desc: content.crafts.papierMache.desc },
+          body: content.craftHeritage.body,
         }}
         fields={[
-          { name: "heading", label: "Section Heading", type: "input" },
-          { name: "copper.name", label: "Copper — Name", type: "input" },
-          { name: "copper.desc", label: "Copper — Description", type: "textarea", rows: 2 },
-          { name: "silver.name", label: "Silver — Name", type: "input" },
-          { name: "silver.desc", label: "Silver — Description", type: "textarea", rows: 2 },
-          { name: "jade.name", label: "Jade — Name", type: "input" },
-          { name: "jade.desc", label: "Jade — Description", type: "textarea", rows: 2 },
-          { name: "papierMache.name", label: "Papier-mâché — Name", type: "input" },
-          { name: "papierMache.desc", label: "Papier-mâché — Description", type: "textarea", rows: 2 },
-        ]}
-      />
-
-      <SectionCard
-        title="Enquiry Section"
-        description="The contact form heading and subtitle at the bottom of the about page."
-        section="enquiry"
-        defaultValues={{
-          title: content.enquiry.title,
-          subtitle: content.enquiry.subtitle,
-        }}
-        fields={[
-          { name: "title", label: "Title", type: "input" },
-          { name: "subtitle", label: "Subtitle", type: "input" },
+          { name: "body", label: "Body Text", rows: 8 },
         ]}
       />
     </div>

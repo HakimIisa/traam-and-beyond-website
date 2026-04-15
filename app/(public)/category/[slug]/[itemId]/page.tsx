@@ -67,7 +67,7 @@ export default async function ItemDetailPage({ params }: Props) {
             </p>
           </div>
 
-          <p className="text-stone leading-relaxed whitespace-pre-line">{item.description}</p>
+          <p className="text-stone leading-relaxed whitespace-pre-line text-justify">{item.description}</p>
 
           {item.dimensions && (
             <div>

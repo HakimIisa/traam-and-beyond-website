@@ -8,10 +8,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   await adminUpdateHomeSection("hero", {
-    tagline: "Kashmiri Handcrafted Antiques",
+    tagline: "Silenced crafts, Speaking again",
     headline: "Timeless Kashmiri Treasures Curated by Hakim Ali Reza",
-    subtext:
-      "Discover a curated collection of authentic Kashmiri craftsmanship — each piece a story of heritage, skill, and artistry.",
+    subtext: "",
     ctaLabel: "Explore Collection",
   });
 

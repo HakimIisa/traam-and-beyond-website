@@ -65,7 +65,7 @@ export default function ItemCard({ item, index }: ItemCardProps) {
               <h3 className="font-display text-3xl text-cream mb-2 group-hover:text-terracotta transition-colors">
                 {item.title}
               </h3>
-              <p className="text-stone text-sm leading-relaxed line-clamp-3 mb-3 whitespace-pre-line">
+              <p className="text-stone text-sm leading-relaxed line-clamp-3 mb-3 whitespace-pre-line text-justify">
                 {item.description}
               </p>
               <div className="flex items-center gap-4 flex-wrap">
@@ -118,7 +118,7 @@ export default function ItemCard({ item, index }: ItemCardProps) {
               <h3 className="font-display text-6xl text-cream mb-4 group-hover:text-terracotta transition-colors">
                 {item.title}
               </h3>
-              <p className="text-stone leading-relaxed mb-4 line-clamp-4 whitespace-pre-line">
+              <p className="text-stone leading-relaxed mb-4 line-clamp-4 whitespace-pre-line text-justify">
                 {item.description}
               </p>
               <div className="flex items-center gap-4 flex-wrap mb-2">
