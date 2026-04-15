@@ -34,7 +34,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
     <section id="collections" className="py-16 bg-[#1a130a]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <h2 className="font-display text-4xl text-cream font-semibold mb-2">{content.title}</h2>
+          <h2 className="font-display text-6xl text-cream font-semibold mb-2">{content.title}</h2>
           <p className="text-stone mb-12">{content.subtitle}</p>
         </ScrollReveal>
       </div>
@@ -112,7 +112,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                     variants={childVariants}
                     className="w-[65%] flex flex-col justify-center px-16 bg-[#1a130a]"
                   >
-                    <h3 className="font-display text-6xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-4">{cat.name}</h3>
+                    <h3 className="font-display text-4xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-4">{cat.name}</h3>
                     {cat.description && (
                       <p className="text-stone leading-relaxed mb-6 whitespace-pre-line">{cat.description}</p>
                     )}

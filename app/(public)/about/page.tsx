@@ -34,7 +34,7 @@ export default function AboutPage() {
           </div>
 
           <p className="mb-6">
-            It was during a casual evening walk with my mother that we passed by this shop selling copperware. My eyes fell upon an antique copper bowl with engraved floral rim, its patina worn off, just sitting there on a shelf among its fresh counterparts. Someone had sold it in exchange of something new. My mom got me that for 300 Indian rupees and it became the first item in my collection that I still cherish.
+            It was during a casual evening stroll in Srinagar with my mother in 2004 that we passed by this shop selling Kashmiri copperware. My eyes fell upon an antique bowl with hand engraved and enamelled floral rim, it's patina worn off, just sitting there on a shelf among its fresh counterparts. Someone had sold it by weight, in exchange for something new, a practice not uncommon even today. My mom got me that for 300 Indian rupees and it became the first item in my collection that I still cherish.
           </p>
 
           {/* Mobile: image between p1 and p2 */}
@@ -49,16 +49,16 @@ export default function AboutPage() {
           </div>
 
           <p className="mb-6">
-            Since I was a kid, growing up in a home full of arts and crafts, I subconsciously was developing a taste for Kashmiri handicrafts. Learning about different crafts was a source of inspiration and my solace.
+            Since I was a kid, growing up in a cultural context full of arts and crafts, I subconsciously was developing a taste for Kashmiri handicrafts. Learning about them was my solace. It inspired me to collect Kashmiri antiques as a hobby, which I have unceasingly pursued ever since.
           </p>
           <p className="mb-6">
-            As I grew, I continued collecting antiques to build my collection. Even during my education as an architect, the aspect of Kashmiri vernacular architecture that went hand in hand with its handicrafts always amazed me.
+            Even during my education as an architect, the aspect of Kashmiri vernacular architecture that went hand in hand with its handicrafts always amazed me. Much of my local work is therefore aimed at incorporating tractional handicrafts into contemporary architectural practices as a means to their revival.
           </p>
           <p className="mb-6">
-            However seeing most of the crafts die and the decline in the quality of the ones still being produced, I felt the need to collect masterpieces across different mediums with an idea of leaving behind a repository for the new generation to see and hopefully be inspired from, just as I was.
+            However, seeing many of the crafts dead, and the rapid decline in the quality of the ones still being produced, I felt the need to document these masterpieces across different mediums, with an idea of creating a repository, not just of the objects, but their stories, as evidence of a legacy worth remembering, for the new generation to see, and hopefully be inspired from, just as I was.
           </p>
           <p>
-            Although most of the objects in my collection are sourced locally, many have also been brought from Europe and America, back home where they belong.
+            Although most of the items in my collection are sourced locally, many have also been brought from Europe and America, back home where they belong.
           </p>
           <div className="clear-both" />
         </div>

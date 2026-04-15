@@ -21,8 +21,8 @@ export interface HomeContent {
 
 export const DEFAULT_HOME_CONTENT: HomeContent = {
   hero: {
-    tagline: "Kashmiri Handcrafted Items",
-    headline: "Traam and Beyond",
+    tagline: "Kashmiri Handcrafted Antiques",
+    headline: "Timeless Kashmiri Treasures Curated by Hakim Ali Reza",
     subtext:
       "Discover a curated collection of authentic Kashmiri craftsmanship — each piece a story of heritage, skill, and artistry.",
     ctaLabel: "Explore Collection",

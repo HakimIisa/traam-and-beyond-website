@@ -8,12 +8,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const CRAFTS = [
-  { label: "Copper Ware",      slug: "copper-ware" },
-  { label: "Papier Mache",     slug: "papier-mch" },
-  { label: "Silverware",       slug: "silver-ware" },
-  { label: "Enamelware",       slug: "enamel-ware" },
+  { label: "Copperware",        slug: "copperware" },
+  { label: "Papier-mâché",     slug: "papier-mch" },
+  { label: "Silverware",       slug: "silverware" },
+  { label: "Enamelware",       slug: "enamelware" },
   { label: "Terracotta",       slug: "terracotta" },
-  { label: "Sculptures",       slug: "sculptures" },
   { label: "Green Serpentine", slug: "green-serpentine" },
   { label: "Coins",            slug: "coins" },
   { label: "Shawls",           slug: "shawls" },

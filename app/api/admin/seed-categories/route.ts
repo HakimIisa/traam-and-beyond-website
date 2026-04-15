@@ -5,10 +5,14 @@ import { Timestamp } from "firebase-admin/firestore";
 
 // Existing categories to rename (doc id → new name)
 const RENAMES: Record<string, string> = {
-  copper:   "Copper Ware",
-  silver:   "Silverware",
-  jade:     "Green Serpentine",
+  copper:       "Copperware",
+  "copper-ware": "Copperware",
+  silver:       "Silverware",
+  jade:         "Green Serpentine",
 };
+
+// Categories to delete entirely
+const DELETIONS = ["sculptures"];
 
 // New categories to create if they don't already exist
 const NEW_CATEGORIES = [
@@ -19,14 +23,6 @@ const NEW_CATEGORIES = [
     order: 4,
     coverImage: "https://picsum.photos/seed/enamelware-kashmir/600/600",
     description: "Kashmiri enamelware, known as meenakari, features vibrant colours fired onto metal surfaces. Artisans in Srinagar create intricate floral and geometric patterns using age-old techniques passed down through generations.",
-  },
-  {
-    id: "sculptures",
-    name: "Sculptures",
-    slug: "sculptures",
-    order: 6,
-    coverImage: "https://picsum.photos/seed/stone-sculpture/600/600",
-    description: "Stone and wood sculptures from Kashmir reflect the valley's rich artistic heritage. Carved from walnut wood and local stones, these sculptures depict scenes from nature, mythology, and everyday Kashmiri life.",
   },
   {
     id: "shawls",
@@ -82,10 +78,11 @@ export async function POST(req: NextRequest) {
   if (!(await verifyAdminRequest(req)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const results: { renamed: string[]; created: string[]; skipped: string[] } = {
+  const results: { renamed: string[]; created: string[]; skipped: string[]; deleted: string[] } = {
     renamed: [],
     created: [],
     skipped: [],
+    deleted: [],
   };
 
   // 1. Rename existing categories
@@ -116,6 +113,18 @@ export async function POST(req: NextRequest) {
         createdAt: Timestamp.now(),
       });
       results.created.push(cat.id);
+    }
+  }
+
+  // 3. Delete removed categories
+  for (const id of DELETIONS) {
+    const ref = adminDb.collection("categories").doc(id);
+    const snap = await ref.get();
+    if (snap.exists) {
+      await ref.delete();
+      results.deleted.push(id);
+    } else {
+      results.skipped.push(`delete ${id} (not found)`);
     }
   }
 
