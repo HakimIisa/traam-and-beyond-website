@@ -23,12 +23,12 @@ export default async function AboutPage() {
           alt="Kashmiri copper vessel"
           fill
           className="object-contain object-[center_20%] lg:object-left-bottom"
-          sizes="48vw"
+          sizes="(max-width: 1024px) 100vw, 48vw"
         />
       </div>
 
-      {/* Left-to-right darkening gradient — exact hero section */}
-      <div className="fixed inset-0 bg-gradient-to-r from-transparent to-black/80 pointer-events-none z-0" />
+      {/* Gradient — matches hero section exactly on all screen sizes */}
+      <div className="fixed inset-0 bg-gradient-to-r from-black/20 to-black pointer-events-none z-0" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
 
