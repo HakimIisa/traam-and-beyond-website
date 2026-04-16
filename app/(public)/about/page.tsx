@@ -16,19 +16,19 @@ export default async function AboutPage() {
 
   return (
     <div className="relative">
-      {/* Background image — exact hero section treatment */}
-      <div className="fixed inset-y-0 left-0 w-full lg:w-[48%] opacity-40 pointer-events-none z-0">
+      {/* Background image — desktop only */}
+      <div className="hidden lg:block fixed inset-y-0 left-0 w-[48%] opacity-40 pointer-events-none z-0">
         <Image
           src="/hero-vessel.png"
           alt="Kashmiri copper vessel"
           fill
-          className="object-contain object-[center_20%] lg:object-left-bottom"
-          sizes="(max-width: 1024px) 100vw, 48vw"
+          className="object-contain object-left-bottom"
+          sizes="48vw"
         />
       </div>
 
-      {/* Gradient — matches hero section exactly on all screen sizes */}
-      <div className="fixed inset-0 bg-gradient-to-r from-black/20 to-black pointer-events-none z-0" />
+      {/* Gradient — desktop only, scoped to intro area */}
+      <div className="hidden lg:block fixed inset-0 bg-gradient-to-r from-black/20 to-black pointer-events-none z-0" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
 
@@ -39,6 +39,18 @@ export default async function AboutPage() {
 
           <div className="text-stone text-lg leading-relaxed text-justify">
             <p className="mb-6">{introduction.paragraph1}</p>
+
+            {/* Bowl image — mobile only, between paragraph 1 and 2 */}
+            <div className="block lg:hidden relative w-full h-72 my-8">
+              <Image
+                src="/about-vessel.png"
+                alt="Kashmiri copper vessel"
+                fill
+                className="object-contain"
+                sizes="100vw"
+              />
+            </div>
+
             <p className="mb-6">{introduction.paragraph2}</p>
             <p className="mb-6">{introduction.paragraph3}</p>
             <p className="mb-6">{introduction.paragraph4}</p>
@@ -46,7 +58,7 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        <section id="craft-heritage">
+        <section id="craft-heritage" className="relative -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 bg-walnut">
           <ScrollReveal>
             <h2 className="font-display text-5xl sm:text-6xl text-cream mb-6">
               Craft Heritage of Kashmir
