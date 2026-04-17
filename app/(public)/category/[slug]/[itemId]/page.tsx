@@ -41,7 +41,7 @@ export default async function ItemDetailPage({ params }: Props) {
           {item.categoryName}
         </Link>
         <ChevronRight size={14} />
-        <span className="text-walnut line-clamp-1">{item.title}</span>
+        <span className="text-cream line-clamp-1">{item.title}</span>
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -59,19 +59,20 @@ export default async function ItemDetailPage({ params }: Props) {
             >
               {item.categoryName}
             </Badge>
-            <h1 className="text-4xl font-semibold text-walnut mb-3">
+            <h1 className="text-4xl font-semibold text-[#FAF6F0] mb-3">
               {item.title}
             </h1>
-            <p className="text-2xl font-medium text-terracotta">
-              {formatPrice(item.price, item.notForSale)}
-            </p>
           </div>
 
-          <p className="text-stone leading-relaxed whitespace-pre-line text-justify">{item.description}</p>
+          <p className="text-[#FAF6F0] leading-relaxed whitespace-pre-line text-justify">{item.description}</p>
+
+          <p className="text-2xl font-medium text-terracotta">
+            {formatPrice(item.price, item.notForSale)}
+          </p>
 
           {item.dimensions && (
             <div>
-              <p className="text-sm font-medium text-walnut mb-1">Dimensions</p>
+              <p className="text-sm font-medium text-cream mb-1">Dimensions</p>
               <p className="text-sm text-stone">{item.dimensions}</p>
             </div>
           )}
