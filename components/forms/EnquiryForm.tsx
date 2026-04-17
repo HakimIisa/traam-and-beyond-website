@@ -66,8 +66,8 @@ export default function EnquiryForm({
   if (submitted) {
     return (
       <div className={cn("py-8 text-center", className)}>
-        <p className="text-walnut font-medium text-lg">Thank you!</p>
-        <p className="text-stone text-sm mt-1">
+        <p className="text-cream font-medium text-lg">Thank you!</p>
+        <p className="text-stone-light text-sm mt-1">
           Your enquiry has been submitted. We&apos;ll be in touch shortly.
         </p>
       </div>
@@ -77,8 +77,8 @@ export default function EnquiryForm({
   return (
     <div className={className}>
       {type === "item-specific" && itemTitle && (
-        <p className="text-sm text-stone mb-4">
-          Enquiring about: <span className="font-medium text-walnut">{itemTitle}</span>
+        <p className="text-sm text-stone-light mb-4">
+          Enquiring about: <span className="font-medium text-cream">{itemTitle}</span>
         </p>
       )}
 
@@ -89,11 +89,11 @@ export default function EnquiryForm({
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-walnut text-sm">Name</FormLabel>
+                <FormLabel className="text-cream text-sm">Name</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Your name"
-                    className="bg-white border-stone/30 focus:border-terracotta text-walnut"
+                    className="bg-walnut-light border-stone/30 focus:border-terracotta text-cream placeholder:text-stone"
                     {...field}
                   />
                 </FormControl>
@@ -106,12 +106,12 @@ export default function EnquiryForm({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-walnut text-sm">Email</FormLabel>
+                <FormLabel className="text-cream text-sm">Email</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
                     placeholder="your@email.com"
-                    className="bg-white border-stone/30 focus:border-terracotta text-walnut"
+                    className="bg-walnut-light border-stone/30 focus:border-terracotta text-cream placeholder:text-stone"
                     {...field}
                   />
                 </FormControl>
@@ -124,12 +124,12 @@ export default function EnquiryForm({
             name="message"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-walnut text-sm">Message</FormLabel>
+                <FormLabel className="text-cream text-sm">Message</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Your message..."
                     rows={4}
-                    className="bg-white border-stone/30 focus:border-terracotta text-walnut resize-none"
+                    className="bg-walnut-light border-stone/30 focus:border-terracotta text-cream placeholder:text-stone resize-none"
                     {...field}
                   />
                 </FormControl>

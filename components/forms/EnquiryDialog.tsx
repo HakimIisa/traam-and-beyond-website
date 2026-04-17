@@ -21,9 +21,9 @@ export default function EnquiryDialog({
 }: EnquiryDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-cream max-w-md">
+      <DialogContent className="bg-cream-dark max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-walnut">
+          <DialogTitle className="text-cream">
             {item ? "Enquire About Item" : "Get in Touch"}
           </DialogTitle>
         </DialogHeader>

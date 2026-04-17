@@ -79,7 +79,7 @@ export default async function ItemDetailPage({ params }: Props) {
 
           {/* Enquiry form */}
           <div className="bg-cream-dark rounded-sm p-6 mt-2">
-            <h2 className="text-lg font-semibold text-walnut mb-4">
+            <h2 className="text-lg font-semibold text-cream mb-4">
               Enquire About This Item
             </h2>
             <EnquiryForm
