@@ -59,6 +59,16 @@ export default function HeroSection({ content }: HeroSectionProps) {
         style={{ scale: textScale }}
         className="relative z-10 text-center px-4 max-w-3xl mx-auto"
       >
+        {/* Logo — fades in with the text, scales with everything else via parent */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="-mb-[4.25rem] flex justify-center"
+        >
+          <Image src="/LOGO.png" alt="Traam and Beyond" width={480} height={240} className="h-48 sm:h-60 w-auto" />
+        </motion.div>
+
         <motion.h1
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}

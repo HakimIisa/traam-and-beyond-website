@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { Search, X, Menu } from "lucide-react";
@@ -81,13 +82,10 @@ export default function Navbar() {
         )}
       >
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link
-            href="/"
-            onClick={closeMenu}
-            className="text-xl font-semibold text-cream tracking-wide hover:text-terracotta transition-colors"
-          >
-            Traam and Beyond
+          {/* Logo + site name */}
+          <Link href="/" onClick={closeMenu} className="flex items-center hover:opacity-80 transition-opacity">
+            <Image src="/LOGO.png" alt="Traam and Beyond logo" width={240} height={80} className="h-16 w-auto" />
+            <span className="text-2xl font-semibold text-cream tracking-wide -ml-2">Traam and Beyond</span>
           </Link>
 
           {/* Right side: Search + Hamburger */}
@@ -176,7 +174,7 @@ export default function Navbar() {
                       onClick={closeMenu}
                       className="text-stone text-lg hover:text-terracotta transition-colors duration-200"
                     >
-                      Introduction
+                      Our Story
                     </Link>
                     <Link
                       href="/about#craft-heritage"
@@ -190,7 +188,7 @@ export default function Navbar() {
 
                 {/* 3. Crafts */}
                 <div className="flex flex-col gap-3">
-                  <span className="font-display text-5xl sm:text-6xl text-cream">Crafts</span>
+                  <span className="font-display text-5xl sm:text-6xl text-cream">Our Collections</span>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-1.5 pl-6 border-l border-cream-dark/30">
                     {CRAFTS.map((craft) => (
                       <Link
@@ -210,7 +208,44 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* 4. Stories */}
+                {/* 4. Research */}
+                <div className="flex flex-col gap-3">
+                  <span className="font-display text-5xl sm:text-6xl text-cream">Research</span>
+                  <div className="flex flex-row flex-wrap gap-x-8 gap-y-1.5 pl-6 border-l border-cream-dark/30">
+                    <Link
+                      href="/research/adaptive-reuse"
+                      onClick={closeMenu}
+                      className={cn(
+                        "text-lg hover:text-terracotta transition-colors duration-200",
+                        pathname === "/research/adaptive-reuse" ? "text-terracotta" : "text-stone"
+                      )}
+                    >
+                      Adaptive Reuse
+                    </Link>
+                    <Link
+                      href="/research/reinterpretation"
+                      onClick={closeMenu}
+                      className={cn(
+                        "text-lg hover:text-terracotta transition-colors duration-200",
+                        pathname === "/research/reinterpretation" ? "text-terracotta" : "text-stone"
+                      )}
+                    >
+                      Reinterpretation
+                    </Link>
+                    <Link
+                      href="/research/graphic-design"
+                      onClick={closeMenu}
+                      className={cn(
+                        "text-lg hover:text-terracotta transition-colors duration-200",
+                        pathname === "/research/graphic-design" ? "text-terracotta" : "text-stone"
+                      )}
+                    >
+                      Graphic Design
+                    </Link>
+                  </div>
+                </div>
+
+                {/* 5. Stories */}
                 <div>
                   <Link
                     href="/stories"

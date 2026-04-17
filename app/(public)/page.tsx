@@ -29,9 +29,6 @@ export default async function HomePage() {
 
       <OurStorySection content={aboutContent.introduction} />
 
-      {/* Desktop spacer — gives Our Story time to scroll away before Our Collections enters */}
-      <div className="hidden lg:block h-[15vh]" />
-
       <CategoryHighlights categories={categories} content={content.collections} />
 
       {/* General Enquiry */}
