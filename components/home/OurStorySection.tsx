@@ -1,8 +1,4 @@
-"use client";
-
-import { useRef } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform } from "framer-motion";
 import type { AboutContent } from "@/types/about-content";
 
 interface OurStorySectionProps {
@@ -10,79 +6,55 @@ interface OurStorySectionProps {
 }
 
 export default function OurStorySection({ content }: OurStorySectionProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  // Text scrolls up to reveal all paragraphs — calibrated to section/content height
-  const textY = useTransform(scrollYProgress, [0, 1], ["0vh", "-42vh"]);
-
   return (
-    <div ref={containerRef} className="relative h-[100vw] lg:h-[calc(100vh+400px)] bg-black">
+    <section className="bg-[#FAF6F0] my-[10px]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
-      {/* Mobile: normal 1:1 box. Desktop: 70vh sticky box */}
-      <div className="relative h-[100vw] lg:sticky lg:top-0 lg:h-[70vh] overflow-hidden flex flex-col">
+        {/* Title — centered, same size as Our Collections */}
+        <h2 className="font-display text-6xl text-[#1a130a] font-semibold mb-10 text-center">
+          Our Story
+        </h2>
 
-        {/* Same left-to-right darkening gradient as hero */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black pointer-events-none z-0" />
-
-        {/* Title — outside animation, pinned at top */}
-        <div className="relative z-10 shrink-0 max-w-6xl mx-auto w-full px-8 lg:px-16 pt-8 lg:pt-10 pb-4 lg:pb-4">
-          <h2 className="font-display text-4xl sm:text-5xl lg:text-7xl text-cream">
-            Our Story
-          </h2>
-        </div>
-
-        {/* Content row — centered together, text 2/3 + image 1/3 */}
-        <div className="relative z-10 flex-1 overflow-hidden max-w-6xl mx-auto w-full flex">
-
-          {/* Text panel */}
-          <div className="w-2/3 h-full">
-
-            {/* Mobile: plain scroll, no motion transform, scroll contained within panel */}
-            <div className="lg:hidden h-full overflow-y-auto overscroll-y-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-6 pb-6 pt-2">
-              <div className="text-stone text-sm leading-relaxed text-justify space-y-4">
-                <p>{content.paragraph1}</p>
-                <p>{content.paragraph2}</p>
-                <p>{content.paragraph3}</p>
-                <p>{content.paragraph4}</p>
-                <p>{content.paragraph5}</p>
-              </div>
-            </div>
-
-            {/* Desktop: scroll-linked motion, clipped by overflow-hidden */}
-            <div className="hidden lg:block h-full overflow-hidden">
-              <motion.div style={{ y: textY }} className="px-16 pb-8 pt-2">
-                <div className="text-stone text-lg leading-relaxed text-justify space-y-6">
-                  <p>{content.paragraph1}</p>
-                  <p>{content.paragraph2}</p>
-                  <p>{content.paragraph3}</p>
-                  <p>{content.paragraph4}</p>
-                  <p>{content.paragraph5}</p>
-                </div>
-              </motion.div>
-            </div>
-
-          </div>
-
-          {/* Image panel — stays fixed */}
-          <div className="w-1/3 h-full relative">
+        {/* Mobile: 1:1 square box, image left half / text right half */}
+        <div className="lg:hidden aspect-square w-full flex overflow-hidden">
+          <div className="relative w-1/2 shrink-0 h-full">
             <Image
-              src="/OurStoryImg.jpeg"
+              src="/SW1.png"
               alt="Our Story"
               fill
               className="object-cover"
-              sizes="(max-width: 1024px) 33vw, calc(72rem / 3)"
+              sizes="50vw"
             />
-            {/* Fade at left edge where text meets image */}
-            <div className="absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-black to-transparent pointer-events-none" />
           </div>
-
+          <div className="w-1/2 h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pl-4 pr-2 py-4 text-[#1a130a] text-xs leading-relaxed text-left space-y-3">
+            <p>{content.paragraph1}</p>
+            <p>{content.paragraph2}</p>
+            <p>{content.paragraph3}</p>
+            <p>{content.paragraph4}</p>
+            <p>{content.paragraph5}</p>
+          </div>
         </div>
 
+        {/* Desktop: image 1/3 left, text 2/3 right */}
+        <div className="hidden lg:flex items-stretch gap-0">
+          <div className="relative w-1/3 shrink-0 min-h-[500px]">
+            <Image
+              src="/SW1.png"
+              alt="Our Story"
+              fill
+              className="object-cover"
+              sizes="33vw"
+            />
+          </div>
+          <div className="w-2/3 text-[#1a130a] text-lg leading-relaxed text-justify space-y-5 pl-10">
+            <p>{content.paragraph1}</p>
+            <p>{content.paragraph2}</p>
+            <p>{content.paragraph3}</p>
+            <p>{content.paragraph4}</p>
+            <p>{content.paragraph5}</p>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
