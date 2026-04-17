@@ -64,7 +64,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="-mb-[4.25rem] flex justify-center"
+          className="-mb-[2.5rem] sm:-mb-[4.25rem] flex justify-center"
         >
           <Image src="/LOGO.png" alt="Traam and Beyond" width={480} height={240} className="h-48 sm:h-60 w-auto" />
         </motion.div>
