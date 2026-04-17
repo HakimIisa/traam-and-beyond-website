@@ -22,7 +22,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
   const bowlScale = useTransform(scrollYProgress, [0, 0.7], [0.7, 1]);
 
   // Mobile bowl: starts solid in lower viewport, rises to near top, fades, shrinks 5%
-  const bowlYMobile = useTransform(scrollYProgress, [0, 0.7], ["20vh", "-20vh"]);
+  const bowlYMobile = useTransform(scrollYProgress, [0, 0.7], ["15vh", "-20vh"]);
   const bowlOpacityMobile = useTransform(scrollYProgress, [0, 0.7], [1, 0.4]);
   const bowlScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 0.95]);
 

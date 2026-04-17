@@ -301,3 +301,39 @@ Using `position: fixed; z-index: 0` for background images causes them to paint o
 
 ### Footer Background Gap
 `margin-top` on a footer element creates space OUTSIDE the footer's background color, revealing the body background beneath. Moving the spacing to `padding-top` inside the footer keeps the background color continuous.
+
+---
+
+## 12. Item Detail Page Fixes (`app/(public)/category/[slug]/[itemId]/page.tsx`)
+
+### Title Color Fix
+- `text-walnut` (`#20180C`) on the `h1` was invisible against the dark body background (`bg-walnut: #20180C`).
+- Changed to `text-[#FAF6F0]` (off-white cream) — now legible on the dark background.
+
+### Description Color Fix
+- `text-stone` on the description `<p>` replaced with `text-[#FAF6F0]` to match the title and improve readability.
+
+### Breadcrumb Item Title Fix
+- The item title span in the breadcrumb also used `text-walnut` (invisible). Changed to `text-cream`.
+
+### Dimensions Label Fix
+- "Dimensions" label used `text-walnut` (invisible). Changed to `text-cream`.
+
+### Price / Not for Sale — Moved to After Description
+Previously the price appeared immediately after the title (before the description). It now appears **after** the description and dimensions, so the reading order is:
+
+```
+Badge (category) → Title → Description → Price / "Not for Sale" → Dimensions → Enquiry form
+```
+
+Price text color remains `text-terracotta` (unchanged).
+
+### Summary of Color Roles (Item Detail Page)
+| Element | Class | Hex |
+|---------|-------|-----|
+| Title (h1) | `text-[#FAF6F0]` | `#FAF6F0` |
+| Description | `text-[#FAF6F0]` | `#FAF6F0` |
+| Price / Not for Sale | `text-terracotta` | `#B57031` |
+| Dimensions label | `text-cream` | `#F8E8D2` |
+| Dimensions value | `text-stone` | `#A68F67` |
+| Breadcrumb item title | `text-cream` | `#F8E8D2` |

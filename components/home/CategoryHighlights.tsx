@@ -71,7 +71,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                   <motion.div variants={childVariants} className="max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-10">
                     <h3 className="font-display text-3xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-2">{cat.name}</h3>
                     {cat.description && (
-                      <p className="text-stone text-sm leading-relaxed whitespace-pre-line text-justify">{cat.description}</p>
+                      <p className="text-stone text-base leading-relaxed whitespace-pre-line text-justify">{cat.description}</p>
                     )}
                     <span className="text-terracotta text-sm mt-3 inline-flex items-center gap-2">
                       Explore Collection <ArrowRight size={14} />
