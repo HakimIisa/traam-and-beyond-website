@@ -38,8 +38,8 @@ export default function HeroSection({ content }: HeroSectionProps) {
   const textScaleDesktop = useTransform(scrollYProgress, [0, 0.7], [0.7, 1]);
 
   return (
-    <div ref={containerRef} className="relative h-[calc(100vh+500px)]">
-    <section className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+    <div ref={containerRef} className="relative z-[2] h-[calc(100vh+500px)]">
+    <section className="sticky top-0 h-screen flex items-center justify-center overflow-hidden bg-walnut">
 
       {/* Mobile bowl: solid at bottom on load, uses object-center so it aligns with logo at end */}
       <motion.div

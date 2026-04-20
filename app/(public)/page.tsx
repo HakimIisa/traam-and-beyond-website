@@ -29,10 +29,30 @@ export default async function HomePage() {
 
       <OurStorySection content={aboutContent.introduction} />
 
+      {/* "Our Story" title strip — scrolls over the cream panel, mobile only */}
+      <div className="relative z-[2] bg-walnut lg:hidden flex items-center justify-center py-10">
+        <h2 className="font-display text-5xl text-cream font-semibold text-center px-4">
+          Our Story
+        </h2>
+      </div>
+
+      {/* Scroll runway — gives Our Story (fixed mobile background) time to be visible */}
+      <div className="h-screen lg:hidden" />
+
+      {/* "Read Our Story" button — appears above Collections, mobile only */}
+      <div className="relative z-[2] bg-walnut lg:hidden flex items-center justify-center px-8 py-6">
+        <a
+          href="/about"
+          className="inline-block w-full px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm text-center"
+        >
+          Read Our Story ›››
+        </a>
+      </div>
+
       <CategoryHighlights categories={categories} content={content.collections} />
 
       {/* General Enquiry */}
-      <section className="bg-cream-dark py-16">
+      <section className="relative z-[2] bg-cream-dark py-16">
         <div className="max-w-xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl text-walnut font-semibold mb-2 text-center">
             {content.enquiry.title}

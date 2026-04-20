@@ -31,7 +31,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
   if (categories.length === 0) return null;
 
   return (
-    <section id="collections" className="py-16 bg-[#1a130a]">
+    <section id="collections" className="relative z-[2] py-16 bg-[#1a130a]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <h2 className="font-display text-6xl text-cream font-semibold mb-2 text-center">{content.title}</h2>

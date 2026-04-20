@@ -337,3 +337,115 @@ Price text color remains `text-terracotta` (unchanged).
 | Dimensions label | `text-cream` | `#F8E8D2` |
 | Dimensions value | `text-stone` | `#A68F67` |
 | Breadcrumb item title | `text-cream` | `#F8E8D2` |
+
+---
+
+## 13. Enquiry Form — Color & Visibility Fixes (Site-wide)
+
+All `text-walnut` (`#20180C`) elements inside dark-background contexts were invisible. Fixed across three files.
+
+### `components/forms/EnquiryForm.tsx`
+| Element | Before | After |
+|---------|--------|-------|
+| Form labels (Name, Email, Message) | `text-walnut` | `text-cream` |
+| Input / Textarea background | `bg-white` | `bg-walnut-light` |
+| Input / Textarea typed text | `text-walnut` | `text-cream` |
+| Placeholder text | (browser default) | `placeholder:text-stone` |
+| "Enquiring about:" label | `text-stone` | `text-stone-light` |
+| Item title in "Enquiring about:" | `text-walnut` | `text-cream` |
+| Success "Thank you!" heading | `text-walnut` | `text-cream` |
+| Success subtext | `text-stone` | `text-stone-light` |
+
+### `components/forms/EnquiryDialog.tsx`
+- Dialog background: `bg-cream` → `bg-cream-dark` (matches dark site aesthetic)
+- Dialog title: `text-walnut` → `text-cream`
+
+### `app/(public)/contact/page.tsx`
+- Page h1 "Get in Touch": `text-walnut` → `text-cream`
+- Subheading paragraph: `text-stone` → `text-stone-light`
+- "Email" / "Based in" info labels: `text-walnut` → `text-cream`
+- "Enquire" inline span: `text-walnut` → `text-cream`
+
+### `app/(public)/category/[slug]/[itemId]/page.tsx`
+- "Enquire About This Item" h2: `text-walnut` → `text-cream`
+
+---
+
+## 14. Our Story Section — Mobile Layout Revisions (`components/home/OurStorySection.tsx`)
+
+Several iterative changes were made to the mobile layout of the Our Story section:
+
+### Image swap: SW1.png → SW3.png
+- `SW3.png` dimensions: **621×2480px** (very narrow portrait, ~1:4 ratio)
+- At `w-1/3` on a 390px viewport: renders ~130px wide × ~519px tall
+- Only the top portion (~75%) visible on load; image scrolls with text
+
+### Width split: 1/2 + 1/2 → 1/3 + 2/3
+- Image: `w-1/2` → `w-1/3` (narrower image, more text room)
+- Text: `w-1/2` → `w-2/3`
+
+### Unified scroll: text-only → whole frame scrolls
+- Previously: only the text div had `overflow-y-auto`; the image was fixed
+- Now: the outer `aspect-square` frame has `overflow-y-auto`; image and text scroll together as one unit
+- Effect: scrolling on either the left (image) or right (text) side moves both — works for left- and right-handed users equally
+
+### Image flush to left wall
+- Mobile block moved outside the `max-w-6xl px-4` padded container to sit full-bleed
+- Image hugs the left edge of the screen with no padding
+- Text side has its own `pl-4 pr-4` padding
+
+### Text alignment & size
+- Mobile text: `text-left` → `text-justify`
+- Both mobile and desktop: `text-xs` / `text-lg` → `text-base` (16px, consistent with item description)
+
+### Structure after refactor
+```
+<section>
+  <div class="padded">          ← title only (pt-16 pb-10)
+    <h2>Our Story</h2>
+  </div>
+  <div class="full-bleed lg:hidden aspect-square overflow-y-auto flex">
+    <div class="w-1/3">SW3.png (natural height, h-auto)</div>
+    <div class="w-2/3 pl-4 pr-4 py-4">paragraphs</div>
+  </div>
+  <div class="padded hidden lg:block">   ← desktop layout (pb-16)
+    <div class="flex">
+      <div class="w-1/3">SW3.png (fill)</div>
+      <div class="w-2/3 pl-10">paragraphs</div>
+    </div>
+  </div>
+</section>
+```
+
+### New asset
+| File | Dimensions | Purpose |
+|------|------------|---------|
+| `public/SW3.png` | 621×2480px (narrow portrait) | Our Story mobile image — replaces SW1.png on mobile |
+
+---
+
+## 15. Font Size Consistency — `text-base` (16px) Applied Site-wide
+
+To match the item description font size (default `text-base`), the following were updated:
+
+| Location | Element | Before | After |
+|----------|---------|--------|-------|
+| `OurStorySection.tsx` mobile | Story text | `text-xs` | `text-base` |
+| `OurStorySection.tsx` desktop | Story text | `text-lg` | `text-base` |
+| `CategoryHighlights.tsx` mobile | Category description | `text-sm` | `text-base` |
+| `CategoryHighlights.tsx` desktop | Category description | (already `text-base`) | unchanged |
+| `CategoryHighlights.tsx` | "Each category tells…" subtitle | (already `text-base`) | unchanged |
+
+---
+
+## 16. Hero Section — Mobile Bowl Start Position Tuning
+
+`bowlYMobile` start value adjusted (final after iteration):
+
+| Value tried | Result |
+|-------------|--------|
+| `"20vh"` | original |
+| `"10vh"` | slightly high |
+| `"15vh"` | **final** |
+
+Final: `bowlYMobile = ["15vh", "-20vh"]`
