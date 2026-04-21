@@ -175,7 +175,7 @@ export default function OurStoryTimeline() {
       {/* Foreground pulled up to overlap the sticky background */}
       <div className="relative z-[2] w-full flex flex-col -mt-[100vh]">
         {/* "Our Story" title — opaque, sits at very top, does not affect sticky container position */}
-        <div className="bg-[#1a130a] w-full pt-24 pb-10 px-4 sm:px-6 lg:px-8">
+        <div className="bg-[#1a130a] w-full pt-24 pb-0 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <h2 className="font-display text-5xl sm:text-6xl text-cream">Our Story</h2>
           </div>
