@@ -449,3 +449,120 @@ To match the item description font size (default `text-base`), the following wer
 | `"15vh"` | **final** |
 
 Final: `bowlYMobile = ["15vh", "-20vh"]`
+
+---
+
+# Fifth Build Session — Addendum
+
+**Date:** 2026-04-21
+**Scope:** Our Story section architectural overhaul (fixed background plane, desktop parity), footer z-index fix, navbar navigation wiring, `/research` landing page
+
+---
+
+## 17. Our Story Section — Fixed Background Plane (`components/home/OurStorySection.tsx`)
+
+The section was fully rebuilt again. The previous static layout was replaced with a CSS `position: fixed` background plane that sits behind all scrolling content.
+
+### Architecture
+- **Mobile + Desktop:** Single `fixed inset-0 z-[1] bg-[#FAF6F0] flex flex-col items-center justify-center` div
+- Content centered using `max-w-lg mx-auto w-full` wrapper (keeps natural proportions on wide screens)
+- Images use `width={2480} height={...} className="w-full h-auto"` — natural proportions, centered
+- The old `hidden lg:block` desktop section (SW1.png + Firebase paragraphs) was removed entirely
+
+### Content layout
+```
+fixed panel:
+  OurStory1.png   (w-full h-auto, natural proportions)
+  text block      (px-6 py-5, center-aligned)
+    P1: dark brown (#1a130a)
+    P2: saffron (#D4A017, font-semibold)
+  OurStory2.png   (w-full h-auto, natural proportions)
+```
+
+### Z-index stack (mobile + desktop)
+| Layer | z-index | Element |
+|-------|---------|---------|
+| 1 | `z-[1]` | Our Story fixed background |
+| 2 | `z-[2]` | Hero outer div, CategoryHighlights, enquiry section, footer wrapper |
+| 50 | `z-50` | Navbar |
+
+### New assets used
+| File | Dimensions | Purpose |
+|------|------------|---------|
+| `public/OurStory1.png` | 2480×1752px | Top image in Our Story fixed panel |
+| `public/OurStory2.png` | 2480×1745px | Bottom image in Our Story fixed panel |
+
+---
+
+## 18. Home Page Changes (`app/(public)/page.tsx`)
+
+| Change | Before | After |
+|--------|--------|-------|
+| "Our Story" title strip | `relative z-[2] bg-walnut lg:hidden` with h2 | **Removed entirely** |
+| Scroll runway | `h-screen lg:hidden` | `h-screen` (all screens) |
+| "Read Our Story" button strip | `relative z-[2] bg-walnut lg:hidden`, full-width button | `relative z-[2] bg-walnut` (all screens), **auto-width** centered button |
+
+The "Read Our Story" button now uses `inline-block px-8 py-3` (auto-width, centered) instead of `block w-full` — consistent with the hero CTA button style.
+
+---
+
+## 19. Layout — Footer Z-index Fix (`app/(public)/layout.tsx`)
+
+Footer was hidden behind the fixed Our Story panel (`z-[1]`) because it had no explicit z-index.
+
+**Fix:** Footer wrapped in `<div className="relative z-[2]">` in the layout file so it stacks above the fixed background on all pages.
+
+```tsx
+// Before
+<Footer />
+
+// After
+<div className="relative z-[2]"><Footer /></div>
+```
+
+---
+
+## 20. Navbar — Navigation Wiring (`components/layout/Navbar.tsx`)
+
+### "Our Collections" — now a link
+Changed from `<span>` (non-interactive) to `<Link href="/#collections">`:
+- Navigates to the home page's `#collections` section (same as hero "Explore Collections" CTA)
+- Active state coloring **removed** — always `text-cream`, turns terracotta on hover
+
+### "Research" — now a link
+Changed from `<span>` (non-interactive) to `<Link href="/research">`:
+- Navigates to the new `/research` landing page
+- Highlights `text-terracotta` when `pathname.startsWith("/research")`
+
+### Active state cleanup
+Both "Home" and "Our Collections" had `pathname === "/"` active state which made them permanently terracotta on the home page. Both now use plain `text-cream hover:text-terracotta` — consistent with menu items that aren't currently active.
+
+---
+
+## 21. Research Landing Page — New (`app/(public)/research/page.tsx`)
+
+New placeholder page at `/research` that lists the three research sub-areas as navigable cards.
+
+```
+/research
+├── Adaptive Reuse       → /research/adaptive-reuse
+├── Reinterpretation     → /research/reinterpretation
+└── Graphic Design       → /research/graphic-design
+```
+
+- Dark background (`bg-[#1a130a]`) matching the Collections section
+- Each sub-area: border-top divider, `font-display text-4xl` title, description paragraph, "Explore →" link
+- Uses `ScrollReveal` with staggered delays
+- Highlights active sub-link in navbar when on `/research/*` routes
+
+---
+
+## 22. Key Files Modified (Fifth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/OurStorySection.tsx` | Full rewrite — fixed background plane, natural proportions, desktop parity |
+| `app/(public)/page.tsx` | Title strip removed, scroll runway extended to all screens, button auto-width |
+| `app/(public)/layout.tsx` | Footer wrapped in `relative z-[2]` |
+| `components/layout/Navbar.tsx` | "Our Collections" and "Research" wired as Links, active state cleanup |
+| `app/(public)/research/page.tsx` | **New file** — Research landing page placeholder |

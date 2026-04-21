@@ -10,7 +10,7 @@ export default async function PublicLayout({
     <>
       <Navbar />
       <main>{children}</main>
-      <Footer />
+      <div className="relative z-[2]"><Footer /></div>
     </>
   );
 }

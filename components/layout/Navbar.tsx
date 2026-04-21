@@ -147,10 +147,7 @@ export default function Navbar() {
                   <Link
                     href="/"
                     onClick={closeMenu}
-                    className={cn(
-                      "font-display text-5xl sm:text-6xl hover:text-terracotta transition-colors duration-200",
-                      pathname === "/" ? "text-terracotta" : "text-cream"
-                    )}
+                    className="font-display text-5xl sm:text-6xl text-cream hover:text-terracotta transition-colors duration-200"
                   >
                     Home
                   </Link>
@@ -188,7 +185,13 @@ export default function Navbar() {
 
                 {/* 3. Crafts */}
                 <div className="flex flex-col gap-3">
-                  <span className="font-display text-5xl sm:text-6xl text-cream">Our Collections</span>
+                  <Link
+                    href="/#collections"
+                    onClick={closeMenu}
+                    className="font-display text-5xl sm:text-6xl text-cream hover:text-terracotta transition-colors duration-200"
+                  >
+                    Our Collections
+                  </Link>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-1.5 pl-6 border-l border-cream-dark/30">
                     {CRAFTS.map((craft) => (
                       <Link
@@ -210,7 +213,16 @@ export default function Navbar() {
 
                 {/* 4. Research */}
                 <div className="flex flex-col gap-3">
-                  <span className="font-display text-5xl sm:text-6xl text-cream">Research</span>
+                  <Link
+                    href="/research"
+                    onClick={closeMenu}
+                    className={cn(
+                      "font-display text-5xl sm:text-6xl hover:text-terracotta transition-colors duration-200",
+                      pathname.startsWith("/research") ? "text-terracotta" : "text-cream"
+                    )}
+                  >
+                    Research
+                  </Link>
                   <div className="flex flex-row flex-wrap gap-x-8 gap-y-1.5 pl-6 border-l border-cream-dark/30">
                     <Link
                       href="/research/adaptive-reuse"
