@@ -13,7 +13,7 @@ const STORIES = [
       "It was an evening like any other. During a casual stroll in my neighbourhood with mummy, we passed by this shop selling Kashmiri copperware, locally called “Traam”. My eyes fell upon an antique bowl with hand engraved and enamelled floral rim, it's patina worn off, just sitting there on a shelf among its fresh counterparts. Someone had once taken the time to craft it, while someone else, after years of use, had sold it by weight, in exchange for something new, a practice not uncommon even today.",
       "I couldn't look away. Mummy noticed, and got me that for 300 Indian rupees. She had no way of knowing, and nor did I, that she had brought me not just a bowl, but inspired the beginning of something beautiful and meaningful. That bowl still sits with me today. The first masterpiece. The one from where it all started."
     ],
-    image: "/aboutImages/Story 1.jpg.jpeg"
+    image: "/aboutImages/story-1.jpg"
   },
   {
     era: "March 2010",
@@ -22,7 +22,7 @@ const STORIES = [
     text: [
       "Dadi, my dear grandmother, gave me a small papier-mâché box, delicate and worn, with a beautiful miniature painted on a soft pastel green background. I had seen it all my life, tucked away carefully in her steel chest that she kept under the bed, always wondering about its story. “My grandfather made it. Take care of it, it’s very dear to me”, she said smiling, before putting it in my hands."
     ],
-    image: "/aboutImages/Story 2.jpg.jpeg"
+    image: "/aboutImages/story-2.jpg"
   },
   {
     era: "July 2017",
@@ -31,7 +31,7 @@ const STORIES = [
     text: [
       "Babi, my dear maternal grandmother, showed me a papier-mâché table lamp from her father. The surface was adorned with chinar leaf motifs, each one traced in real gold that caught the light and shimmered softly. She told me about his handicraft business by the name of “M. Qasim and Sons”. This lamp was the only physical memory she had kept of her father’s handicraft empire. Weeks later, after having some small repairs done, she placed the lamp in my care. There was no ceremony, just a quiet, deliberate gesture of trust. Now it sits with me, its surface glittering, as though the gold holds onto light the way memory holds onto time."
     ],
-    image: "/aboutImages/Story 3.jpg.jpeg"
+    image: "/aboutImages/story-3.jpg"
   },
   {
     era: "June 2018",
@@ -41,7 +41,7 @@ const STORIES = [
       "I bought a samovar, and not just any samovar, but the most beautiful one I had ever seen. Light as a feather, the hand carving on it is unbelievably intricate, every detail telling a story of patience and craft. I couldn’t stop running my fingers over the motifs, almost in disbelief that it’s now part of my collection.",
       "What makes it even more special is that I bought it with my first salary. There’s something deeply satisfying about that, like this piece carries not just artistry, but a memory of a beginning."
     ],
-    image: "/aboutImages/Story 4.jpg.jpeg"
+    image: "/aboutImages/story-4.jpg"
   },
   {
     era: "Present day",
