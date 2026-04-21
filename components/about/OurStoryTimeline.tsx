@@ -118,9 +118,9 @@ function TextBlock({ story, index, setActiveIndex, setImageIndex }: { story: typ
 
   return (
     <div ref={ref} className="bg-[#1a130a] w-full py-28 lg:py-40 px-6 lg:px-20 min-h-[75vh] flex flex-col justify-center items-center relative z-10">
-      <div className="max-w-2xl w-full mx-auto text-center space-y-6">
-        <h3 className="font-display text-4xl lg:text-5xl text-cream mb-2">{story.era}</h3>
-        <p className="text-terracotta text-sm uppercase tracking-widest font-semibold mb-8">{story.location}</p>
+      <div className="max-w-2xl w-full mx-auto text-left space-y-6">
+        <h3 className="text-lg lg:text-xl text-cream mb-1">{story.era}</h3>
+        <p className="text-terracotta text-base lg:text-lg font-semibold mb-8">{story.location}</p>
         
         <div className="space-y-6">
           {story.text.map((paragraph: string, i: number) => {
@@ -133,7 +133,7 @@ function TextBlock({ story, index, setActiveIndex, setImageIndex }: { story: typ
               );
             }
             return (
-              <p key={i} className="text-[#DAC4A1] text-base lg:text-lg leading-relaxed text-justify lg:text-center">
+              <p key={i} className="text-[#DAC4A1] text-base lg:text-lg leading-relaxed text-justify">
                 {paragraph}
               </p>
             );
@@ -177,7 +177,7 @@ export default function OurStoryTimeline() {
         {/* "Our Story" title — opaque, sits at very top, does not affect sticky container position */}
         <div className="bg-[#1a130a] w-full pt-24 pb-0 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-5xl sm:text-6xl text-cream">Our Story</h2>
+            <h2 className="font-display text-5xl sm:text-6xl text-cream text-center">Our Story</h2>
           </div>
         </div>
         {STORIES.map((story, i) => (

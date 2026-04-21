@@ -33,7 +33,7 @@ export default async function HomePage() {
       <div className="h-screen" />
 
       {/* "Read Our Story" button — appears above Collections */}
-      <div className="relative z-[2] bg-walnut flex items-center justify-center px-8 py-6">
+      <div className="relative z-[2] bg-[#1a130a] flex items-center justify-center px-8 py-6">
         <a
           href="/about"
           className="inline-block px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm"
