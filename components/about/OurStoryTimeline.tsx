@@ -100,7 +100,7 @@ function TimelineIndicator({ activeIndex }: { activeIndex: number }) {
   );
 }
 
-function TextBlock({ story, index, setActiveIndex, setImageIndex }: { story: typeof STORIES[0], index: number, setActiveIndex: (i: number) => void, setImageIndex: (i: number) => void }) {
+function TextBlock({ story, index, setActiveIndex, setImageIndex, scrollDirRef }: { story: typeof STORIES[0], index: number, setActiveIndex: (i: number) => void, setImageIndex: (i: number) => void, scrollDirRef: React.RefObject<'up' | 'down'> }) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Timeline indicator: fires when panel is at viewport center
@@ -113,8 +113,13 @@ function TextBlock({ story, index, setActiveIndex, setImageIndex }: { story: typ
   }, [isCentered, index, setActiveIndex]);
 
   useEffect(() => {
-    if (isNearTop) setImageIndex(index);
-  }, [isNearTop, index, setImageIndex]);
+    if (isNearTop) {
+      setImageIndex(index);
+    } else if (index > 0 && scrollDirRef.current === 'up') {
+      // Only restore previous image when scrolling UP past this trigger point
+      setImageIndex(index - 1);
+    }
+  }, [isNearTop, index, setImageIndex, scrollDirRef]);
 
   return (
     <div ref={ref} className="bg-[#1a130a] w-full py-28 lg:py-40 px-6 lg:px-20 min-h-[75vh] flex flex-col justify-center items-center relative z-10">
@@ -147,6 +152,17 @@ function TextBlock({ story, index, setActiveIndex, setImageIndex }: { story: typ
 export default function OurStoryTimeline() {
   const [activeIndex, setActiveIndex] = useState(0);   // drives timeline indicator
   const [imageIndex, setImageIndex] = useState(0);     // drives background image swap
+  const scrollDirRef = useRef<'up' | 'down'>('down');
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const handleScroll = () => {
+      scrollDirRef.current = window.scrollY > lastY ? 'down' : 'up';
+      lastY = window.scrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="relative w-full bg-[#1a130a]">
@@ -182,7 +198,7 @@ export default function OurStoryTimeline() {
         </div>
         {STORIES.map((story, i) => (
           <div key={i} className="w-full">
-            <TextBlock story={story} index={i} setActiveIndex={setActiveIndex} setImageIndex={setImageIndex} />
+            <TextBlock story={story} index={i} setActiveIndex={setActiveIndex} setImageIndex={setImageIndex} scrollDirRef={scrollDirRef} />
             {story.image && (
               <div className="w-full aspect-square lg:h-[85vh] bg-transparent pointer-events-none" />
             )}
