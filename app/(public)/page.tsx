@@ -32,13 +32,19 @@ export default async function HomePage() {
       {/* Scroll runway — gives Our Story (fixed background) time to be visible */}
       <div className="h-screen" />
 
-      {/* "Read Our Story" button — appears above Collections */}
-      <div className="relative z-[2] bg-[#1a130a] flex items-center justify-center px-8 py-6">
+      {/* "Read Our Story" + "Explore Collections" buttons — appear above Collections */}
+      <div className="relative z-[2] bg-[#1a130a] flex flex-col items-center justify-center px-8 py-6 gap-4">
         <a
           href="/about"
           className="inline-block px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm"
         >
           Read Our Story ›››
+        </a>
+        <a
+          href="#collections"
+          className="inline-block px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm"
+        >
+          {content.hero.ctaLabel}
         </a>
       </div>
 

@@ -34,8 +34,17 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
     <section id="collections" className="relative z-[2] py-16 bg-[#1a130a]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
+          <div className="flex justify-center mb-8">
+            <Image
+              src="/IsbandHomePage.png"
+              alt="Kashmiri isband vessel"
+              width={1254}
+              height={1254}
+              className="w-48 h-auto sm:w-56 lg:w-64"
+            />
+          </div>
           <h2 className="font-display text-6xl text-cream font-semibold mb-2 text-center">{content.title}</h2>
-          <p className="text-stone mb-12 text-center">{content.subtitle}</p>
+          <p className="text-stone mb-12 text-justify lg:text-center">{content.subtitle}</p>
         </ScrollReveal>
       </div>
 

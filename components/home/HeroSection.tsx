@@ -111,18 +111,6 @@ export default function HeroSection({ content }: HeroSectionProps) {
           {content.subtext}
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <a
-            href="#collections"
-            className="inline-block w-full sm:w-auto px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm"
-          >
-            {content.ctaLabel}
-          </a>
-        </motion.div>
       </motion.div>
 
       {/* Desktop text: logo + all content, scale only (unchanged) */}
@@ -166,18 +154,6 @@ export default function HeroSection({ content }: HeroSectionProps) {
           {content.subtext}
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <a
-            href="#collections"
-            className="inline-block w-full sm:w-auto px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm"
-          >
-            {content.ctaLabel}
-          </a>
-        </motion.div>
       </motion.div>
 
     </section>

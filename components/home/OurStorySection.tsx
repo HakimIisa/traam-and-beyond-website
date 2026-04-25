@@ -19,10 +19,10 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
         <div className="w-full max-w-lg mx-auto flex flex-col">
 
           <Image
-            src="/OurStory1.png"
+            src="/OurStoryUpper.png"
             alt="Kashmiri craft detail"
             width={2480}
-            height={1752}
+            height={2480}
             className="w-full h-auto"
             sizes="(min-width: 1024px) 512px, 100vw"
           />
@@ -33,10 +33,10 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
           </div>
 
           <Image
-            src="/OurStory2.png"
+            src="/OurStoryLower.png"
             alt="Kashmiri craft detail"
             width={2480}
-            height={1745}
+            height={2480}
             className="w-full h-auto"
             sizes="(min-width: 1024px) 512px, 100vw"
           />

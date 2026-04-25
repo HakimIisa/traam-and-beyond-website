@@ -566,3 +566,127 @@ New placeholder page at `/research` that lists the three research sub-areas as n
 | `app/(public)/layout.tsx` | Footer wrapped in `relative z-[2]` |
 | `components/layout/Navbar.tsx` | "Our Collections" and "Research" wired as Links, active state cleanup |
 | `app/(public)/research/page.tsx` | **New file** — Research landing page placeholder |
+
+---
+
+# Sixth Build Session — Addendum
+
+**Date:** 2026-04-25
+**Scope:** About page OurStoryTimeline polish, Vercel image loading fix, bidirectional scroll image swap, home page button background color
+
+---
+
+## 23. OurStoryTimeline — "Our Story" Title Fix (`components/about/OurStoryTimeline.tsx`)
+
+The "Our Story" title was previously placed above `<OurStoryTimeline />` in `about/page.tsx`. This pushed the sticky background container ~150px below the viewport top on page load, causing the first image to appear off-centre.
+
+**Fix:** Title moved inside the foreground layer of `OurStoryTimeline.tsx` as the first element before the `STORIES.map()`. Since the foreground uses `-mt-[100vh]` to overlap the sticky layer, the title renders as an opaque panel without affecting the sticky container's starting position.
+
+```tsx
+<div className="relative z-[2] w-full flex flex-col -mt-[100vh]">
+  <div className="bg-[#1a130a] w-full pt-24 pb-0 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto">
+      <h2 className="font-display text-5xl sm:text-6xl text-cream text-center">Our Story</h2>
+    </div>
+  </div>
+  {STORIES.map(...)}
+</div>
+```
+
+---
+
+## 24. Vercel Image Loading Fix — Filename & Folder Case (`public/aboutImages/`)
+
+Images loaded correctly on local (Windows, case-insensitive filesystem) but failed on Vercel (Linux, case-sensitive).
+
+Two issues found and fixed:
+
+### Image filenames had spaces
+Original: `Story 1.jpg.jpeg`, `Story 2.jpg.jpeg`, `Story 3.jpg.jpeg`, `Story 4.jpg.jpeg`
+Renamed to: `story-1.jpg`, `story-2.jpg`, `story-3.jpg`, `story-4.jpg`
+
+### Folder name had wrong case
+`public/AboutImages/` (capital A) did not match the component's `/aboutImages/` (lowercase a) reference.
+
+**Fix:** Used `git mv` two-step rename: `AboutImages` → `aboutImages-tmp` → `aboutImages`. This ensures git tracks the case change on case-insensitive Windows and the rename lands correctly on Vercel's Linux filesystem.
+
+Also cleaned up two stray files accidentally created by a node script: `public/AboutImages/console.log(i+1` and `key`.
+
+### Curly quote corruption fix
+The `Edit` tool introduced Unicode curly-quote characters (`“`, `”`) as JavaScript string delimiters in the STORIES array (on `era`, `shortEra`, `location`, and text paragraph lines). Fixed by running targeted Node.js replacement scripts that:
+1. Replaced property value delimiters (`era: "..."`) back to ASCII straight quotes
+2. Replaced text paragraph delimiters (lines starting with `“`) back to ASCII straight quotes while preserving internal curly-quote content characters
+
+---
+
+## 25. OurStoryTimeline — Text Block Typography & Alignment
+
+| Element | Before | After |
+|---------|--------|-------|
+| "Our Story" title | left-aligned | `text-center` |
+| Era dates | `font-display text-4xl lg:text-5xl text-center` | `text-lg lg:text-xl text-left` |
+| Location | `text-terracotta text-sm uppercase tracking-widest font-semibold text-center` | `text-terracotta text-base lg:text-lg font-semibold text-left` |
+| Body paragraphs | `text-justify lg:text-center` | `text-justify` |
+| Text block inner wrapper | `text-center` | `text-left` |
+
+---
+
+## 26. OurStoryTimeline — Bidirectional Image Swap (`components/about/OurStoryTimeline.tsx`)
+
+The previous single-direction `useInView` observer caused asymmetric image swap timing: perfect when scrolling down, lagged when scrolling up.
+
+### Root cause
+`isNearTop` (margin `-20% 0px -70% 0px`) fires `false` twice per TextBlock pass:
+1. When block exits the trigger zone going UPWARD (scrolling down past it) → was incorrectly showing previous image
+2. When block exits the trigger zone going DOWNWARD (scrolling up) → correct restore behaviour
+
+### Fix: scroll direction tracker
+A `scrollDirRef` (`useRef<'up' | 'down'>`) is tracked in the parent `OurStoryTimeline` component via a passive scroll listener:
+
+```tsx
+const scrollDirRef = useRef<'up' | 'down'>('down');
+useEffect(() => {
+  let lastY = window.scrollY;
+  const handleScroll = () => {
+    scrollDirRef.current = window.scrollY > lastY ? 'down' : 'up';
+    lastY = window.scrollY;
+  };
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+```
+
+The ref is passed to each `TextBlock`. The image swap `useEffect` now only restores the previous image when `scrollDirRef.current === 'up'`:
+
+```tsx
+useEffect(() => {
+  if (isNearTop) {
+    setImageIndex(index);                           // scrolling down: show this image
+  } else if (index > 0 && scrollDirRef.current === 'up') {
+    setImageIndex(index - 1);                       // scrolling up: restore previous image
+  }
+}, [isNearTop, index, setImageIndex, scrollDirRef]);
+```
+
+Result: image swap is perfectly symmetric — the exact same scroll position triggers the transition in both directions.
+
+---
+
+## 27. Home Page — "Read Our Story" Button Background Color (`app/(public)/page.tsx`)
+
+The button strip background was `bg-walnut` (`#3D2B1F`) which didn't match the adjacent "Our Collections" section (`bg-[#1a130a]`).
+
+**Fix:** Changed button strip from `bg-walnut` to `bg-[#1a130a]`.
+
+---
+
+## 28. Key Files Modified (Sixth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/about/OurStoryTimeline.tsx` | Title moved inside foreground layer, typography/alignment overhaul, bidirectional scroll image swap with direction tracker |
+| `public/aboutImages/story-1.jpg` | Renamed from `AboutImages/Story 1.jpg.jpeg` (case + spaces fix) |
+| `public/aboutImages/story-2.jpg` | Renamed from `AboutImages/Story 2.jpg.jpeg` |
+| `public/aboutImages/story-3.jpg` | Renamed from `AboutImages/Story 3.jpg.jpeg` |
+| `public/aboutImages/story-4.jpg` | Renamed from `AboutImages/Story 4.jpg.jpeg` |
+| `app/(public)/page.tsx` | Button strip background `bg-walnut` → `bg-[#1a130a]` |
