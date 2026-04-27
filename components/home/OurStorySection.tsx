@@ -23,7 +23,7 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
             alt="Kashmiri craft detail"
             width={2480}
             height={1922}
-            className="w-full h-auto"
+            className="w-3/4 lg:w-full h-auto mx-auto"
             sizes="(min-width: 1024px) 512px, 100vw"
           />
 
@@ -37,7 +37,7 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
             alt="Kashmiri craft detail"
             width={2480}
             height={1953}
-            className="w-full h-auto"
+            className="w-3/4 lg:w-full h-auto mx-auto"
             sizes="(min-width: 1024px) 512px, 100vw"
           />
 
