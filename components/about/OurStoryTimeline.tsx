@@ -80,9 +80,9 @@ function OrganicLine() {
   );
 }
 
-function TimelineIndicator({ activeIndex }: { activeIndex: number }) {
+function TimelineIndicator({ activeIndex, visible }: { activeIndex: number; visible: boolean }) {
   return (
-    <div className="hidden lg:flex fixed right-10 top-1/2 -translate-y-1/2 z-[50] flex-col items-center">
+    <div className={`hidden lg:flex fixed right-10 top-1/2 -translate-y-1/2 z-[50] flex-col items-center transition-opacity duration-500 ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
       <div className="relative flex flex-col space-y-10 lg:space-y-14 py-2">
         <OrganicLine />
         {STORIES.map((story, i) => (
@@ -149,7 +149,7 @@ function TextBlock({ story, index, setActiveIndex, setImageIndex, scrollDirRef }
   );
 }
 
-export default function OurStoryTimeline() {
+export default function OurStoryTimeline({ visible }: { visible: boolean }) {
   const [activeIndex, setActiveIndex] = useState(0);   // drives timeline indicator
   const [imageIndex, setImageIndex] = useState(0);     // drives background image swap
   const scrollDirRef = useRef<'up' | 'down'>('down');
@@ -166,7 +166,7 @@ export default function OurStoryTimeline() {
 
   return (
     <div className="relative w-full bg-[#1a130a]">
-      <TimelineIndicator activeIndex={activeIndex} />
+      <TimelineIndicator activeIndex={activeIndex} visible={visible} />
 
       {/* Sticky background layer */}
       <div className="sticky top-0 h-screen w-full z-[1] bg-[#0a0a0a] flex items-center justify-center pointer-events-none overflow-hidden">

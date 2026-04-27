@@ -40,7 +40,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
               alt="Kashmiri isband vessel"
               width={1254}
               height={1254}
-              className="w-48 h-auto sm:w-56 lg:w-64"
+              className="w-[420px] h-auto sm:w-[490px] lg:w-[560px]"
             />
           </div>
           <h2 className="font-display text-6xl text-cream font-semibold mb-2 text-center">{content.title}</h2>

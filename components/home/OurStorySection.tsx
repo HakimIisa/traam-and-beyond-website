@@ -15,14 +15,14 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
   return (
     <>
       {/* ── ALL SCREENS: fixed background plane ── */}
-      <div className="fixed inset-0 z-[1] bg-[#FAF6F0] flex flex-col items-center justify-center">
-        <div className="w-full max-w-lg mx-auto flex flex-col">
+      <div className="fixed inset-0 z-[1] bg-[#FAF6F0] flex flex-col items-center">
+        <div className="w-full max-w-lg mx-auto flex flex-col h-full justify-between">
 
           <Image
-            src="/OurStoryUpper.png"
+            src="/OurStoryUpper1.png"
             alt="Kashmiri craft detail"
             width={2480}
-            height={2480}
+            height={1922}
             className="w-full h-auto"
             sizes="(min-width: 1024px) 512px, 100vw"
           />
@@ -33,10 +33,10 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
           </div>
 
           <Image
-            src="/OurStoryLower.png"
+            src="/OurStoryLower1.png"
             alt="Kashmiri craft detail"
             width={2480}
-            height={2480}
+            height={1953}
             className="w-full h-auto"
             sizes="(min-width: 1024px) 512px, 100vw"
           />
