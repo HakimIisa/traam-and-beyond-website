@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import HeroSection from "@/components/home/HeroSection";
 import OurStorySection from "@/components/home/OurStorySection";
 import CategoryHighlights from "@/components/home/CategoryHighlights";
+import FeaturedSection from "@/components/home/FeaturedSection";
 import EnquiryForm from "@/components/forms/EnquiryForm";
 import { getAllCategories } from "@/lib/firebase/categories";
 import { getHomeContent } from "@/lib/firebase/site-content";
@@ -49,6 +50,11 @@ export default async function HomePage() {
       </div>
 
       <CategoryHighlights categories={categories} content={content.collections} />
+
+      <FeaturedSection content={aboutContent.introduction} />
+
+      {/* Scroll runway — gives FeaturedSection (fixed background) time to be visible */}
+      <div className="h-screen" />
 
       {/* General Enquiry */}
       <section className="relative z-[2] bg-cream-dark py-16">
