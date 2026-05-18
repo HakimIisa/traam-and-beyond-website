@@ -21,7 +21,7 @@ const CRAFTS = [
   { label: "Carpets",          slug: "carpets" },
   { label: "Willow Wicker",    slug: "willow-wicker" },
   { label: "Woodwork",         slug: "wood-work" },
-  { label: "Brass Ware",       slug: "brass-ware" },
+  { label: "Brassware",         slug: "brass-ware" },
 ];
 
 export default function Navbar() {

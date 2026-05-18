@@ -66,7 +66,7 @@ const NEW_CATEGORIES = [
   },
   {
     id: "brass-ware",
-    name: "Brass Ware",
+    name: "Brassware",
     slug: "brass-ware",
     order: 14,
     coverImage: "https://picsum.photos/seed/brass-ware/600/600",
