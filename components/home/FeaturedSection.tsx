@@ -1,44 +1,62 @@
+"use client";
+
 import Image from "next/image";
-import type { AboutContent } from "@/types/about-content";
+import { useEffect, useRef } from "react";
 
-interface FeaturedSectionProps {
-  content: AboutContent["introduction"];
-}
+export default function FeaturedSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
-const MOBILE_P1 =
-  "In 2004, my mother bought me a copper bowl for three hundred Indian rupees in Srinagar. She had no way of knowing, and nor did I, that she had brought me not just a bowl, but inspired the beginning of something beautiful and meaningful……";
+  useEffect(() => {
+    const container = containerRef.current;
+    const overlay = overlayRef.current;
+    if (!container || !overlay) return;
 
-const MOBILE_P2 =
-  "This is a space for the handcrafted Kashmiri masterpieces, left behind or forgotten, their stories fading away quietly, and our legacy worth remembering";
+    const update = () => {
+      const h = container.clientHeight;
+      const w = container.clientWidth;
+      // Mobile only: align text to the top edge of the centered square image
+      if (w < 640) {
+        const offset = Math.max(0, (h - w) / 2 + 8);
+        overlay.style.paddingTop = `${offset}px`;
+      } else {
+        overlay.style.paddingTop = "";
+      }
+    };
 
-export default function FeaturedSection({ content }: FeaturedSectionProps) {
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-[1] bg-[#FAF6F0] flex flex-col items-center">
-      <div className="w-full max-w-lg mx-auto flex flex-col h-full justify-between">
+    <div ref={containerRef} className="relative h-full w-full bg-[#FAF6F0]">
+      <Image
+        src="/CoverNilmath.jpeg"
+        alt="Nilmath — Kashmir"
+        fill
+        sizes="100vh"
+        className="object-contain object-center"
+        priority
+      />
 
-        <Image
-          src="/OurStoryUpper1.png"
-          alt="Kashmiri craft detail"
-          width={2480}
-          height={1922}
-          className="w-3/4 lg:w-full h-auto mx-auto"
-          sizes="(min-width: 1024px) 512px, 100vw"
-        />
-
-        <div className="px-6 py-5 text-center space-y-3">
-          <p className="text-[#1a130a] text-base leading-relaxed">{MOBILE_P1}</p>
-          <p className="text-[#D4A017] text-base leading-relaxed font-semibold">{MOBILE_P2}</p>
-        </div>
-
-        <Image
-          src="/OurStoryLower1.png"
-          alt="Kashmiri craft detail"
-          width={2480}
-          height={1953}
-          className="w-3/4 lg:w-full h-auto mx-auto"
-          sizes="(min-width: 1024px) 512px, 100vw"
-        />
-
+      <div
+        ref={overlayRef}
+        className="absolute inset-0 flex flex-col items-center justify-start sm:pt-14 lg:pt-20 px-6 lg:px-16 text-center [text-shadow:0_1px_6px_rgba(255,255,255,0.9),0_0px_12px_rgba(255,255,255,0.7)]"
+      >
+        <p className="text-[#0a0a0a] text-sm sm:text-lg lg:text-xl font-bold leading-snug [text-shadow:0_0px_4px_rgba(255,255,255,1),0_0px_10px_rgba(255,255,255,1),0_0px_20px_rgba(255,255,255,1),0_0px_30px_rgba(255,255,255,0.9)]">
+          नित्यशौण्डजनोपेतं सतां हृदयवल्लभम् ॥ ४९ ॥
+        </p>
+        <p className="text-[#0a0a0a] text-xs sm:text-base lg:text-lg mt-2 leading-snug [text-shadow:0_0px_4px_rgba(255,255,255,1),0_0px_10px_rgba(255,255,255,1),0_0px_20px_rgba(255,255,255,1),0_0px_30px_rgba(255,255,255,0.9)]">
+          nityaśauṇḍajanopetaṃ satāṃ hṛdayavallabham ॥ 49 ॥
+        </p>
+        <p className="text-[#D4A017] text-xs sm:text-base lg:text-lg mt-5 leading-relaxed italic max-w-xl [text-shadow:0_0px_4px_rgba(0,0,0,1),0_0px_10px_rgba(0,0,0,1),0_0px_20px_rgba(0,0,0,1),0_0px_30px_rgba(0,0,0,0.9)]">
+          … [Kashmir] is always crowded with people fond of drinks and is dear to the hearts of good men.
+        </p>
+        <p className="text-[#D4A017] text-[11px] sm:text-sm lg:text-base mt-2 [text-shadow:0_0px_4px_rgba(0,0,0,1),0_0px_10px_rgba(0,0,0,1),0_0px_20px_rgba(0,0,0,1),0_0px_30px_rgba(0,0,0,0.9)]">
+          Nilamata Purana, around AD 500-700
+        </p>
       </div>
     </div>
   );

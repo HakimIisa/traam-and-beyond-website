@@ -275,7 +275,7 @@ function ReferenceText({ text, index }: { text: string; index: number }) {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="block ml-8 mt-0.5 text-stone/50 hover:text-terracotta underline break-all"
+        className="block mt-0.5 text-stone/50 hover:text-terracotta underline break-all"
       >
         {url}
       </a>

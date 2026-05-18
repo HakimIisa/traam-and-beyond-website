@@ -3,9 +3,8 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 import HeroSection from "@/components/home/HeroSection";
-import OurStorySection from "@/components/home/OurStorySection";
+import BackgroundController from "@/components/home/BackgroundController";
 import CategoryHighlights from "@/components/home/CategoryHighlights";
-import FeaturedSection from "@/components/home/FeaturedSection";
 import EnquiryForm from "@/components/forms/EnquiryForm";
 import { getAllCategories } from "@/lib/firebase/categories";
 import { getHomeContent } from "@/lib/firebase/site-content";
@@ -26,14 +25,18 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Fixed background — crossfades between Our Story and Featured based on scroll */}
+      <BackgroundController ourStoryContent={aboutContent.introduction} />
+
       <HeroSection content={content.hero} />
 
-      <OurStorySection content={aboutContent.introduction} />
-
-      {/* Scroll runway — gives Our Story (fixed background) time to be visible */}
+      {/* Scroll runway — Our Story background visible while scrolling through here */}
       <div className="h-screen" />
 
-      {/* "Read Our Story" + "Explore Collections" buttons — appear above Collections */}
+      {/* Switch to Featured when this sentinel reaches the top of the viewport */}
+      <div id="featured-start-sentinel" className="h-[2px]" />
+
+      {/* "Read Our Story" + "Explore Collections" buttons */}
       <div className="relative z-[2] bg-[#1a130a] flex flex-col items-center justify-center px-8 py-6 gap-4">
         <a
           href="/about"
@@ -51,9 +54,7 @@ export default async function HomePage() {
 
       <CategoryHighlights categories={categories} content={content.collections} />
 
-      <FeaturedSection content={aboutContent.introduction} />
-
-      {/* Scroll runway — gives FeaturedSection (fixed background) time to be visible */}
+      {/* Featured runway — Featured background visible here */}
       <div className="h-screen" />
 
       {/* General Enquiry */}

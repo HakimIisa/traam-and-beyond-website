@@ -690,3 +690,187 @@ The button strip background was `bg-walnut` (`#3D2B1F`) which didn't match the a
 | `public/aboutImages/story-3.jpg` | Renamed from `AboutImages/Story 3.jpg.jpeg` |
 | `public/aboutImages/story-4.jpg` | Renamed from `AboutImages/Story 4.jpg.jpeg` |
 | `app/(public)/page.tsx` | Button strip background `bg-walnut` → `bg-[#1a130a]` |
+
+---
+
+# Seventh Build Session — Addendum
+
+**Date:** 2026-05-18
+**Scope:** BackgroundController architecture (two-panel crossfade), FeaturedSection refactor, OurStorySection refactor, text shadow tuning, mobile font size tuning, mobile text position stabilization (URL bar jitter fix)
+
+---
+
+## 29. BackgroundController — New Architecture (`components/home/BackgroundController.tsx`)
+
+### Problem
+Both OurStorySection and FeaturedSection were `position: fixed; z-index: 1` divs. Because they were sibling DOM elements, the later-rendered FeaturedSection painted over OurStorySection everywhere on the page — the crossfade never worked. Various z-index attempts failed because you cannot layer two independent `fixed` elements in the intended way without a shared parent.
+
+### Fix: Single fixed container, two panels, scroll-based opacity toggling
+A new `BackgroundController` client component wraps both panels inside a single `fixed inset-0 z-[1]` container. Each panel is `absolute inset-0` within the container. Visibility is toggled via direct DOM manipulation (`useRef` → `style.opacity`/`style.pointerEvents`) in response to a scroll event listener, bypassing React state batching entirely.
+
+**Switch condition:** A sentinel `<div id="featured-start-sentinel" className="h-[2px]" />` is placed in the page at the exact point where the solid dark `#1a130a` button section begins. The switch fires when:
+```ts
+sentinel.getBoundingClientRect().top <= 0
+```
+This is a purely positional condition — the panel switches exactly when the sentinel's top edge reaches the viewport's top edge, meaning the dark section fully covers the fixed background.
+
+**`current` flag** prevents redundant DOM writes when the condition hasn't changed between scroll events.
+
+```tsx
+"use client";
+
+export default function BackgroundController({ ourStoryContent }: Props) {
+  const ourStoryRef = useRef<HTMLDivElement>(null);
+  const featuredRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    featured.style.opacity = "0";
+    featured.style.pointerEvents = "none";
+    let current = false;
+    const check = () => {
+      const show = sentinel.getBoundingClientRect().top <= 0;
+      if (show === current) return;
+      current = show;
+      ourStory.style.opacity = show ? "0" : "1";
+      featured.style.opacity = show ? "1" : "0";
+    };
+    window.addEventListener("scroll", check, { passive: true });
+    document.addEventListener("scroll", check, { passive: true }); // belt-and-suspenders
+    check();
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[1]">
+      <div ref={ourStoryRef} className="absolute inset-0"><OurStorySection /></div>
+      <div ref={featuredRef} className="absolute inset-0"><FeaturedSection /></div>
+    </div>
+  );
+}
+```
+
+### Why `window` AND `document` scroll listeners
+Some mobile browsers fire `scroll` on `document` rather than `window`. Listening on both ensures the check fires in all environments.
+
+### Why direct DOM manipulation instead of React state
+React's batched state updates introduced perceptible lag (one render cycle) between scroll position and panel opacity. Direct `ref.current.style` writes happen synchronously on the scroll event.
+
+---
+
+## 30. FeaturedSection — Refactor from Fixed to Relative (`components/home/FeaturedSection.tsx`)
+
+Prior to this build, `FeaturedSection` was `fixed inset-0 z-[1]`. It is now `relative h-full w-full bg-[#FAF6F0]` — it fills its parent (`BackgroundController`'s `absolute inset-0` wrapper) rather than positioning itself independently.
+
+No other visual changes to the image or desktop text overlay.
+
+---
+
+## 31. OurStorySection — Outer Div Refactor (`components/home/OurStorySection.tsx`)
+
+`OurStorySection`'s outer div was changed from `fixed inset-0 z-[2]` to `absolute inset-0 bg-[#FAF6F0]`. Like FeaturedSection, it now fills the `BackgroundController` wrapper rather than positioning itself.
+
+---
+
+## 32. Home Page — Sentinel + BackgroundController Wiring (`app/(public)/page.tsx`)
+
+| Change | Before | After |
+|--------|--------|-------|
+| OurStorySection | Direct render in page | Removed — rendered inside BackgroundController |
+| FeaturedSection | Direct render in page | Removed — rendered inside BackgroundController |
+| BackgroundController | Did not exist | Added at top, before HeroSection |
+| Sentinel div | Did not exist | `<div id="featured-start-sentinel" className="h-[2px]" />` placed between scroll runway and button strip |
+| Scroll runway | Various | `<div className="h-screen" />` — Our Story visible while scrolling through here |
+| Featured runway | `h-screen` after CategoryHighlights | Unchanged |
+
+Page scroll structure after this build:
+```
+BackgroundController (fixed z-[1])         ← always in background
+HeroSection (z-[2], sticky)                ← covers background during hero
+<div h-screen />                           ← Our Story visible here
+<div id="featured-start-sentinel" />       ← switch triggers at this line
+<div z-[2] bg-[#1a130a]>buttons</div>      ← covers background, triggers switch
+<CategoryHighlights z-[2] />
+<div h-screen />                           ← Featured visible here
+<section z-[2]>Enquiry</section>
+```
+
+---
+
+## 33. FeaturedSection — Text Shadow Intensification
+
+### Lines 3 & 4 (saffron, over variable background)
+The saffron text (`#D4A017`) on the translation and attribution lines was hard to read when the Kashmir image's lighter sky area was behind them. A dense multi-layer dark shadow was applied:
+```css
+text-shadow: 0 0px 4px rgba(0,0,0,1), 0 0px 10px rgba(0,0,0,1),
+             0 0px 20px rgba(0,0,0,1), 0 0px 30px rgba(0,0,0,0.9)
+```
+
+### Lines 1 & 2 (dark text, over variable background)
+The dark text (`#0a0a0a`) on the Sanskrit and romanized lines was similarly difficult to read over darker portions of the image. The same multi-layer approach was applied but with white shadows:
+```css
+text-shadow: 0 0px 4px rgba(255,255,255,1), 0 0px 10px rgba(255,255,255,1),
+             0 0px 20px rgba(255,255,255,1), 0 0px 30px rgba(255,255,255,0.9)
+```
+An earlier attempt applied a frosted-glass backdrop filter to the text container — this was reverted at the user's request. The final approach keeps the glow on the letters themselves only.
+
+---
+
+## 34. FeaturedSection — Mobile Text Positioning
+
+### Initial approach: CSS calc
+`pt-[calc((100vh_-_100vw)/2_-_1rem)]` was added on mobile to push the text overlay down to the top edge of the centered square image. This worked at rest but broke when the browser URL bar appeared/disappeared on scroll — `100vh` changed while the image repositioned using the actual container pixel dimensions, causing the text to drift above the image.
+
+Attempts with `100svh` and `100dvh` also failed for similar reasons (CSS unit references do not stay in sync with the container's measured `clientHeight`).
+
+### Final fix: ResizeObserver + inline style
+`FeaturedSection` was converted to a `"use client"` component. A `ResizeObserver` on the container div measures actual pixel dimensions and sets `paddingTop` as an inline style:
+
+```tsx
+const update = () => {
+  const h = container.clientHeight;
+  const w = container.clientWidth;
+  if (w < 640) {
+    const offset = Math.max(0, (h - w) / 2 + 8); // +8px breathing room
+    overlay.style.paddingTop = `${offset}px`;
+  } else {
+    overlay.style.paddingTop = ""; // sm:pt-14 lg:pt-20 take over
+  }
+};
+```
+
+`ResizeObserver` fires on every container resize (including URL bar show/hide). The `clientHeight` is the same value `object-contain` uses to center the image, so text and image stay in sync regardless of browser chrome state.
+
+The `+8` constant was tuned iteratively (`-16` → `+8`) to position text slightly below the image's top edge for visual breathing room.
+
+---
+
+## 35. FeaturedSection — Mobile Font Size Tuning
+
+All four text lines reduced on mobile only:
+
+| Line | Content | Mobile before | Mobile after |
+|------|---------|--------------|--------------|
+| Line 1 | Sanskrit verse | `text-base` | `text-sm` |
+| Line 2 | Romanized transliteration | `text-sm` | `text-xs` |
+| Line 3 | English translation (italic) | `text-sm` | `text-xs` |
+| Line 4 | Attribution ("Nilamata Purana…") | `text-xs` | `text-[11px]` |
+
+Line 4 required an arbitrary value because `text-xs` (12px) is the smallest standard Tailwind step.
+
+Final responsive sizes:
+```
+text-sm     sm:text-lg   lg:text-xl   ← Sanskrit (line 1)
+text-xs     sm:text-base lg:text-lg   ← Romanized (line 2)
+text-xs     sm:text-base lg:text-lg   ← Translation (line 3)
+text-[11px] sm:text-sm   lg:text-base ← Attribution (line 4)
+```
+
+---
+
+## 36. Key Files Modified (Seventh Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/BackgroundController.tsx` | **New file** — single fixed container managing OurStory + Featured panels with scroll-based opacity toggling |
+| `components/home/FeaturedSection.tsx` | Outer div `fixed inset-0 z-[1]` → `relative h-full w-full`; converted to client component; ResizeObserver text positioning; text shadow intensification; mobile font size tuning |
+| `components/home/OurStorySection.tsx` | Outer div `fixed inset-0 z-[2]` → `absolute inset-0 bg-[#FAF6F0]` |
+| `app/(public)/page.tsx` | BackgroundController wired in; sentinel div added; OurStorySection + FeaturedSection direct renders removed |

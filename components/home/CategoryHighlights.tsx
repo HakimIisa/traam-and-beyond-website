@@ -139,14 +139,15 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
             />
           </div>
           <h2 className="font-display text-6xl text-cream font-semibold mb-2 text-center">{content.title}</h2>
-          <p className="text-stone mb-12 text-justify lg:text-center">{content.subtitle}</p>
+          <p className="text-stone mb-6 text-justify lg:text-center">{content.subtitle}</p>
+          <div className="border-t border-white/5 mb-12" />
         </ScrollReveal>
       </div>
 
       {/* Horizontal scroll track */}
       <div
         ref={scrollContainerRef}
-        className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-8 [&::-webkit-scrollbar]:hidden"
+        className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-8 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
         style={{ scrollbarWidth: "none" } as React.CSSProperties}
       >
         {categories.map((cat) => (
@@ -189,7 +190,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
       <div className="flex items-center gap-4 mx-4 sm:mx-6 lg:mx-8 mt-1">
         <button
           onClick={() => scrollByCard(-1)}
-          className="shrink-0 text-stone/50 hover:text-cream transition-colors duration-200"
+          className="shrink-0 text-cream/50 hover:text-cream transition-colors duration-200"
           aria-label="Scroll left"
         >
           <ChevronLeft size={18} />
@@ -202,7 +203,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
         >
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-stone/20" />
           <div
-            className={`absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full bg-terracotta transition-[width] duration-200 ease-out ${
+            className={`absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full bg-cream transition-[width] duration-200 ease-out ${
               dragging ? "cursor-grabbing" : "cursor-grab"
             }`}
             style={{ left: `${thumbLeft}%`, width: `${thumbWidth}%` }}
@@ -213,7 +214,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
 
         <button
           onClick={() => scrollByCard(1)}
-          className="shrink-0 text-stone/50 hover:text-cream transition-colors duration-200"
+          className="shrink-0 text-cream/50 hover:text-cream transition-colors duration-200"
           aria-label="Scroll right"
         >
           <ChevronRight size={18} />
