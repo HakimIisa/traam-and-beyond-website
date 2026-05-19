@@ -874,3 +874,111 @@ text-[11px] sm:text-sm   lg:text-base ← Attribution (line 4)
 | `components/home/FeaturedSection.tsx` | Outer div `fixed inset-0 z-[1]` → `relative h-full w-full`; converted to client component; ResizeObserver text positioning; text shadow intensification; mobile font size tuning |
 | `components/home/OurStorySection.tsx` | Outer div `fixed inset-0 z-[2]` → `absolute inset-0 bg-[#FAF6F0]` |
 | `app/(public)/page.tsx` | BackgroundController wired in; sentinel div added; OurStorySection + FeaturedSection direct renders removed |
+
+---
+
+# Eighth Build Session — Addendum
+
+**Date:** 2026-05-19
+**Scope:** CraftHeritageTimeline panel layout overhaul — caption repositioning, top separator bars, two-spacer text centering, overlap fix
+
+---
+
+## 37. CraftHeritageTimeline — Caption Repositioned to Panel Bottom (`components/about/CraftHeritageTimeline.tsx`)
+
+Previously each panel's image caption sat inline in the document flow immediately below the body text, leaving a large empty space beneath it. The caption is now `absolute bottom-0` — pinned to the bottom of every panel regardless of content length.
+
+### Caption structure
+```tsx
+<div className="absolute bottom-0 inset-x-0 px-6 lg:px-20 pb-10">
+  <div className="max-w-2xl mx-auto border-t border-white/10 pt-6">
+    <p className="text-stone/60 text-xs lg:text-sm italic leading-relaxed whitespace-pre-line">
+      {panel.caption}
+      {panel.captionUrl && <a ...>{panel.captionUrl}</a>}
+    </p>
+  </div>
+</div>
+```
+
+- `border-t border-white/10` — divider line matching the existing `border-white/10` dividers used elsewhere in the timeline
+- `pt-6` (24px) — uniform space between divider and caption text
+- `pb-10` (40px) — breathing room between caption text and panel bottom edge
+- `pb-40` on the outer panel — reserves 160px at the bottom so the absolute caption never overlaps body text (on normal-length panels)
+
+---
+
+## 38. CraftHeritageTimeline — Top Separator Bars for Panels 2+ (`components/about/CraftHeritageTimeline.tsx`)
+
+A horizontal `border-t border-white/10` line was added near the very top of every panel from panel 2 onwards (index > 0). This mirrors the bottom caption bar and visually frames the content.
+
+### Implementation
+The separator is the **first flex child** inside the panel div — it sits at the top of the flex column, right after the `pt-10` (40px) top padding:
+
+```tsx
+{index > 0 && (
+  <div className="w-full max-w-2xl mx-auto border-t border-white/10 shrink-0" />
+)}
+```
+
+- `shrink-0` prevents the separator from being compressed by the flex layout
+- `border-white/10` matches the color of the intro-text divider in panel 1 and the caption divider in all panels
+- Panel 1 is excluded (`index > 0`) because it already has the `border-b border-white/10` divider between the intro text and the section 1 heading
+
+---
+
+## 39. CraftHeritageTimeline — Two-Spacer Text Centering (`components/about/CraftHeritageTimeline.tsx`)
+
+The earlier `justify-center` approach was replaced with two equal `flex-1` spacers sandwiching the content. This centers the body text precisely between the top separator bar and the bottom caption divider, regardless of viewport height.
+
+### Panel structure after refactor
+
+```
+panel div (pt-10 pb-40, flex flex-col, min-h-[75vh])
+  ├── separator bar         ← border-t, shrink-0 (panels 2+)
+  ├── flex-1 min-h-20       ← top spacer (≥ 80px)
+  ├── max-w-2xl content     ← heading + subtitle + body text
+  ├── flex-1 min-h-20       ← bottom spacer (≥ 80px)
+  └── absolute caption      ← pinned to bottom-0
+```
+
+### Why two spacers instead of `justify-center`
+`justify-center` centers content within the full flex area (bounded by `pt` and `pb`). The top separator and bottom caption are at asymmetric distances from the `pt`/`pb` boundaries, so `justify-center` always produced visually off-center text. Two equal `flex-1` spacers center the content within the space between the separator and the caption — regardless of the padding values.
+
+### `min-h-20` on both spacers
+- Guarantees at least **80px of breathing room** between the top bar and the heading text
+- Guarantees at least **80px of breathing room** between the body text and the caption divider
+- When both spacers share the same `min-h`, the centering remains symmetric even when spacers are at their floor value (long-content panels like panel 6)
+
+---
+
+## 40. CraftHeritageTimeline — Caption Overlap Fix (Panel 6) (`components/about/CraftHeritageTimeline.tsx`)
+
+Panel 6 (The Shah Miri Dynasty) has two long paragraphs. Its caption is also unusually tall (~177px including 5 lines of text, URL, `pt-6`, and `pb-10`) — exceeding the `pb-40` (160px) bottom reserve, causing the absolute caption to overlap the body text.
+
+### Fix
+The `min-h-20` (80px) on the bottom spacer extends the effective bottom reserve to `pb-40 + min-h-20 = 160 + 80 = 240px`. Since the tallest caption (panel 6) is ~177px, the content's bottom edge is always at least `240 - 177 = 63px` clear of the caption divider.
+
+### Why not just increase `pb`
+Increasing `pb` globally would create visible dead space below shorter captions. The `min-h` on the spacer is local to the flex layout — it only adds space where the content is long enough to compress the spacers.
+
+---
+
+## 41. Panel Layout — Final Class Summary (`components/about/CraftHeritageTimeline.tsx`)
+
+| Element | Classes | Purpose |
+|---------|---------|---------|
+| Outer panel div | `pt-10 pb-40 px-6 lg:px-20 min-h-[75vh] flex flex-col items-center relative z-10` | Small top padding, large bottom reserve for caption |
+| Top separator | `w-full max-w-2xl mx-auto border-t border-white/10 shrink-0` | Visual top bar, panels 2+ only |
+| Top spacer | `flex-1 min-h-20` | Centers text; 80px minimum breathing room above content |
+| Content div | `max-w-2xl w-full mx-auto text-left space-y-6` | All panel text |
+| Bottom spacer | `flex-1 min-h-20` | Centers text; 80px minimum + prevents caption overlap |
+| Caption wrapper | `absolute bottom-0 inset-x-0 px-6 lg:px-20 pb-10` | Pins caption to panel bottom |
+| Caption inner | `max-w-2xl mx-auto border-t border-white/10 pt-6` | Divider + spacing above caption text |
+
+---
+
+## 42. Key Files Modified (Eighth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/about/CraftHeritageTimeline.tsx` | Caption moved to `absolute bottom-0`; top separator bars added for panels 2+; two-spacer centering; `min-h-20` on both spacers for breathing room and overlap prevention |

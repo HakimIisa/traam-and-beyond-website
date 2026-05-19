@@ -316,8 +316,17 @@ function TextBlock({
   return (
     <div
       ref={ref}
-      className="bg-[#1a130a] w-full py-28 lg:py-40 px-6 lg:px-20 min-h-[75vh] flex flex-col justify-center items-center relative z-10"
+      className="bg-[#1a130a] w-full pt-10 pb-40 px-6 lg:px-20 min-h-[75vh] flex flex-col items-center relative z-10"
     >
+      {/* Top separator — sits near the very top of the panel for panels 2+ */}
+      {index > 0 && (
+        <div className="w-full max-w-2xl mx-auto border-t border-white/10 shrink-0" />
+      )}
+
+      {/* Top spacer — min-h-20 guarantees 80px breathing room below the top bar */}
+      <div className="flex-1 min-h-20" />
+
+      {/* Main content */}
       <div className="max-w-2xl w-full mx-auto text-left space-y-6">
         {/* Intro text — only on Panel 1 */}
         {panel.introText && (
@@ -360,24 +369,31 @@ function TextBlock({
             )
           )}
         </div>
-
-        {/* Figure caption */}
-        {panel.caption && (
-          <p className="text-stone/60 text-xs lg:text-sm italic leading-relaxed pt-4 border-t border-white/5 whitespace-pre-line">
-            {panel.caption}
-            {panel.captionUrl && (
-              <a
-                href={panel.captionUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block mt-0.5 not-italic text-stone/50 hover:text-terracotta underline break-all"
-              >
-                {panel.captionUrl}
-              </a>
-            )}
-          </p>
-        )}
       </div>
+
+      {/* Bottom spacer — min-h-20 guarantees 80px breathing room above the caption bar */}
+      <div className="flex-1 min-h-20" />
+
+      {/* Figure caption — absolutely pinned to bottom of panel */}
+      {panel.caption && (
+        <div className="absolute bottom-0 inset-x-0 px-6 lg:px-20 pb-10">
+          <div className="max-w-2xl mx-auto border-t border-white/10 pt-6">
+            <p className="text-stone/60 text-xs lg:text-sm italic leading-relaxed whitespace-pre-line">
+              {panel.caption}
+              {panel.captionUrl && (
+                <a
+                  href={panel.captionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block mt-0.5 not-italic text-stone/50 hover:text-terracotta underline break-all"
+                >
+                  {panel.captionUrl}
+                </a>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
