@@ -5,6 +5,7 @@ import HeroSection from "@/components/home/HeroSection";
 import OurStorySection from "@/components/home/OurStorySection";
 import FeaturedSection from "@/components/home/FeaturedSection";
 import CategoryHighlights from "@/components/home/CategoryHighlights";
+import ResearchHighlights from "@/components/home/ResearchHighlights";
 import EnquiryForm from "@/components/forms/EnquiryForm";
 import type { HomeContent } from "@/types/home-content";
 import type { AboutContent } from "@/types/about-content";
@@ -89,6 +90,9 @@ export default function HomePageClient({ categories, content, aboutContent }: Pr
 
         {/* Transparent gap 2 — Featured visible beneath */}
         <div className="aspect-square lg:h-[85vh] w-full" />
+
+        {/* Research — opaque */}
+        <ResearchHighlights />
 
         {/* General Enquiry — opaque */}
         <section className="bg-cream-dark py-16">
