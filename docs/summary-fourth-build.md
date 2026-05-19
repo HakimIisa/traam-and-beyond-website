@@ -982,3 +982,174 @@ Increasing `pb` globally would create visible dead space below shorter captions.
 | File | Change type |
 |------|-------------|
 | `components/about/CraftHeritageTimeline.tsx` | Caption moved to `absolute bottom-0`; top separator bars added for panels 2+; two-spacer centering; `min-h-20` on both spacers for breathing room and overlap prevention |
+
+---
+
+# Ninth Build Session — Addendum
+
+**Date:** 2026-05-19
+**Scope:** Home page sticky/crossfade architecture overhaul, "Explore Collection" button removal, category page descriptions, CategoryHighlights scroll animation (Option A)
+
+---
+
+## 43. Home Page — Sticky Background + Crossfade Architecture
+
+### Problem
+The previous `BackgroundController` used `position: fixed; z-index: 1` for both `OurStorySection` and `FeaturedSection`. This required explicit z-index management on every subsequent element (including the footer) and introduced paint-order edge cases.
+
+### New architecture (`components/home/HomePageClient.tsx` — new file)
+The home page was split into a thin server component (`app/(public)/page.tsx`) that fetches data and a client component (`HomePageClient.tsx`) that owns the full layout. The pattern mirrors the about page's sticky/foreground approach.
+
+- **Sticky background container**: `sticky top-0 h-screen z-[1] overflow-hidden` wraps both panels
+- Each panel is `absolute inset-0` inside the sticky container
+- **Crossfade**: `transition-opacity duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]` on each panel, driven by `showFeatured` React state
+- **Foreground**: `relative z-[2] -mt-[100vh]` overlaps the sticky background
+- **Switch trigger**: `getBoundingClientRect().top <= 0` on a `buttonStripRef` — fires when the button strip (first opaque element after the transparent gap) fully covers the sticky background
+
+### Scroll structure after refactor
+```
+sticky background (h-screen, z-[1])
+  ├── OurStorySection (absolute inset-0, opacity crossfades)
+  └── FeaturedSection (absolute inset-0, opacity crossfades)
+
+foreground (z-[2], -mt-[100vh])
+  ├── HeroSection (opaque)
+  ├── transparent gap (aspect-square lg:h-[85vh])  ← OurStory visible here
+  ├── button strip [ref] (bg-[#1a130a])             ← switch triggers here
+  ├── CategoryHighlights (bg-[#1a130a] / bg-[#0a0a0a])
+  ├── transparent gap (aspect-square lg:h-[85vh])  ← Featured visible here
+  └── Enquiry section (bg-cream-dark)
+```
+
+### Switch trigger detail
+`getBoundingClientRect().top <= 0` continues returning a negative value after the element scrolls fully above the viewport, so `showFeatured` stays `true` persistently once triggered. A `current` flag prevents redundant React state updates on every scroll event. Both `window` and `document` scroll listeners are attached for mobile browser compatibility.
+
+### Why sticky over fixed
+Sticky background stops sticking naturally once the user scrolls past the container — the footer appears without any z-index workarounds. `BackgroundController.tsx` is now orphaned (not imported) but left in place.
+
+---
+
+## 44. Home Page — "Explore Collection" Button Removed
+
+The "Explore Collection" button was removed from the button strip in `HomePageClient.tsx`. Only "Read Our Story ›››" remains, using `inline-block px-8 py-3 bg-terracotta` (auto-width, centered).
+
+---
+
+## 45. Category Pages — Descriptions Added (`app/(public)/category/[slug]/page.tsx`)
+
+A `CATEGORY_DESCRIPTIONS: Record<string, string>` constant was added covering all 13 category slugs. The descriptions were extracted from `public/CategoriesDiscriptions.docx`.
+
+| Slug | Craft |
+|------|-------|
+| `copperware` | Engraving tradition, Persian/Mughal/naga influence |
+| `papier-mch` | Dual-artisan (Saakhta Kaar + Naqash), Persian aesthetic |
+| `silverware` | Declining tradition, European hybrid forms, filigree |
+| `enamelware` | Vitreous enamel on copper/brass/silver, largely extinct |
+| `terracotta` | Oldest craft, Neolithic Burzahom (c. 3000–1500 BCE) |
+| `green-serpentine` | Zahar mohar, protective/medicinal, poison-detection lore |
+| `coins` | Political history Indo-Greek → Mughal dynasties |
+| `shawls` | Pashmina/shahtoosh, Sozni/kaani weaving |
+| `jewellery` | Silver + stones, everyday and ceremonial adornment |
+| `carpets` | 15th-century Persian import under Zain-ul-Abidin |
+| `willow-wicker` | Late 19th–20th century, British colonial origin |
+| `wood-work` | Medieval origins, lattice/relief carving, Silk Route |
+| `brass-ware` | Sultanate/Mughal era, Kashmiri Pandit ritual use |
+
+### Page header structure
+```tsx
+<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+  <div className="mb-10">
+    <h1 className="font-display text-3xl lg:text-6xl text-cream mb-4">{category.name}</h1>
+    {description && (
+      <p className="text-stone text-sm lg:text-base leading-relaxed text-justify mb-8">{description}</p>
+    )}
+    <div className="border-t border-white/10" />
+  </div>
+  <ItemGrid items={items} ... />
+</div>
+```
+
+- `pt-24` — prevents title hugging the navbar
+- Title matches item card title styling (`font-display`, `text-cream`)
+- Description matches item description styling (`text-stone`, `text-base`, `text-justify`, full container width)
+- Divider `border-white/10` matches CraftHeritageTimeline separators
+- Item count removed
+
+---
+
+## 46. CategoryHighlights — Scroll Animation (`components/home/CategoryHighlights.tsx`)
+
+### Animation design (Option A)
+Cards stay fixed width. On hover (desktop) or active scroll position (mobile):
+- **Card scale**: 90% default → 105% active/hovered
+- **Image zoom**: 100% default → 110% active/hovered (within fixed card bounds, `overflow-hidden`)
+- **Opacity dimming**: non-active cards fade to 50%
+
+### Rejected approach — Option B (width expansion)
+Width-expanding cards (`w-[70vw]` → `w-[85vw]` via `animate={{ width }}`) were tried first. User rejected as "choppy and expands in a weird way."
+
+### Failed first Option A attempt
+Adding `animate={{ scale, opacity }}` directly to the outer `motion.div` (which also has `whileInView`) caused framer-motion's priority chain (`whileHover > whileInView > animate`) to let `whileInView={{ scale: 1 }}` permanently override `animate={{ scale: 0.9 }}`. Images appeared tiny on desktop.
+
+### Final two-layer implementation
+```tsx
+<motion.div  // outer — entrance animation only
+  initial={{ opacity: 0, scale: 0.96 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  viewport={{ once: true, root: scrollContainerRef }}
+  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+  onMouseEnter={() => setHoveredIndex(i)}
+>
+  <motion.div  // inner — all interactive effects
+    initial={false}
+    animate={{
+      scale: isActive ? 1.05 : 0.9,
+      opacity: isDimmed ? 0.5 : 1,
+    }}
+    whileHover={isLg ? { scale: 1.05 } : {}}
+    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+  >
+```
+
+`initial={false}` prevents a mount animation from scale(1) → scale(0.9) — cards appear directly at 90% without an initial shrink.
+
+### Why framer-motion instead of CSS classes for scale
+A CSS attempt used `scale-90 lg:hover:scale-105` Tailwind classes. On hover, the browser snapped to 100% momentarily before the CSS transition to 105% began — likely a Tailwind v4 CSS custom property composition issue with the hover pseudo-class. Framer-motion interpolates the full 0.9 → 1.05 range in JS, guaranteeing a smooth animation with no intermediate snap.
+
+### New state and refs
+| Variable | Type | Purpose |
+|----------|------|---------|
+| `hoveredIndex` | `number \| null` | Desktop: which card is hovered (drives dimming) |
+| `scrollActiveIndex` | `number \| null` | Mobile: which card is closest to scroll container center |
+| `isLg` | `boolean` | Viewport ≥ 1024px — gates `whileHover` to desktop only |
+| `cardRefs` | `ref[]` | Array of card DOM refs for mobile centre-detection |
+
+### Mobile active detection
+Scroll listener on `scrollContainerRef` computes which card's centre is closest to the container's visible centre:
+```tsx
+const centre = el.scrollLeft + el.clientWidth / 2;
+cardRefs.current.forEach((card, i) => {
+  const cardCentre = card.offsetLeft + card.offsetWidth / 2;
+  if (Math.abs(cardCentre - centre) < minDist) { minDist = ...; closest = i; }
+});
+setScrollActiveIndex(closest);
+```
+
+### isDimmed and isActive logic
+```tsx
+const isActive = !isLg && scrollActiveIndex === i;
+const isDimmed = isLg
+  ? hoveredIndex !== null && hoveredIndex !== i
+  : scrollActiveIndex !== null && scrollActiveIndex !== i;
+```
+
+---
+
+## 47. Key Files Modified (Ninth Build)
+
+| File | Change type |
+|------|-------------|
+| `app/(public)/page.tsx` | Converted to thin server component; passes categories + homeContent + aboutContent to HomePageClient |
+| `components/home/HomePageClient.tsx` | **New file** — client component owning full home page layout with sticky background, crossfade, scroll trigger |
+| `app/(public)/category/[slug]/page.tsx` | Added `CATEGORY_DESCRIPTIONS` (13 slugs), `pt-24` padding, description + divider header, item count removed |
+| `components/home/CategoryHighlights.tsx` | Option A animation — inner `motion.div` for scale/opacity, mobile active detection, `isLg` breakpoint, `hoveredIndex` + `scrollActiveIndex` state |

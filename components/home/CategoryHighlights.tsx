@@ -19,14 +19,55 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const dragStartScrollLeft = useRef(0);
   const [thumbLeft, setThumbLeft] = useState(0);
   const [thumbWidth, setThumbWidth] = useState(30);
   const [dragging, setDragging] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [scrollActiveIndex, setScrollActiveIndex] = useState<number | null>(null);
+  const [isLg, setIsLg] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 1024 : false
+  );
 
-  // Update thumb position and width from container scroll state
+  // Breakpoint tracking
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setIsLg(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsLg(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Mobile: detect which card is closest to the scroll container centre
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const detectActive = () => {
+      const centre = el.scrollLeft + el.clientWidth / 2;
+      let closest = 0;
+      let minDist = Infinity;
+      cardRefs.current.forEach((card, i) => {
+        if (!card) return;
+        const cardCentre = card.offsetLeft + card.offsetWidth / 2;
+        const dist = Math.abs(cardCentre - centre);
+        if (dist < minDist) {
+          minDist = dist;
+          closest = i;
+        }
+      });
+      setScrollActiveIndex(closest);
+    };
+
+    detectActive();
+    el.addEventListener("scroll", detectActive, { passive: true });
+    return () => el.removeEventListener("scroll", detectActive);
+  }, [categories.length]);
+
+  // Update scrollbar thumb
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -111,7 +152,6 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
     el.scrollBy({ left: direction * (el.clientWidth / 3.2), behavior: "smooth" });
   };
 
-  // Click on the track (not thumb) to jump to that position
   const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging.current || !scrollContainerRef.current || !trackRef.current) return;
     const el = scrollContainerRef.current;
@@ -149,41 +189,63 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
         ref={scrollContainerRef}
         className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-8 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
         style={{ scrollbarWidth: "none" } as React.CSSProperties}
+        onMouseLeave={() => setHoveredIndex(null)}
       >
-        {categories.map((cat) => (
-          <motion.div
-            key={cat.id}
-            className="shrink-0 w-[70vw] lg:w-[30vw] group"
-            initial={{ opacity: 0, scale: 0.96 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, root: scrollContainerRef }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <Link href={`/category/${cat.slug}`} className="block">
-              <div className="relative w-full aspect-square overflow-hidden">
-                {cat.coverImage ? (
-                  <Image
-                    src={cat.coverImage}
-                    alt={cat.name}
-                    fill
-                    sizes="(min-width: 1024px) 30vw, 70vw"
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-walnut-light flex items-center justify-center">
-                    <span className="text-stone/30 text-4xl">✦</span>
-                  </div>
-                )}
-              </div>
+        {categories.map((cat, i) => {
+          const isActive = !isLg && scrollActiveIndex === i;
+          const isDimmed = isLg
+            ? hoveredIndex !== null && hoveredIndex !== i
+            : scrollActiveIndex !== null && scrollActiveIndex !== i;
 
-              <div className="pt-4 pb-2 text-center">
-                <h3 className="font-display text-3xl lg:text-4xl text-cream group-hover:text-terracotta transition-colors duration-300">
-                  {cat.name}
-                </h3>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
+          return (
+            <motion.div
+              key={cat.id}
+              ref={(el) => { cardRefs.current[i] = el; }}
+              className="shrink-0 w-[70vw] lg:w-[30vw] group"
+              initial={{ opacity: 0, scale: 0.96 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, root: scrollContainerRef }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              onMouseEnter={() => setHoveredIndex(i)}
+            >
+              <motion.div
+                initial={false}
+                animate={{
+                  scale: isActive ? 1.05 : 0.9,
+                  opacity: isDimmed ? 0.5 : 1,
+                }}
+                whileHover={isLg ? { scale: 1.05 } : {}}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <Link href={`/category/${cat.slug}`} className="block">
+                  <div className="relative w-full aspect-square overflow-hidden">
+                    {cat.coverImage ? (
+                      <Image
+                        src={cat.coverImage}
+                        alt={cat.name}
+                        fill
+                        sizes="(min-width: 1024px) 30vw, 70vw"
+                        className={`object-cover transition-transform duration-700 lg:group-hover:scale-110 ${
+                          isActive ? "scale-110" : ""
+                        }`}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-walnut-light flex items-center justify-center">
+                        <span className="text-stone/30 text-4xl">✦</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-4 pb-2 text-center">
+                    <h3 className="font-display text-3xl lg:text-4xl text-cream group-hover:text-terracotta transition-colors duration-300">
+                      {cat.name}
+                    </h3>
+                  </div>
+                </Link>
+              </motion.div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Custom scrollbar with arrows */}
