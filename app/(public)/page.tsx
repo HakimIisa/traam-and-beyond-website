@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-import HeroSection from "@/components/home/HeroSection";
-import BackgroundController from "@/components/home/BackgroundController";
-import CategoryHighlights from "@/components/home/CategoryHighlights";
-import EnquiryForm from "@/components/forms/EnquiryForm";
+import HomePageClient from "@/components/home/HomePageClient";
 import { getAllCategories } from "@/lib/firebase/categories";
 import { getHomeContent } from "@/lib/firebase/site-content";
 import { getAboutContent } from "@/lib/firebase/about-content";
@@ -24,51 +21,10 @@ export default async function HomePage() {
   ]);
 
   return (
-    <>
-      {/* Fixed background — crossfades between Our Story and Featured based on scroll */}
-      <BackgroundController ourStoryContent={aboutContent.introduction} />
-
-      <HeroSection content={content.hero} />
-
-      {/* Scroll runway — Our Story background visible while scrolling through here */}
-      <div className="h-screen" />
-
-      {/* Switch to Featured when this sentinel reaches the top of the viewport */}
-      <div id="featured-start-sentinel" className="h-[2px]" />
-
-      {/* "Read Our Story" + "Explore Collections" buttons */}
-      <div className="relative z-[2] bg-[#1a130a] flex flex-col items-center justify-center px-8 py-6 gap-4">
-        <a
-          href="/about"
-          className="inline-block px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm"
-        >
-          Read Our Story ›››
-        </a>
-        <a
-          href="#collections"
-          className="inline-block px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm"
-        >
-          {content.hero.ctaLabel}
-        </a>
-      </div>
-
-      <CategoryHighlights categories={categories} content={content.collections} />
-
-      {/* Featured runway — Featured background visible here */}
-      <div className="h-screen" />
-
-      {/* General Enquiry */}
-      <section className="relative z-[2] bg-cream-dark py-16">
-        <div className="max-w-xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl text-walnut font-semibold mb-2 text-center">
-            {content.enquiry.title}
-          </h2>
-          <p className="text-stone text-center mb-8">
-            {content.enquiry.subtitle}
-          </p>
-          <EnquiryForm type="general" />
-        </div>
-      </section>
-    </>
+    <HomePageClient
+      categories={categories}
+      content={content}
+      aboutContent={aboutContent}
+    />
   );
 }
