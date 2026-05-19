@@ -1153,3 +1153,129 @@ const isDimmed = isLg
 | `components/home/HomePageClient.tsx` | **New file** — client component owning full home page layout with sticky background, crossfade, scroll trigger |
 | `app/(public)/category/[slug]/page.tsx` | Added `CATEGORY_DESCRIPTIONS` (13 slugs), `pt-24` padding, description + divider header, item count removed |
 | `components/home/CategoryHighlights.tsx` | Option A animation — inner `motion.div` for scale/opacity, mobile active detection, `isLg` breakpoint, `hoveredIndex` + `scrollActiveIndex` state |
+
+---
+
+# Tenth Build Session — Addendum
+
+**Date:** 2026-05-19
+**Scope:** Research section added to home page foreground — `ResearchHighlights` component, static research items, same scroll/animation pattern as CategoryHighlights
+
+---
+
+## 48. ResearchHighlights — New Home Page Section (`components/home/ResearchHighlights.tsx`)
+
+A new static section was added to the home page foreground mirroring the structure and behavior of `CategoryHighlights`. Unlike CategoryHighlights (which receives `categories` as a prop from Firestore), ResearchHighlights is fully static — the three items are hardcoded in a `RESEARCH_ITEMS` constant.
+
+### Position in home page scroll structure
+
+```
+foreground (z-[2], -mt-[100vh])
+  ├── HeroSection (opaque)
+  ├── transparent gap 1 (aspect-square lg:h-[85vh])   ← OurStory visible
+  ├── button strip [ref] (bg-[#1a130a])                ← crossfade trigger
+  ├── CategoryHighlights (bg-[#1a130a] / bg-[#0a0a0a])
+  ├── transparent gap 2 (aspect-square lg:h-[85vh])   ← Featured visible
+  ├── ResearchHighlights (bg-[#1a130a] / bg-[#0a0a0a]) ← NEW
+  └── Enquiry section (bg-cream-dark)
+```
+
+No button or additional transparent gap is inserted before `ResearchHighlights` — it follows immediately after the Featured transparent gap, so the Featured background is visible during the gap and then the Research section appears as a solid opaque block.
+
+### Static items
+
+```tsx
+const RESEARCH_ITEMS = [
+  { id: "adaptive-reuse",   name: "Adaptive Reuse",   href: "/research/adaptive-reuse",   image: "/Research/AdaptiveReuse.jpg" },
+  { id: "reinterpretation", name: "Reinterpretation", href: "/research/reinterpretation", image: "/Research/Reinterpretation.jpg" },
+  { id: "graphic-design",   name: "Graphic Design",   href: "/research/graphic-design",   image: "/Research/GraphicDesign.jpg" },
+];
+```
+
+Image files are in `public/Research/` (capital R — matches Vercel's case-sensitive filesystem). Routes match the existing navbar sub-links wired in the seventh build.
+
+### Section header
+
+Same structure as CategoryHighlights:
+- Same `/IsbandHomePage.png` centered image (placeholder — to be replaced with a research-specific asset later)
+- `h2`: `font-display text-6xl text-cream font-semibold text-center` — "Research"
+- Subtitle: filler text describing the research programme (to be replaced with CMS content)
+- `border-t border-white/5` divider below subtitle
+
+### Scroll panel behavior
+
+Identical to CategoryHighlights:
+- Horizontal `overflow-x-auto` scroll container with hidden scrollbar
+- Same custom scrollbar: draggable thumb, click-to-seek track, left/right arrow buttons
+- Same `[&::-webkit-scrollbar]:hidden` + `scrollbarWidth: none` cross-browser hide
+- Same card dimensions: `w-[70vw]` mobile, `w-[30vw]` desktop
+
+### Animation — identical to CategoryHighlights Option A
+
+The same two-layer `motion.div` pattern with `initial={false}`:
+
+```tsx
+<motion.div  // outer — entrance only
+  initial={{ opacity: 0, scale: 0.96 }}
+  whileInView={{ opacity: 1, scale: 1 }}
+  viewport={{ once: true, root: scrollContainerRef }}
+  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+  onMouseEnter={() => setHoveredIndex(i)}
+>
+  <motion.div  // inner — interactive scale + opacity
+    initial={false}
+    animate={{
+      scale: isActive ? 1.05 : 0.9,
+      opacity: isDimmed ? 0.5 : 1,
+    }}
+    whileHover={isLg ? { scale: 1.05 } : {}}
+    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+  >
+```
+
+All state variables, refs, and logic (`hoveredIndex`, `scrollActiveIndex`, `isLg`, `cardRefs`, mobile center-detection, drag handlers) are reproduced verbatim from `CategoryHighlights.tsx`.
+
+Image CSS zoom uses the same CSS transition (not framer-motion) since it doesn't suffer from the snap issue:
+```tsx
+className={`object-cover transition-transform duration-700 lg:group-hover:scale-110 ${isActive ? "scale-110" : ""}`}
+```
+
+### Colors
+
+Same palette as CategoryHighlights:
+- Section: `bg-[#1a130a]`
+- Scroll track: `bg-[#0a0a0a]`
+- Text: `text-cream`, `text-stone`, `text-terracotta` (on hover)
+- Scrollbar thumb: `bg-cream`
+
+---
+
+## 49. HomePageClient — ResearchHighlights Wired In (`components/home/HomePageClient.tsx`)
+
+`ResearchHighlights` imported and placed between transparent gap 2 and the General Enquiry section:
+
+```tsx
+import ResearchHighlights from "@/components/home/ResearchHighlights";
+
+// ...
+
+{/* Transparent gap 2 — Featured visible beneath */}
+<div className="aspect-square lg:h-[85vh] w-full" />
+
+{/* Research — opaque */}
+<ResearchHighlights />
+
+{/* General Enquiry — opaque */}
+<section className="bg-cream-dark py-16">
+```
+
+No new props required — `ResearchHighlights` is self-contained (static data, no DB fetch).
+
+---
+
+## 50. Key Files Modified (Tenth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/ResearchHighlights.tsx` | **New file** — static Research section with three items, full CategoryHighlights animation parity |
+| `components/home/HomePageClient.tsx` | Added `ResearchHighlights` import; placed between transparent gap 2 and enquiry section |
