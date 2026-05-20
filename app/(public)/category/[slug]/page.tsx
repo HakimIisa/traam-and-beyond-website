@@ -58,7 +58,7 @@ export default async function CategoryPage({ params }: Props) {
 
   if (!category) notFound();
 
-  const description = CATEGORY_DESCRIPTIONS[slug];
+  const description = category.description || CATEGORY_DESCRIPTIONS[slug];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
