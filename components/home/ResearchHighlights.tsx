@@ -18,13 +18,13 @@ const RESEARCH_ITEMS = [
     id: "reinterpretation",
     name: "Reinterpretation",
     href: "/research/reinterpretation",
-    image: "/Research/Reinterpretation.jpg",
+    image: "/Research/Reinterpretation1.png",
   },
   {
     id: "graphic-design",
     name: "Graphic Design",
     href: "/research/graphic-design",
-    image: "/Research/GraphicDesign.jpg",
+    image: "/Research/GraphicDesign1.png",
   },
 ];
 
@@ -199,7 +199,7 @@ export default function ResearchHighlights() {
       {/* Horizontal scroll track */}
       <div
         ref={scrollContainerRef}
-        className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-8 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
+        className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
         style={{ scrollbarWidth: "none" } as React.CSSProperties}
         onMouseLeave={() => setHoveredIndex(null)}
       >

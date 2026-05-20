@@ -14,6 +14,22 @@ interface CategoryHighlightsProps {
   content: HomeContent["collections"];
 }
 
+const URDU_NAMES: Record<string, string> = {
+  "copperware":        "کاپر ویئر",
+  "papier-mch":        "پیپر ماشی",
+  "silverware":        "سلور ویئر",
+  "enamelware":        "اینامل ویئر",
+  "terracotta":        "ٹیراکوٹا",
+  "green-serpentine":  "گرین سرپینٹائن",
+  "coins":             "سکے",
+  "shawls":            "شالیں",
+  "jewellery":         "زیورات",
+  "carpets":           "قالین",
+  "willow-wicker":     "بید کی ٹوکری سازی",
+  "wood-work":         "لکڑی کا کام",
+  "brass-ware":        "پیتل کے برتن",
+};
+
 export default function CategoryHighlights({ categories, content }: CategoryHighlightsProps) {
   if (categories.length === 0) return null;
 
@@ -187,7 +203,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
       {/* Horizontal scroll track */}
       <div
         ref={scrollContainerRef}
-        className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-8 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
+        className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
         style={{ scrollbarWidth: "none" } as React.CSSProperties}
         onMouseLeave={() => setHoveredIndex(null)}
       >
@@ -240,6 +256,15 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                     <h3 className="font-display text-3xl lg:text-4xl text-cream group-hover:text-terracotta transition-colors duration-300">
                       {cat.name}
                     </h3>
+                    {URDU_NAMES[cat.slug] && (
+                      <p
+                        className="text-stone/70 text-[24px] lg:text-[26px] mt-1"
+                        dir="rtl"
+                        lang="ur"
+                      >
+                        {URDU_NAMES[cat.slug]}
+                      </p>
+                    )}
                   </div>
                 </Link>
               </motion.div>
