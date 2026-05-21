@@ -97,7 +97,7 @@ export default function HomePageClient({ categories, content, aboutContent }: Pr
         {/* General Enquiry — opaque */}
         <section className="bg-cream-dark py-16">
           <div className="max-w-xl mx-auto px-4 sm:px-6">
-            <h2 className="text-3xl text-walnut font-semibold mb-2 text-center">
+            <h2 className="text-3xl text-cream font-semibold mb-2 text-center">
               {content.enquiry.title}
             </h2>
             <p className="text-stone text-center mb-8">{content.enquiry.subtitle}</p>

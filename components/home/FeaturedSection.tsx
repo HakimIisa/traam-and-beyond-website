@@ -18,6 +18,9 @@ export default function FeaturedSection() {
           <p className="text-[#D4A017] text-xs sm:text-base lg:text-lg mt-2 leading-relaxed italic max-w-xl">
             Kashmir is greatly fortunate, the finest among lands.
           </p>
+          <p className="text-[#D4A017] text-[11px] sm:text-sm lg:text-base mt-1">
+            Nilamata Purana, around AD 500-700
+          </p>
         </div>
 
         {/* Image — correct aspect ratio (2480×2034), no letterboxing */}
