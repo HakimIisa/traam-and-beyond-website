@@ -253,12 +253,12 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                   </div>
 
                   <div className="pt-4 pb-2 text-center">
-                    <h3 className="font-display text-3xl lg:text-4xl text-cream group-hover:text-terracotta transition-colors duration-300">
+                    <h3 className="font-display text-3xl lg:text-4xl text-stone/70 group-hover:text-terracotta transition-colors duration-300">
                       {cat.name}
                     </h3>
                     {URDU_NAMES[cat.slug] && (
                       <p
-                        className="text-stone/70 text-[24px] lg:text-[26px] mt-1"
+                        className="text-stone/70 text-[24px] lg:text-[26px] mt-1 group-hover:text-terracotta transition-colors duration-300"
                         dir="rtl"
                         lang="ur"
                       >

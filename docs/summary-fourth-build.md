@@ -1279,3 +1279,136 @@ No new props required — `ResearchHighlights` is self-contained (static data, n
 |------|-------------|
 | `components/home/ResearchHighlights.tsx` | **New file** — static Research section with three items, full CategoryHighlights animation parity |
 | `components/home/HomePageClient.tsx` | Added `ResearchHighlights` import; placed between transparent gap 2 and enquiry section |
+
+---
+
+# Eleventh Build Session — Addendum
+
+**Date:** 2026-05-20
+**Scope:** CategoryHighlights vertical padding, Urdu script names under category titles, ResearchHighlights image updates + padding, category page description source linked to Firestore
+
+---
+
+## 51. CategoryHighlights — Vertical Padding Added (`components/home/CategoryHighlights.tsx`)
+
+The `bg-[#0a0a0a]` scroll container previously had no top padding (images started flush at the top) and only `pb-8` (32px) below the title text.
+
+**Fix:** Added `pt-12 pb-12` (48px top and bottom) to the scroll container:
+
+```tsx
+// Before
+className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-8 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
+
+// After
+className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
+```
+
+Image dimensions, card dimensions, and all animation values are unchanged — only the black space above the images and below the category titles was expanded.
+
+---
+
+## 52. CategoryHighlights — Urdu Script Names (`components/home/CategoryHighlights.tsx`)
+
+A `URDU_NAMES` lookup map was added (slug → Urdu script) and a `<p>` element renders the Urdu name centered below the English title on every card.
+
+### Lookup map
+```tsx
+const URDU_NAMES: Record<string, string> = {
+  "copperware":        "کاپر ویئر",
+  "papier-mch":        "پیپر ماشی",
+  "silverware":        "سلور ویئر",
+  "enamelware":        "اینامل ویئر",
+  "terracotta":        "ٹیراکوٹا",
+  "green-serpentine":  "گرین سرپینٹائن",
+  "coins":             "سکے",
+  "shawls":            "شالیں",
+  "jewellery":         "زیورات",
+  "carpets":           "قالین",
+  "willow-wicker":     "بید کی ٹوکری سازی",
+  "wood-work":         "لکڑی کا کام",
+  "brass-ware":        "پیتل کے برتن",
+};
+```
+
+### Rendered element
+```tsx
+{URDU_NAMES[cat.slug] && (
+  <p
+    className="text-stone/70 text-[24px] lg:text-[26px] mt-1"
+    dir="rtl"
+    lang="ur"
+  >
+    {URDU_NAMES[cat.slug]}
+  </p>
+)}
+```
+
+- `dir="rtl" lang="ur"` — enables correct Urdu text shaping in the browser
+- `text-stone/70` — slightly muted to sit below the English title in visual hierarchy
+- If a category slug has no entry in the map, the element is simply not rendered
+
+### Font size tuning log
+| Step | Mobile | Desktop |
+|------|--------|---------|
+| Initial | `text-lg` (18px) | `text-xl` (20px) |
+| +2pt | `text-[20px]` | `text-[22px]` |
+| +2pt | `text-[22px]` | `text-[24px]` |
+| +2pt (final) | `text-[24px]` | `text-[26px]` |
+
+---
+
+## 53. ResearchHighlights — Image Updates (`components/home/ResearchHighlights.tsx`)
+
+Two card images replaced with new `.png` assets:
+
+| Card | Before | After |
+|------|--------|-------|
+| Reinterpretation | `/Research/Reinterpretation.jpg` | `/Research/Reinterpretation1.png` |
+| Graphic Design | `/Research/GraphicDesign.jpg` | `/Research/GraphicDesign1.png` |
+
+Adaptive Reuse image (`/Research/AdaptiveReuse.jpg`) unchanged.
+
+---
+
+## 54. ResearchHighlights — Vertical Padding Added (`components/home/ResearchHighlights.tsx`)
+
+Same `pt-12 pb-12` padding applied to the Research scroll container, matching the CategoryHighlights change (section 51):
+
+```tsx
+// Before
+className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pb-8 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
+
+// After
+className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
+```
+
+---
+
+## 55. Category Page — Description Source Linked to Firestore (`app/(public)/category/[slug]/page.tsx`)
+
+### Problem
+The admin panel's `CategoryForm` saves a `description` field to Firestore when a category is created or edited. However, the category page was reading descriptions from a hardcoded `CATEGORY_DESCRIPTIONS` constant — it never read `category.description` from Firestore, so admin panel edits had no effect on the displayed text.
+
+### Fix
+```tsx
+// Before — only reads hardcoded constant
+const description = CATEGORY_DESCRIPTIONS[slug];
+
+// After — Firestore first, constant as fallback
+const description = category.description || CATEGORY_DESCRIPTIONS[slug];
+```
+
+The hardcoded constant is kept as a fallback so categories that have never been saved via the admin panel continue to display the original descriptions. Once a description is saved in the admin panel for a category, it takes precedence.
+
+### Category type
+`Category.description` is already typed as `description?: string` in `types/index.ts` — no type changes required.
+
+---
+
+## 56. Key Files Modified (Eleventh Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/CategoryHighlights.tsx` | `pt-12 pb-12` padding on scroll container; `URDU_NAMES` map added; Urdu `<p>` rendered below each English title |
+| `components/home/ResearchHighlights.tsx` | `Reinterpretation.jpg` → `Reinterpretation1.png`, `GraphicDesign.jpg` → `GraphicDesign1.png`; `pt-12 pb-12` padding on scroll container |
+| `app/(public)/category/[slug]/page.tsx` | Description source changed from hardcoded constant only → `category.description \|\| CATEGORY_DESCRIPTIONS[slug]` |

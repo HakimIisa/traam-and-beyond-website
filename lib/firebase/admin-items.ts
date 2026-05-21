@@ -5,6 +5,7 @@ import type { Item } from "@/types";
 
 export interface ItemWriteData {
   title: string;
+  titleKashmiri?: string;
   description: string;
   price: number | null;
   notForSale: boolean;
@@ -69,6 +70,7 @@ export async function adminGetAllItems(): Promise<Item[]> {
     return {
       id: d.id,
       title: data.title,
+      titleKashmiri: data.titleKashmiri ?? undefined,
       description: data.description,
       price: data.price ?? null,
       notForSale: data.notForSale ?? false,

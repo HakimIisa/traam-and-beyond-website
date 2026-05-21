@@ -13,6 +13,7 @@ export type EnquirySchema = z.infer<typeof enquirySchema>;
 
 export const itemSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  titleKashmiri: z.string().optional(),
   description: z.string().min(1, "Description is required"),
   price: z.number().nullable(),
   notForSale: z.boolean(),

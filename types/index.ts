@@ -11,6 +11,7 @@ export interface Category {
 export interface Item {
   id: string;
   title: string;
+  titleKashmiri?: string;
   description: string;
   price: number | null;
   notForSale: boolean;

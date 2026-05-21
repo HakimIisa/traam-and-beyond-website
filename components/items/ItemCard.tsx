@@ -62,9 +62,14 @@ export default function ItemCard({ item, index }: ItemCardProps) {
             </motion.div>
 
             <motion.div variants={childVariants} className="px-4 sm:px-6 pt-5 pb-10">
-              <h3 className="font-display text-3xl text-cream mb-2 group-hover:text-terracotta transition-colors">
+              <h3 className="font-display text-3xl text-cream mb-1 group-hover:text-terracotta transition-colors">
                 {item.title}
               </h3>
+              {item.titleKashmiri && (
+                <p className="font-display text-xl text-cream mb-2 group-hover:text-terracotta transition-colors text-left" dir="rtl" lang="ks">
+                  {item.titleKashmiri}
+                </p>
+              )}
               <p className="text-stone text-sm leading-relaxed line-clamp-3 mb-3 whitespace-pre-line text-justify">
                 {item.description}
               </p>
@@ -115,9 +120,14 @@ export default function ItemCard({ item, index }: ItemCardProps) {
               variants={childVariants}
               className="w-[65%] flex flex-col justify-center px-16 bg-walnut"
             >
-              <h3 className="font-display text-6xl text-cream mb-4 group-hover:text-terracotta transition-colors">
+              <h3 className="font-display text-6xl text-cream mb-1 group-hover:text-terracotta transition-colors">
                 {item.title}
               </h3>
+              {item.titleKashmiri && (
+                <p className="font-display text-4xl text-cream mb-4 group-hover:text-terracotta transition-colors text-left" dir="rtl" lang="ks">
+                  {item.titleKashmiri}
+                </p>
+              )}
               <p className="text-stone leading-relaxed mb-4 line-clamp-4 whitespace-pre-line text-justify">
                 {item.description}
               </p>

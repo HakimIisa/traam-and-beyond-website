@@ -59,9 +59,14 @@ export default async function ItemDetailPage({ params }: Props) {
             >
               {item.categoryName}
             </Badge>
-            <h1 className="text-4xl font-semibold text-[#FAF6F0] mb-3">
+            <h1 className="text-4xl font-semibold text-[#FAF6F0] mb-1">
               {item.title}
             </h1>
+            {item.titleKashmiri && (
+              <p className="font-display text-2xl text-[#FAF6F0] mb-3 text-left" dir="rtl" lang="ks">
+                {item.titleKashmiri}
+              </p>
+            )}
           </div>
 
           <p className="text-[#FAF6F0] leading-relaxed whitespace-pre-line text-justify">{item.description}</p>

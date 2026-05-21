@@ -15,6 +15,7 @@ import type { Item, Category } from "@/types";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required"),
+  titleKashmiri: z.string().optional(),
   description: z.string().min(1, "Description is required"),
   price: z.string().optional(),
   notForSale: z.boolean(),
@@ -40,6 +41,7 @@ export default function ItemForm({ existing, categories }: ItemFormProps) {
     resolver: zodResolver(schema),
     defaultValues: {
       title: existing?.title ?? "",
+      titleKashmiri: existing?.titleKashmiri ?? "",
       description: existing?.description ?? "",
       price: existing?.price != null ? String(existing.price) : "",
       notForSale: existing?.notForSale ?? false,
@@ -66,6 +68,7 @@ export default function ItemForm({ existing, categories }: ItemFormProps) {
     try {
       const data = {
         title: values.title,
+        titleKashmiri: values.titleKashmiri || undefined,
         description: values.description,
         price: values.notForSale ? null : values.price ? Number(values.price) : null,
         notForSale: values.notForSale,
@@ -108,9 +111,29 @@ export default function ItemForm({ existing, categories }: ItemFormProps) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-walnut">Title</FormLabel>
+              <FormLabel className="text-walnut">English Title</FormLabel>
               <FormControl>
                 <Input placeholder="e.g. Hand-Hammered Copper Tray" className="border-stone/30 focus:border-terracotta" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="titleKashmiri"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-walnut">Kashmiri Title <span className="text-stone font-normal">(optional)</span></FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="e.g. ہاتھ سے بنا تانبے کا طشت"
+                  className="border-stone/30 focus:border-terracotta"
+                  dir="rtl"
+                  lang="ks"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

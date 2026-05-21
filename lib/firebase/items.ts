@@ -28,6 +28,7 @@ function serialize(id: string, data: DocumentData): Item {
   return {
     id,
     title: data.title,
+    titleKashmiri: data.titleKashmiri ?? undefined,
     description: data.description,
     price: data.price ?? null,
     notForSale: data.notForSale ?? false,
