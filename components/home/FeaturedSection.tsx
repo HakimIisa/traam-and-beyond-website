@@ -15,10 +15,10 @@ export default function FeaturedSection() {
           <p className="text-[#0a0a0a] text-base mt-1 leading-snug">
             Kaśmīrā hi mahābhāgā deśānām uttamottamā.
           </p>
-          <p className="text-[#FAF6F0] text-base mt-2 leading-relaxed font-semibold max-w-xl">
+          <p className="text-[#FAF6F0] text-base mt-2 leading-relaxed max-w-xl">
             Kashmir is greatly fortunate,<br className="sm:hidden" /> the finest among lands.
           </p>
-          <p className="text-[#FAF6F0] text-xs lg:text-sm mt-1 font-semibold">
+          <p className="text-[#FAF6F0] text-xs lg:text-sm mt-1">
             Nilamata Purana, around AD 500-700
           </p>
         </div>

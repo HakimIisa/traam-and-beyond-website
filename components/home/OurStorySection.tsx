@@ -29,7 +29,7 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
 
           <div className="px-6 py-5 text-center space-y-3">
             <p className="text-[#1a130a] text-base leading-relaxed">{MOBILE_P1}</p>
-            <p className="text-[#FAF6F0] text-base leading-relaxed font-semibold">{MOBILE_P2}</p>
+            <p className="text-[#FAF6F0] text-base leading-relaxed">{MOBILE_P2}</p>
           </div>
 
           <Image
