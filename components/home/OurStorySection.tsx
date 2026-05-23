@@ -15,7 +15,7 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
   return (
     <>
       {/* ── ALL SCREENS: fixed background plane ── */}
-      <div className="absolute inset-0 bg-[#6D6554] flex flex-col items-center">
+      <div className="absolute inset-0 bg-[#AD6F3B] flex flex-col items-center">
         <div className="w-full max-w-lg mx-auto flex flex-col h-full justify-between">
 
           <Image
@@ -29,7 +29,7 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
 
           <div className="px-6 py-5 text-center space-y-3">
             <p className="text-[#1a130a] text-base leading-relaxed">{MOBILE_P1}</p>
-            <p className="text-[#D4A017] text-base leading-relaxed font-semibold">{MOBILE_P2}</p>
+            <p className="text-[#FAF6F0] text-base leading-relaxed font-semibold">{MOBILE_P2}</p>
           </div>
 
           <Image

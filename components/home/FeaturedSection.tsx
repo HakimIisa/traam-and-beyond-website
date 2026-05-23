@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function FeaturedSection() {
   return (
-    <div className="relative h-full w-full bg-[#6D6554]">
+    <div className="relative h-full w-full bg-[#AD6F3B]">
 
       {/* Mobile: centered; Desktop: pinned to bottom */}
       <div className="absolute inset-0 lg:inset-auto lg:bottom-0 lg:left-0 lg:right-0 flex flex-col items-center justify-center lg:justify-end text-center px-6 lg:px-16">
@@ -15,10 +15,10 @@ export default function FeaturedSection() {
           <p className="text-[#0a0a0a] text-base mt-1 leading-snug">
             Kaśmīrā hi mahābhāgā deśānām uttamottamā.
           </p>
-          <p className="text-[#D4A017] text-base mt-2 leading-relaxed italic max-w-xl">
-            Kashmir is greatly fortunate, the finest among lands.
+          <p className="text-[#FAF6F0] text-base mt-2 leading-relaxed font-semibold max-w-xl">
+            Kashmir is greatly fortunate,<br className="sm:hidden" /> the finest among lands.
           </p>
-          <p className="text-[#D4A017] text-xs lg:text-sm mt-1">
+          <p className="text-[#FAF6F0] text-xs lg:text-sm mt-1 font-semibold">
             Nilamata Purana, around AD 500-700
           </p>
         </div>
