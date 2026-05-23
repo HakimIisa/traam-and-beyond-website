@@ -186,7 +186,7 @@ export default function Navbar() {
                 {/* 3. Crafts */}
                 <div className="flex flex-col gap-3">
                   <Link
-                    href="/#collections"
+                    href="/collections"
                     onClick={closeMenu}
                     className="font-display text-5xl sm:text-6xl text-cream hover:text-terracotta transition-colors duration-200"
                   >
