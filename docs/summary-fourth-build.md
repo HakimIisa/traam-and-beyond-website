@@ -1644,3 +1644,211 @@ Matched to `CraftHeritageTimeline` caption sizes:
 | `components/home/OurStorySection.tsx` | Background `bg-[#3f4d42]` → `bg-[#6D6554]` |
 | `components/home/FeaturedSection.tsx` | Background `bg-[#3f4d42]` → `bg-[#6D6554]`; lines 1–3 → flat `text-base`; line 4 → `text-xs lg:text-sm` |
 | `components/home/ResearchHighlights.tsx` | Adaptive Reuse image `AdaptiveReuse.jpg` → `AdaptiveReuse1.png` |
+
+---
+
+# Fourteenth Build Session — Addendum
+
+**Date:** 2026-05-23
+**Scope:** Background color iterations on both panels, mobile line break in FeaturedSection, hero tagline color, FeaturedSection image swap, mobile heading size tuning, `/collections` page (new route), Navbar link update, custom CollectionItemCard layout
+
+---
+
+## 68. OurStorySection + FeaturedSection — Background Color Iterations
+
+Multiple background color iterations across the two panels:
+
+| Step | Color | Hex |
+|------|-------|-----|
+| Start | Warm grey-brown | `#6D6554` |
+| 2 | Dark reddish brown | `#7A3B20` |
+| 3 | Sienna | `#A0522D` |
+| 4 | Very dark brown | `#3D1F0F` |
+| 5 | Pantone Copper (approx.) | `#AD6F3B` |
+| 6 | Pantone Hyatts (approx.) | `#C9896A` |
+| 7 | Cream | `#FAF6F0` |
+| **Final** | Pantone Copper | **`#AD6F3B`** |
+
+Saffron text (`#D4A017`) in both panels was changed to cream (`#FAF6F0`) and `font-semibold` was removed from both panels when the background settled at `#AD6F3B`.
+
+| Panel | Element | Before | After |
+|-------|---------|--------|-------|
+| OurStorySection | P2 tagline | `text-[#D4A017] font-semibold` | `text-[#FAF6F0]` |
+| FeaturedSection | Lines 3 & 4 | `text-[#D4A017]` | `text-[#FAF6F0]` |
+
+---
+
+## 69. FeaturedSection — Mobile Line Break (`components/home/FeaturedSection.tsx`)
+
+Line 3 (the English translation) was broken into two visual lines on mobile only using `<br className="sm:hidden" />` after the comma:
+
+```tsx
+Kashmir is greatly fortunate,<br className="sm:hidden" /> the finest among lands.
+```
+
+- Mobile (< 640px): renders on two lines
+- 640px+: `sm:hidden` hides the `<br>`, text flows as one line
+
+---
+
+## 70. FeaturedSection — Image Swap (`components/home/FeaturedSection.tsx`)
+
+| Before | After |
+|--------|-------|
+| `/FeaturedPannelImage1.jpeg` | `/BuddhaFeaturedPannel.png` |
+
+The new image's actual dimensions (read from PNG header bytes): **2480×2055px**.
+
+Aspect ratio wrapper updated:
+```tsx
+// Before
+<div className="relative w-full max-w-[min(90vw,80vh)] aspect-[2480/2034]">
+
+// After
+<div className="relative w-full max-w-[min(90vw,80vh)] aspect-[2480/2055]">
+```
+
+---
+
+## 71. HeroSection — Tagline Color Update (`components/home/HeroSection.tsx`)
+
+The "Silenced Crafts, Speaking Again" tagline was updated from `text-saffron` (`#D4A017`) to `#CA9A56` (a warmer, slightly lighter gold) on both the mobile and desktop variants.
+
+```tsx
+// Before (both mobile + desktop)
+className="text-[#CA9A56] ..."   // was text-saffron
+
+// After
+className="text-[#CA9A56] ..."
+```
+
+`replace_all` was used to update both instances simultaneously.
+
+---
+
+## 72. CategoryHighlights + ResearchHighlights — Mobile Heading Size Tuning
+
+Both section headings were adjusted for mobile. Starting at `text-6xl` on all sizes, they were tuned down for mobile:
+
+| Step | Size |
+|------|------|
+| Start | `text-6xl` (all sizes) |
+| -2pt mobile | `text-5xl lg:text-6xl` |
+| +1pt mobile (final) | `text-5xl lg:text-6xl` → **`text-5xl lg:text-6xl`** |
+
+Final: `text-5xl lg:text-6xl` on both `CategoryHighlights` and `ResearchHighlights` section headings.
+
+---
+
+## 73. `/collections` Page — New Route (`app/(public)/collections/page.tsx`)
+
+A new `/collections` page was created showing all categories with their items in a single scrollable view.
+
+### Architecture decisions
+- **Data**: fetches all categories via `getAllCategories()`, then parallel `getItemsByCategory()` for each — same data sources as the home page and individual category pages
+- **Empty categories filtered**: `categoryItems.filter(({ items }) => items.length > 0)` — categories with no items are silently excluded. When items are added to previously empty categories, they appear automatically on next page load (`force-dynamic`)
+- **Descriptions**: reads `category.description` (Firestore) first, falls back to shared `CATEGORY_DESCRIPTIONS` constant — same priority as `category/[slug]/page.tsx`
+
+### Shared `CATEGORY_DESCRIPTIONS` extracted
+
+The inline constant from `app/(public)/category/[slug]/page.tsx` was extracted to a new shared module:
+
+**New file:** `lib/category-descriptions.ts`
+```ts
+export const CATEGORY_DESCRIPTIONS: Record<string, string> = { /* 13 slugs */ };
+```
+
+Both `category/[slug]/page.tsx` and `collections/page.tsx` import from this shared file, ensuring descriptions stay in sync.
+
+### Page structure
+```tsx
+<div pt-24 pb-12>
+  {/* Page header */}
+  <h1>Our Collections</h1>
+  <p>Explore our entire collection.</p>
+  <border-t />
+
+  {/* One section per non-empty category */}
+  {populated.map(({ category, items }) => (
+    <section mb-24>
+      <Link href={`/category/${category.slug}`}>
+        <h2>{category.name}</h2>     ← clickable, hover:text-terracotta
+      </Link>
+      {description && <p>{description}</p>}
+      <border-t />
+      <CollectionItemCard grid>
+    </section>
+  ))}
+</div>
+```
+
+- Category heading links to the individual category page (`/category/[slug]`)
+- Order follows `getAllCategories()` order (same `order` field as navbar)
+
+---
+
+## 74. CollectionItemCard — New Component (`components/items/CollectionItemCard.tsx`)
+
+A purpose-built card for the `/collections` page replacing the standard `ItemGrid` / `ItemCard`.
+
+### Design
+- **Image**: square `aspect-square`, `object-cover`, hover zoom (`scale-105` over 700ms) — identical animation to the existing `ItemCard`
+- **Title block**: centered below the image
+  - English title: `font-display text-xl lg:text-2xl text-cream`, hover → `text-terracotta`
+  - Kashmiri title (if set): `font-display text-base lg:text-lg text-stone`, `dir="rtl" lang="ks"`, hover → `text-terracotta`
+- **Hidden**: price, dimensions, description, badge, enquire button — none visible
+- **Link**: entire card wraps in `<Link href={/category/${item.categorySlug}/${item.id}}>` — navigates to the item detail page
+
+### Grid layout
+Applied directly in `collections/page.tsx`:
+```tsx
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12">
+  {items.map((item) => (
+    <CollectionItemCard key={item.id} item={item} />
+  ))}
+</div>
+```
+- **Mobile**: 1 column
+- **Desktop** (≥ 1024px): 2 columns
+- Gap: `gap-x-8` (32px) horizontal, `gap-y-12` (48px) vertical
+
+### Entrance animation
+Uses a single `motion.div` with `whileInView` (no stagger — simpler than the dual-layer `ItemCard`):
+```tsx
+const fadeUp = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 1.2, ease: [0.22, 1, 0.36, 1] } },
+};
+```
+`once: false` — animation re-fires when cards scroll back into view.
+
+---
+
+## 75. Navbar — "Our Collections" Link Updated (`components/layout/Navbar.tsx`)
+
+The hamburger menu "Our Collections" link was changed from anchoring to the home page collections section to navigating to the new dedicated `/collections` page:
+
+```tsx
+// Before
+href="/#collections"
+
+// After
+href="/collections"
+```
+
+---
+
+## 76. Key Files Modified (Fourteenth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/OurStorySection.tsx` | Background through multiple iterations → final `bg-[#AD6F3B]`; P2 `text-[#D4A017] font-semibold` → `text-[#FAF6F0]` |
+| `components/home/FeaturedSection.tsx` | Background → `bg-[#AD6F3B]`; lines 3 & 4 `text-[#D4A017]` → `text-[#FAF6F0]`; `font-semibold` removed; mobile `<br>` on line 3; image → `BuddhaFeaturedPannel.png`; `aspect-[2480/2055]` |
+| `components/home/HeroSection.tsx` | Tagline `text-saffron` → `text-[#CA9A56]` (both mobile + desktop) |
+| `components/home/CategoryHighlights.tsx` | Section heading `text-6xl` → `text-5xl lg:text-6xl` |
+| `components/home/ResearchHighlights.tsx` | Section heading `text-6xl` → `text-5xl lg:text-6xl`; Adaptive Reuse image → `AdaptiveReuse1.png` |
+| `lib/category-descriptions.ts` | **New file** — shared `CATEGORY_DESCRIPTIONS` constant (13 slugs) |
+| `app/(public)/category/[slug]/page.tsx` | Inline `CATEGORY_DESCRIPTIONS` removed; imports from shared `lib/category-descriptions.ts` |
+| `app/(public)/collections/page.tsx` | **New file** — `/collections` route; all categories + items; `CollectionItemCard` grid (1-col mobile, 2-col desktop) |
+| `components/items/CollectionItemCard.tsx` | **New file** — image + centered title only; hover zoom; links to item detail page |
+| `components/layout/Navbar.tsx` | "Our Collections" `href="/#collections"` → `href="/collections"` |
