@@ -186,7 +186,7 @@ export default function ResearchHighlights() {
               className="w-[420px] h-auto sm:w-[490px] lg:w-[560px]"
             />
           </div>
-          <h2 className="font-display text-6xl text-cream font-semibold mb-2 text-center">Research</h2>
+          <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center">Research</h2>
           <p className="text-stone mb-6 text-justify lg:text-center">
             An ongoing exploration into the living relevance of Kashmiri craft traditions. These
             research projects examine how heritage forms can evolve, be recontextualised, and find

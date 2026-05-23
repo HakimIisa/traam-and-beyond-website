@@ -194,7 +194,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
               className="w-[420px] h-auto sm:w-[490px] lg:w-[560px]"
             />
           </div>
-          <h2 className="font-display text-6xl text-cream font-semibold mb-2 text-center">{content.title}</h2>
+          <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center">{content.title}</h2>
           <p className="text-stone mb-6 text-justify lg:text-center">{content.subtitle}</p>
           <div className="border-t border-white/5 mb-12" />
         </ScrollReveal>
