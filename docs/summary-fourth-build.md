@@ -1412,3 +1412,235 @@ The hardcoded constant is kept as a fallback so categories that have never been 
 | `components/home/CategoryHighlights.tsx` | `pt-12 pb-12` padding on scroll container; `URDU_NAMES` map added; Urdu `<p>` rendered below each English title |
 | `components/home/ResearchHighlights.tsx` | `Reinterpretation.jpg` → `Reinterpretation1.png`, `GraphicDesign.jpg` → `GraphicDesign1.png`; `pt-12 pb-12` padding on scroll container |
 | `app/(public)/category/[slug]/page.tsx` | Description source changed from hardcoded constant only → `category.description \|\| CATEGORY_DESCRIPTIONS[slug]` |
+
+---
+
+# Twelfth Build Session — Addendum
+
+**Date:** 2026-05-21
+**Scope:** CategoryHighlights English title color fix, OurStory + Featured panel background color, FeaturedSection image + text overhaul, clickability affordance (underline + "Explore →"), dual-language Kashmiri title feature (admin + catalogue), "Get in Touch" heading color fix
+
+---
+
+## 57. CategoryHighlights — English Title Color + Urdu Hover (`components/home/CategoryHighlights.tsx`)
+
+The English category title (`h3`) was using `text-cream` which made it brighter than the Urdu subtitle. Changed to match the Urdu title color (`text-stone/70`) so both sit at the same visual weight by default.
+
+- **Before:** `text-cream`
+- **After:** `text-stone/70`
+
+Urdu subtitle (`<p dir="rtl">`) also updated to participate in the hover color transition:
+
+```tsx
+// Before
+className="text-stone/70 text-[24px] lg:text-[26px] mt-1"
+
+// After
+className="text-stone/70 text-[24px] lg:text-[26px] mt-1 group-hover:text-terracotta transition-colors duration-300"
+```
+
+---
+
+## 58. CategoryHighlights + ResearchHighlights — Clickability Affordance
+
+Users reported collections and research cards were not obviously clickable. Two affordances were added to both sections:
+
+### Invisible underline that appears on hover
+Added to the `h3` title in both components:
+```tsx
+underline decoration-transparent decoration-1 underline-offset-4 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300
+```
+The underline exists in the DOM at all times but is `decoration-transparent` — it becomes `decoration-terracotta` only on hover, with a smooth CSS transition.
+
+### "Explore →" fade-in below title
+```tsx
+<p className="text-terracotta text-sm mt-2 tracking-wide lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
+  Explore →
+</p>
+```
+On mobile (`!lg`): always visible. On desktop (`lg`): hidden by default, fades in on hover.
+
+---
+
+## 59. OurStorySection + FeaturedSection — Background Color (`components/home/OurStorySection.tsx`, `components/home/FeaturedSection.tsx`)
+
+Background color changed from `bg-[#FAF6F0]` (cream) to `bg-[#3f4d42]` (dark green) on both panels.
+
+Text colors updated to remain legible on the new background:
+- **OurStorySection P1** (main story text): `text-[#1a130a]` (dark brown)
+- **OurStorySection P2** (tagline): `text-[#D4A017]` (saffron)
+- **FeaturedSection lines 1 & 2** (Sanskrit + romanized): `text-[#0a0a0a]` (near-black)
+- **FeaturedSection lines 3 & 4** (translation + attribution): `text-[#D4A017]` (saffron)
+
+---
+
+## 60. FeaturedSection — Image + Text Overhaul (`components/home/FeaturedSection.tsx`)
+
+The Featured panel was fully redesigned:
+
+### New image
+`/FeaturedPannelImage1.jpeg` replaces the previous image. Actual dimensions: **2480×2034px** (not 1:1).
+
+### New text (4 lines)
+| Line | Content | Color |
+|------|---------|-------|
+| 1 | कश्मीरा हि महाभागा देशानामुत्तमोत्तमा । (Sanskrit) | `#0a0a0a` |
+| 2 | Kaśmīrā hi mahābhāgā deśānām uttamottamā. (romanized) | `#0a0a0a` |
+| 3 | Kashmir is greatly fortunate, the finest among lands. (italic) | `#D4A017` |
+| 4 | Nilamata Purana, around AD 500-700 (attribution) | `#D4A017` |
+
+### Layout
+- **Mobile** (`!lg`): text and image centered vertically in the panel (`flex flex-col items-center justify-center`)
+- **Desktop** (`lg`): text and image pinned to the bottom of the panel (`lg:bottom-0 lg:justify-end`)
+- Text block sits immediately above the image (`mb-2` between text and image wrapper)
+
+### Aspect ratio fix — no letterboxing
+Because the image is 2480×2034 (not square), using a `1:1` wrapper with `object-contain` created dead space above the image. Fixed by using `aspect-[2480/2034]` on the image wrapper, matching the image's actual proportions:
+```tsx
+<div className="relative w-full max-w-[min(90vw,80vh)] aspect-[2480/2034]">
+  <Image src="/FeaturedPannelImage1.jpeg" fill className="object-cover" />
+</div>
+```
+
+### Responsive font sizes
+```
+text-sm     sm:text-lg   lg:text-xl   ← Sanskrit (line 1)
+text-xs     sm:text-base lg:text-lg   ← Romanized (line 2)
+text-xs     sm:text-base lg:text-lg   ← Translation (line 3, italic)
+text-[11px] sm:text-sm   lg:text-base ← Attribution (line 4)
+```
+
+### `"use client"` removed
+The ResizeObserver from the seventh build was no longer needed once the aspect ratio mismatch was fixed with `aspect-[2480/2034]`. The component reverted to a plain server component.
+
+---
+
+## 61. Dual-Language Kashmiri Title Feature (6 files)
+
+A second title field (`titleKashmiri`) was added to items — editable via admin panel, rendered on item cards and the item detail page. If not filled in, no empty space is added.
+
+### `types/index.ts`
+Added `titleKashmiri?: string` to the `Item` interface.
+
+### `lib/validations.ts`
+Added `titleKashmiri: z.string().optional()` to `itemSchema`.
+
+### `lib/firebase/items.ts` (critical bug fix)
+Added `titleKashmiri: data.titleKashmiri ?? undefined` inside the `serialize()` function. This was the root cause of Kashmiri titles saved in Firestore not appearing on the website — `serialize()` mapped every field except `titleKashmiri`.
+
+### `lib/firebase/admin-items.ts`
+Added `titleKashmiri?: string` to the `ItemWriteData` interface and `titleKashmiri: data.titleKashmiri ?? undefined` in the `adminGetAllItems` mapping.
+
+### `components/forms/ItemForm.tsx`
+- "Title" label renamed → "English Title"
+- Added "Kashmiri Title (optional)" `<Input>` with `dir="rtl" lang="ks"` for correct Nastaliq text shaping
+- Added `titleKashmiri` to local Zod schema, `defaultValues`, and submit data
+
+### `components/items/ItemCard.tsx`
+Kashmiri title rendered below the English title on both mobile and desktop variants:
+```tsx
+{item.titleKashmiri && (
+  <p className="font-display text-xl text-cream mb-2 group-hover:text-terracotta transition-colors text-left" dir="rtl" lang="ks">
+    {item.titleKashmiri}
+  </p>
+)}
+```
+`text-left` overrides the browser's default RTL right-alignment. Only rendered when `titleKashmiri` exists — no dead space otherwise.
+
+### `app/(public)/category/[slug]/[itemId]/page.tsx`
+Same conditional render on the item detail page:
+```tsx
+{item.titleKashmiri && (
+  <p className="font-display text-2xl text-[#FAF6F0] mb-3 text-left" dir="rtl" lang="ks">
+    {item.titleKashmiri}
+  </p>
+)}
+```
+
+---
+
+## 62. "Get in Touch" Heading Color Fix (`components/home/HomePageClient.tsx`)
+
+The "Get in Touch" h2 in the General Enquiry section used `text-walnut` (`#3D2B1F`) — nearly invisible against the `bg-cream-dark` background.
+
+- **Before:** `text-walnut`
+- **After:** `text-cream`
+
+Confirmed consistent with:
+- `app/(public)/contact/page.tsx` — already `text-cream` ✓
+- `components/forms/EnquiryDialog.tsx` — `DialogTitle` already `text-cream` ✓
+
+---
+
+## 63. Key Files Modified (Twelfth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/CategoryHighlights.tsx` | English title `text-cream` → `text-stone/70`; Urdu hover color; invisible underline + "Explore →" affordance |
+| `components/home/ResearchHighlights.tsx` | Same invisible underline + "Explore →" affordance as CategoryHighlights |
+| `components/home/OurStorySection.tsx` | Background `bg-[#FAF6F0]` → `bg-[#3f4d42]`; text colors updated |
+| `components/home/FeaturedSection.tsx` | Background → `bg-[#3f4d42]`; new image (`FeaturedPannelImage1.jpeg`); 4-line Sanskrit verse text; `aspect-[2480/2034]` letterbox fix; mobile centering; `"use client"` removed |
+| `components/home/HomePageClient.tsx` | Enquiry section h2 `text-walnut` → `text-cream` |
+| `types/index.ts` | `titleKashmiri?: string` added to `Item` interface |
+| `lib/validations.ts` | `titleKashmiri: z.string().optional()` added to `itemSchema` |
+| `lib/firebase/items.ts` | `titleKashmiri` added to `serialize()` — root-cause fix for Kashmiri titles not appearing on website |
+| `lib/firebase/admin-items.ts` | `titleKashmiri` added to `ItemWriteData` interface and `adminGetAllItems` mapping |
+| `components/forms/ItemForm.tsx` | "Kashmiri Title" field added; "English Title" label; RTL input |
+| `components/items/ItemCard.tsx` | Kashmiri title rendered conditionally below English title on mobile + desktop; `text-left` fix |
+| `app/(public)/category/[slug]/[itemId]/page.tsx` | Kashmiri title rendered conditionally on item detail page |
+
+---
+
+# Thirteenth Build Session — Addendum
+
+**Date:** 2026-05-23
+**Scope:** Panel background color update, Adaptive Reuse image swap, FeaturedSection text size normalization
+
+---
+
+## 64. OurStorySection + FeaturedSection — Background Color Update
+
+Both panels updated from `#3f4d42` (dark green) to `#6D6554` (warm grey-brown).
+
+| File | Change |
+|------|--------|
+| `components/home/OurStorySection.tsx` | `bg-[#3f4d42]` → `bg-[#6D6554]` |
+| `components/home/FeaturedSection.tsx` | `bg-[#3f4d42]` → `bg-[#6D6554]` |
+
+---
+
+## 65. ResearchHighlights — Adaptive Reuse Image Swap (`components/home/ResearchHighlights.tsx`)
+
+| Card | Before | After |
+|------|--------|-------|
+| Adaptive Reuse | `/Research/AdaptiveReuse.jpg` | `/Research/AdaptiveReuse1.png` |
+
+---
+
+## 66. FeaturedSection — Text Size Normalization (`components/home/FeaturedSection.tsx`)
+
+Lines 1–3 were simplified to a flat `text-base` (16px) on all screen sizes, matching the Our Story panel's approach (no responsive variants). Line 4 was updated to match the CraftHeritageTimeline caption sizes.
+
+### Lines 1–3
+| Line | Before | After |
+|------|--------|-------|
+| Line 1 (Sanskrit) | `text-sm sm:text-lg lg:text-xl` | `text-base` |
+| Line 2 (Romanized) | `text-xs sm:text-base lg:text-lg` | `text-base` |
+| Line 3 (Translation, italic) | `text-xs sm:text-base lg:text-lg` | `text-base` |
+
+### Line 4 (Attribution)
+Matched to `CraftHeritageTimeline` caption sizes:
+
+| Before | After |
+|--------|-------|
+| `text-[11px] sm:text-sm lg:text-base` | `text-xs lg:text-sm` |
+
+---
+
+## 67. Key Files Modified (Thirteenth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/OurStorySection.tsx` | Background `bg-[#3f4d42]` → `bg-[#6D6554]` |
+| `components/home/FeaturedSection.tsx` | Background `bg-[#3f4d42]` → `bg-[#6D6554]`; lines 1–3 → flat `text-base`; line 4 → `text-xs lg:text-sm` |
+| `components/home/ResearchHighlights.tsx` | Adaptive Reuse image `AdaptiveReuse.jpg` → `AdaptiveReuse1.png` |

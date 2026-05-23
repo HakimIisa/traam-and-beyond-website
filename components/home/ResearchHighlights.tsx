@@ -12,7 +12,7 @@ const RESEARCH_ITEMS = [
     id: "adaptive-reuse",
     name: "Adaptive Reuse",
     href: "/research/adaptive-reuse",
-    image: "/Research/AdaptiveReuse.jpg",
+    image: "/Research/AdaptiveReuse1.png",
   },
   {
     id: "reinterpretation",

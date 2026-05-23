@@ -15,7 +15,7 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
   return (
     <>
       {/* ── ALL SCREENS: fixed background plane ── */}
-      <div className="absolute inset-0 bg-[#3f4d42] flex flex-col items-center">
+      <div className="absolute inset-0 bg-[#6D6554] flex flex-col items-center">
         <div className="w-full max-w-lg mx-auto flex flex-col h-full justify-between">
 
           <Image
