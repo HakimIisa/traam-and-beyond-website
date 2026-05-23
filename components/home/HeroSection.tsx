@@ -97,7 +97,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="text-saffron text-lg sm:text-xl leading-relaxed mb-6 max-w-xl mx-auto"
+          className="text-[#CA9A56] text-lg sm:text-xl leading-relaxed mb-6 max-w-xl mx-auto"
         >
           {content.tagline}
         </motion.p>
@@ -140,7 +140,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="text-saffron text-lg sm:text-xl leading-relaxed mb-6 max-w-xl mx-auto"
+          className="text-[#CA9A56] text-lg sm:text-xl leading-relaxed mb-6 max-w-xl mx-auto"
         >
           {content.tagline}
         </motion.p>

@@ -24,9 +24,9 @@ export default function FeaturedSection() {
         </div>
 
         {/* Image — correct aspect ratio (2480×2034), no letterboxing */}
-        <div className="relative w-full max-w-[min(90vw,80vh)] aspect-[2480/2034]">
+        <div className="relative w-full max-w-[min(90vw,80vh)] aspect-[2480/2055]">
           <Image
-            src="/FeaturedPannelImage1.jpeg"
+            src="/BuddhaFeaturedPannel.png"
             alt="Kashmir"
             fill
             className="object-cover"
