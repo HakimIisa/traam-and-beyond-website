@@ -27,7 +27,7 @@ A modern, visually rich showcase website for a curated collection of authentic K
 
 ## 1. Demo Video
 
-<video src="https://github.com/user-attachments/assets/f8299bab-1646-4b75-8832-a3d9e1dbbf36" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/041271cf-5477-422e-aadd-73d9a112167e" controls width="100%"></video>
 
 ---
 
