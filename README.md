@@ -40,7 +40,7 @@ A modern, visually rich showcase website for a curated collection of authentic K
 
 A full-screen scroll-animated hero featuring a Kashmiri copper vessel. On mobile, the bowl rises and fades as a logo silhouette grows over it — creating a bowl-to-logo transformation as you scroll. On desktop, the bowl drifts diagonally from center to its corner position while the text scales up. Both animations are driven by Framer Motion's `useScroll` + `useTransform`.
 
-![](<Screenshots for github/HomePageHeroSection.jpeg>)
+![](<Screenshots for github/HomePageHeroSection1.jpeg>)
 
 ---
 
