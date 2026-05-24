@@ -106,7 +106,7 @@ function TextBlock({ story, index, setActiveIndex, setImageIndex, scrollDirRef }
   // Timeline indicator: fires when panel is at viewport center
   const isCentered = useInView(ref, { margin: "-45% 0px -45% 0px" });
   // Image swap: fires when panel is in upper portion (previous transparent window is already off-screen)
-  const isNearTop = useInView(ref, { margin: "-20% 0px -70% 0px" });
+  const isNearTop = useInView(ref, { margin: "0px 0px -90% 0px" });
 
   useEffect(() => {
     if (isCentered) setActiveIndex(index);
@@ -180,9 +180,7 @@ export default function OurStoryTimeline({ visible }: { visible: boolean }) {
               fill
               sizes="100vw"
               priority={i === 0}
-              className={`object-contain transition-opacity duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                imageIndex === i ? "opacity-100" : "opacity-0"
-              }`}
+              className={`object-contain lg:transition-opacity lg:duration-1000 lg:ease-[cubic-bezier(0.16,1,0.3,1)] ${imageIndex === i ? "opacity-100" : "opacity-0"}`}
             />
           );
         })}

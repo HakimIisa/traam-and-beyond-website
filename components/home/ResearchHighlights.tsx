@@ -243,7 +243,7 @@ export default function ResearchHighlights() {
                   </div>
 
                   <div className="pt-4 pb-2 text-center">
-                    <h3 className="font-display text-3xl lg:text-4xl text-cream group-hover:text-terracotta transition-colors duration-300 underline decoration-transparent decoration-1 underline-offset-4 group-hover:decoration-terracotta transition-[text-decoration-color]">
+                    <h3 className="font-display text-3xl lg:text-4xl text-stone/70 group-hover:text-terracotta transition-colors duration-300 underline decoration-transparent decoration-1 underline-offset-4 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
                       {item.name}
                     </h3>
                     <p className="text-terracotta text-sm mt-2 tracking-wide lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
