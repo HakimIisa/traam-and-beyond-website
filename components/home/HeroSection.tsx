@@ -27,8 +27,8 @@ export default function HeroSection({ content }: HeroSectionProps) {
   const bowlScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 0.95]);
 
   // Mobile logo: starts above text (small), grows large + rises to overlay bowl
-  const logoScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 3.5]);
-  const logoYMobile = useTransform(scrollYProgress, [0, 0.7], ["-38vh", "-15.25vh"]);
+  const logoScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 3.53125]);
+  const logoYMobile = useTransform(scrollYProgress, [0, 0.7], ["-36vh", "-15.10vh"]);
 
   // Mobile text: starts above center, moves down as bowl+logo take over
   const textScaleMobile = useTransform(scrollYProgress, [0, 0.7], [0.85, 1]);
@@ -76,7 +76,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
         style={{ scale: logoScaleMobile, y: logoYMobile }}
         className="lg:hidden absolute z-20 inset-0 flex items-center justify-center pointer-events-none"
       >
-        <Image src="/LogoNew.png" alt="Traam and Beyond" width={480} height={480} className="h-40 w-auto" />
+        <Image src="/Logo.png" alt="Traam and Beyond" width={480} height={480} className="h-40 w-auto" />
       </motion.div>
 
       {/* Mobile text: starts above center, moves down */}
@@ -124,7 +124,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="-mb-[4.25rem] flex justify-center"
         >
-          <Image src="/LogoNew.png" alt="Traam and Beyond" width={480} height={240} className="h-56 sm:h-72 w-auto" />
+          <Image src="/Logo.png" alt="Traam and Beyond" width={480} height={240} className="h-56 sm:h-72 w-auto" />
         </motion.div>
 
         <motion.h1

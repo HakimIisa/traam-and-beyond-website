@@ -1852,3 +1852,158 @@ href="/collections"
 | `app/(public)/collections/page.tsx` | **New file** — `/collections` route; all categories + items; `CollectionItemCard` grid (1-col mobile, 2-col desktop) |
 | `components/items/CollectionItemCard.tsx` | **New file** — image + centered title only; hover zoom; links to item detail page |
 | `components/layout/Navbar.tsx` | "Our Collections" `href="/#collections"` → `href="/collections"` |
+
+---
+
+# Fifteenth Build Session — Addendum
+
+**Date:** 2026-05-24
+**Scope:** Logo replacement (LogoNew.png → Logo.png), navbar refinements, hero section desktop logo size increase, mobile hero animation tuning (size + Y position), README overhaul (new video, live site link, new sections + screenshots)
+
+---
+
+## 77. Logo Replacement — `Logo.png` Site-wide
+
+The website logo was updated from `LOGO.png` (old silhouette) to `Logo.png` (new calligraphic bowl outline in cream) across all four instances in the codebase. An intermediate step used `LogoNew.png` before the final `Logo.png` file was confirmed.
+
+| File | Instance | Src |
+|------|----------|-----|
+| `components/home/HeroSection.tsx` | Mobile hero animated logo | `Logo.png` |
+| `components/home/HeroSection.tsx` | Desktop hero static logo | `Logo.png` |
+| `components/layout/Navbar.tsx` | Mobile navbar logo | `Logo.png` |
+| `components/layout/Navbar.tsx` | Desktop navbar logo | `Logo.png` |
+
+`Logo.png` dimensions: **2480×2480px** (square, transparent background, cream calligraphic bowl outline).
+
+---
+
+## 78. Navbar — Desktop Logo Size + Spacing (`components/layout/Navbar.tsx`)
+
+| Element | Before | After |
+|---------|--------|-------|
+| Desktop logo height | `h-16` (64px) | `h-14` (56px) |
+| Text gap (desktop) | `-ml-2` (overlap) | `ml-2` (8px gap) |
+
+---
+
+## 79. Navbar — Mobile Text Size + Spacing (`components/layout/Navbar.tsx`)
+
+| Element | Before | After |
+|---------|--------|-------|
+| "Traam and Beyond" text (mobile) | `text-2xl` (24px) | `text-[23px]` |
+| Text gap (mobile) | `-ml-2` (overlap) | `ml-1` (4px gap) |
+
+Desktop text remains `text-2xl`. The class is now `text-[23px] lg:text-2xl ... ml-1 lg:ml-2`.
+
+---
+
+## 80. HeroSection — Desktop Logo Size Increase (`components/home/HeroSection.tsx`)
+
+The desktop hero logo (inside `hidden lg:block` wrapper) was increased:
+
+| | Before | After |
+|--|--------|-------|
+| Mobile breakpoint | `h-48` (192px) | `h-56` (224px) |
+| sm breakpoint | `h-60` (240px) | `h-72` (288px) |
+
+Both the start (scale 0.7) and end (scale 1.0) sizes grow proportionally since the whole text wrapper scales together.
+
+---
+
+## 81. HeroSection — Mobile Logo Animation Tuning (`components/home/HeroSection.tsx`)
+
+Extensive iterative tuning of the mobile logo to align it with the copper bowl background image at full scroll. The goal was to have `Logo.png`'s bowl outline trace the physical bowl in `hero-vessel.png` at the end state.
+
+### Base size
+| Step | Value | End pixel size |
+|------|-------|---------------|
+| Start | `h-48` (192px) | 864px (scale 4.5) |
+| Reduced | `h-40` (160px) | **160px base** (final) |
+
+### End scale (end pixel size) — iterations
+| Scale | End size |
+|-------|----------|
+| 4.5 | 864px |
+| 4.375 | 700px |
+| 4.0625 | 650px |
+| 3.75 | 600px |
+| 3.5625 | 570px |
+| 3.4375 | 550px |
+| 3.375 | 540px |
+| 3.53125 | 565px |
+| 3.5125 | 562px |
+| 3.5 | 560px |
+| **3.53125** | **565px** ← final |
+
+### End Y position — iterations
+| Value | Direction |
+|-------|-----------|
+| `-17vh` | original |
+| `-13vh` | moved down 4vh |
+| `-15vh` | moved up 2vh |
+| `-15.25vh` | fine-tuned |
+| `-15.20vh` | fine-tuned |
+| `-15.10vh` | **final** |
+
+### Start Y position — iterations
+| Value | Direction |
+|-------|-----------|
+| `-38vh` | original |
+| `-37vh` | moved down 1vh |
+| **`-36vh`** | **final** |
+
+### Temporary opacity removal (alignment aid)
+Bowl opacity animation was temporarily set to `opacity: 1` (fixed) during alignment work, then restored to `opacity: bowlOpacityMobile` (fades to 0.4 at full scroll).
+
+### Final mobile logo animation values
+```ts
+const logoScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 3.53125]);
+// Base h-40 (160px) × 3.53125 = 565px at full scroll
+
+const logoYMobile = useTransform(scrollYProgress, [0, 0.7], ["-36vh", "-15.10vh"]);
+// Starts ~288px above center; ends ~121px above center
+```
+
+---
+
+## 82. README — Demo Video + Live Site + New Sections (`README.md`)
+
+### Demo video replaced
+Old video URL (HEVC codec, failed GitHub upload) replaced with a VLC-converted H.264 MP4:
+```
+Old: https://github.com/user-attachments/assets/f8299bab-1646-4b75-8832-a3d9e1dbbf36
+New: https://github.com/user-attachments/assets/041271cf-5477-422e-aadd-73d9a112167e
+```
+Source file: `Screenshots for github/DemoVideoTraamAndBeyond.mp4` (22.8 MB, H.264).
+
+### Live site link added
+```markdown
+**Live site:** [traam-and-beyond-website.vercel.app](https://traam-and-beyond-website.vercel.app/)
+```
+
+### Screenshots replaced
+| Section | Old file | New file |
+|---------|----------|----------|
+| Home Page — Our Story | `HomePageOurStorySection.jpeg` | `HomePageOurStorySection1.jpeg` |
+| Home Page — Our Collections (intro) | `HomePageOurCollectionIntro.jpeg` | `HomePageOurCollectionIntro1.jpeg` |
+| Home Page — Our Collections (list) | `HomePageOurCollectionList.jpeg` | `HomePageOurCollectionList1.jpeg` |
+
+### New sections added (14 → 17 total)
+
+| New section | Screenshot | Placement |
+|-------------|------------|-----------|
+| 3. Navigation Menu | `NavigationMenu.jpeg` | After Hero Section |
+| 5. Home Page — Featured Panel | `FeaturedPannel.jpeg` | After Our Story |
+| 7. Home Page — Research | `ResearchPannel.jpeg` | After Our Collections |
+
+All subsequent sections renumbered (5→8 through 14→17). Project structure in section 15 updated to include `collections/page.tsx`, `FeaturedSection.tsx`, `ResearchHighlights.tsx`, `category-descriptions.ts`.
+
+---
+
+## 83. Key Files Modified (Fifteenth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/HeroSection.tsx` | `LOGO.png`/`LogoNew.png` → `Logo.png` (all 2 instances); desktop logo `h-48 sm:h-60` → `h-56 sm:h-72`; mobile base `h-48` → `h-40`; `logoScaleMobile` end `4.5` → `3.53125`; `logoYMobile` start `-38vh` → `-36vh`, end `-17vh` → `-15.10vh` |
+| `components/layout/Navbar.tsx` | `LOGO.png`/`LogoNew.png` → `Logo.png` (all 2 instances); desktop logo `h-16` → `h-14`; desktop gap `-ml-2` → `ml-2`; mobile text `text-2xl` → `text-[23px]`; mobile gap `-ml-2` → `ml-1` |
+| `README.md` | New demo video URL; live site link; 3 new sections; 3 screenshot replacements; TOC renumbered to 17 items; project structure updated |

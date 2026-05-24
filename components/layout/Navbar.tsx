@@ -84,8 +84,8 @@ export default function Navbar() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo + site name */}
           <Link href="/" onClick={closeMenu} className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/LogoNew.png" alt="Traam and Beyond logo" width={240} height={80} className="lg:hidden h-16 w-auto" />
-            <Image src="/LogoNew.png" alt="Traam and Beyond logo" width={240} height={80} className="hidden lg:block h-14 w-auto" />
+            <Image src="/Logo.png" alt="Traam and Beyond logo" width={240} height={80} className="lg:hidden h-16 w-auto" />
+            <Image src="/Logo.png" alt="Traam and Beyond logo" width={240} height={80} className="hidden lg:block h-14 w-auto" />
             <span className="text-[23px] lg:text-2xl font-semibold text-cream tracking-wide ml-1 lg:ml-2">Traam and Beyond</span>
           </Link>
 
