@@ -173,14 +173,14 @@ export default function ResearchHighlights() {
   };
 
   return (
-    <section id="research" className="relative z-[2] py-16 bg-[#1a130a]">
+    <section id="research" className="relative z-[2] pt-0 pb-16 bg-[#1a130a]">
       {/* Header */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <div className="flex justify-center mb-8">
             <Image
-              src="/IsbandHomePage.png"
-              alt="Kashmiri isband vessel"
+              src="/ResearchWelcomeImage.png"
+              alt="Research"
               width={1254}
               height={1254}
               className="w-[420px] h-auto sm:w-[490px] lg:w-[560px]"
