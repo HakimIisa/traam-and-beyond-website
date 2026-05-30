@@ -2007,3 +2007,253 @@ All subsequent sections renumbered (5→8 through 14→17). Project structure in
 | `components/home/HeroSection.tsx` | `LOGO.png`/`LogoNew.png` → `Logo.png` (all 2 instances); desktop logo `h-48 sm:h-60` → `h-56 sm:h-72`; mobile base `h-48` → `h-40`; `logoScaleMobile` end `4.5` → `3.53125`; `logoYMobile` start `-38vh` → `-36vh`, end `-17vh` → `-15.10vh` |
 | `components/layout/Navbar.tsx` | `LOGO.png`/`LogoNew.png` → `Logo.png` (all 2 instances); desktop logo `h-16` → `h-14`; desktop gap `-ml-2` → `ml-2`; mobile text `text-2xl` → `text-[23px]`; mobile gap `-ml-2` → `ml-1` |
 | `README.md` | New demo video URL; live site link; 3 new sections; 3 screenshot replacements; TOC renumbered to 17 items; project structure updated |
+
+---
+
+# Sixteenth Build Session — Addendum
+
+**Date:** 2026-05-30
+**Scope:** Research section description update, Navbar layout overhaul (text removed, centered desktop, mobile back-button layout), research pages fully populated (static data architecture, ResearchItemCard, 3 section pages, 3 item detail pages, research landing page restructure)
+
+---
+
+## 84. ResearchHighlights — Description Text Updated (`components/home/ResearchHighlights.tsx`)
+
+The placeholder subtitle text was replaced with the final copy:
+
+**Before:**
+> An ongoing exploration into the living relevance of Kashmiri craft traditions. These research projects examine how heritage forms can evolve, be recontextualised, and find new expression in contemporary practice — bridging the historical with the speculative.
+
+**After:**
+> An ongoing exploration into the living relevance of Kashmiri craft and building traditions. These projects investigate how heritage forms, materials, and visual languages can evolve, be recontextualised and find new expression in contemporary contexts. Through design-led inquiry, they create new narratives that connect cultural memory with present day design practices, ensuring that traditional knowledge remains meaningful, relevant, and capable of evolving into the future.
+
+---
+
+## 85. Navbar — Full Layout Overhaul (`components/layout/Navbar.tsx`)
+
+### "Traam and Beyond" text removed
+The `<span>` containing the site name was removed entirely. The logo image is now the only brand element in the navbar.
+
+### Desktop layout — centered
+The `<nav>` inner layout changed from `justify-between` (logo-left, controls-right) to `justify-center` with a single flex row containing all three elements:
+
+```
+Search icon  →  Logo  →  Menu button
+```
+
+`gap-5` between elements. `ChevronLeft` icon imported from lucide-react for use on mobile.
+
+### Mobile layout — left logo, right controls, back button
+The navbar now renders two completely separate DOM trees gated by `lg:hidden` / `hidden lg:flex`:
+
+**Mobile (`lg:hidden`):**
+- Left group: `[Back button]  [Logo]`
+  - Back button uses `router.back()`, only visible when `pathname !== "/"`
+  - Icon: `ChevronLeft size={24}`
+  - Logo: `h-16` (64px)
+- Right group: `[Search]  [Menu]`
+
+**Desktop (`hidden lg:flex`, centered):**
+- `[Search]  [Logo]  [Menu]`
+- Logo: `h-18`
+- Unchanged from centered layout established above
+
+### Logo size iterations (mobile)
+
+| Step | Value | Notes |
+|------|-------|-------|
+| After text removal | `h-20` (80px) | initial increase |
+| Reduced | `h-[68px]` | "h-17" equivalent |
+| Final | `h-16` (64px) | standard Tailwind step |
+
+### Why two separate DOM trees
+Mobile and desktop have fundamentally different element ordering and grouping (back+logo left vs search+menu right on mobile; linear centered row on desktop). Using a single DOM tree with responsive classes would require complex reordering — two separate `div`s with `lg:hidden` / `hidden lg:flex` is cleaner and avoids layout conflicts.
+
+---
+
+## 86. Research Pages — Static Data Architecture (new)
+
+All research content is static (not Firestore). A new data module was introduced to centralise it.
+
+### `lib/research-data.ts` (new file)
+
+Exports two interfaces and one constant:
+
+```ts
+interface ResearchItem {
+  slug: string;
+  title: string;
+  description: string;
+  images: string[]; // [0] = cover, rest = detail gallery
+}
+
+interface ResearchSection {
+  sectionSlug: string;
+  title: string;
+  description: string;
+  items: ResearchItem[];
+}
+
+const RESEARCH_SECTIONS: ResearchSection[]
+```
+
+Also exports helper functions `getResearchSection(slug)` and `getResearchItem(sectionSlug, itemSlug)`.
+
+### Content
+
+| Section | `sectionSlug` | Item | `slug` | Images |
+|---------|--------------|------|--------|--------|
+| Adaptive Reuse | `adaptive-reuse` | Console | `console` | `AR2A.jpeg`, `AR2B.jpeg`, `AR2C.jpeg` |
+| Reinterpretation | `reinterpretation` | Warusi Wardrobe | `warusi-wardrobe` | `RE1A.jpeg`, `RE1B.jpeg`, `RE1C.jpeg`, `RE1D.jpeg` |
+| Graphic Design | `graphic-design` | Office Mugs | `office-mugs` | `GD1A.jpeg`, `GD1B.jpeg` |
+
+All images are in `public/Research/` (capital R — Vercel case-sensitive).
+
+Office Mugs description is intentionally blank (placeholder).
+
+---
+
+## 87. ResearchItemCard — New Component (`components/items/ResearchItemCard.tsx`)
+
+A purpose-built card for research item listings. Mirrors `ItemCard` layout but omits all commerce elements.
+
+### What's removed vs ItemCard
+- No `EnquiryDialog` import or usage
+- No price / `Badge` / `formatPrice`
+- No "Enquire" button
+- No Kashmiri title field (research items don't have one)
+
+### What's kept
+- Mobile: full-width `aspect-square` image + title + description below (`line-clamp-3`)
+- Desktop: alternating 35/65 split — image (35%) and text panel (65%, `bg-walnut`) switching sides on odd indices
+- Desktop description: `line-clamp-4`
+- Same `cardVariants` / `childVariants` stagger animation as `ItemCard`
+- `group-hover:scale-105` image zoom (700ms)
+- Description conditionally rendered — no empty `<p>` when blank
+
+### Link target
+`href="/research/${sectionSlug}/${item.slug}"` — navigates to the item detail page.
+
+---
+
+## 88. Research Section Pages — Populated (3 files updated)
+
+All three section listing pages were rewritten from placeholder "Coming soon." to full content pages matching the `category/[slug]/page.tsx` structure.
+
+### Structure (all three identical in pattern)
+```tsx
+<div pt-24 pb-12 max-w-7xl>
+  <div mb-10>
+    <h1 font-display text-3xl lg:text-6xl text-cream>{section.title}</h1>
+    <p text-stone text-justify>{section.description}</p>
+    <border-t border-white/10 />
+  </div>
+  <div flex flex-col>
+    {section.items.map((item, index) => (
+      <ResearchItemCard sectionSlug="..." />
+    ))}
+  </div>
+</div>
+```
+
+Data sourced from `getResearchSection()` in `lib/research-data.ts` — non-null asserted (`!`) since slugs are hardcoded.
+
+| File | Section |
+|------|---------|
+| `app/(public)/research/adaptive-reuse/page.tsx` | Adaptive Reuse |
+| `app/(public)/research/reinterpretation/page.tsx` | Reinterpretation |
+| `app/(public)/research/graphic-design/page.tsx` | Graphic Design |
+
+---
+
+## 89. Research Item Detail Pages — New (3 new routes)
+
+Three new dynamic routes created, one per section:
+
+| Route | File |
+|-------|------|
+| `/research/adaptive-reuse/[slug]` | `app/(public)/research/adaptive-reuse/[slug]/page.tsx` |
+| `/research/reinterpretation/[slug]` | `app/(public)/research/reinterpretation/[slug]/page.tsx` |
+| `/research/graphic-design/[slug]` | `app/(public)/research/graphic-design/[slug]/page.tsx` |
+
+### Structure (all three identical in pattern)
+Mirrors `category/[slug]/[itemId]/page.tsx` but removes all commerce elements:
+
+```
+Breadcrumb: Home > Research > [Section] > [Item Title]
+
+2-column grid (1-col mobile):
+  Left: ItemImageGallery (reused — supports thumbnails + lightbox)
+  Right: h1 title + description paragraph
+```
+
+**Removed vs item detail page:**
+- No `Badge` (category label)
+- No price display
+- No dimensions
+- No `EnquiryForm` panel
+
+**Breadcrumb links:**
+- Home → `/`
+- Research → `/research`
+- Section name → `/research/[sectionSlug]`
+- Item title (non-linked span)
+
+`notFound()` called if `getResearchItem()` returns `undefined`.
+
+`generateMetadata` also provided per page.
+
+---
+
+## 90. Research Landing Page — Restructured (`app/(public)/research/page.tsx`)
+
+The previous placeholder page (a vertical list of 3 linked areas with short descriptions) was replaced with a full collections-style page.
+
+### New structure (mirrors `app/(public)/collections/page.tsx`)
+
+```
+max-w-7xl container, pt-24 pb-12
+
+Page header:
+  h1: "Research"
+  p: [home page description — same text as ResearchHighlights subtitle]
+  border-t border-white/10
+
+{RESEARCH_SECTIONS.map(section =>
+  <section mb-24>
+    <Link href="/research/[sectionSlug]">
+      <h2 font-display text-3xl lg:text-5xl text-cream hover:text-terracotta>
+        {section.title}
+      </h2>
+    </Link>
+    <p>{section.description}</p>
+    <border-t border-white/10 />
+
+    <div flex flex-col>
+      {section.items.map((item, i) =>
+        <ResearchItemCard sectionSlug={...} index={i} />
+      )}
+    </div>
+  </section>
+)}
+```
+
+Section headings link to the individual section pages (e.g. `/research/adaptive-reuse`). Items link to their detail pages via `ResearchItemCard`. The `bg-[#1a130a] min-h-screen` wrapper and `ScrollReveal` from the old page were removed — the global dark background from the layout handles it.
+
+---
+
+## 91. Key Files Modified (Sixteenth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/ResearchHighlights.tsx` | Description text replaced with final copy |
+| `components/layout/Navbar.tsx` | "Traam and Beyond" `<span>` removed; desktop → centered single row (search → logo → menu); mobile → two-group layout (back+logo left, search+menu right); `ChevronLeft` added; mobile logo `h-20` → `h-[68px]` → `h-16` |
+| `lib/research-data.ts` | **New file** — `ResearchItem` + `ResearchSection` interfaces; `RESEARCH_SECTIONS` constant with all 3 sections + items; `getResearchSection()` + `getResearchItem()` helpers |
+| `components/items/ResearchItemCard.tsx` | **New file** — ItemCard layout without enquiry/price/badge; links to `/research/[sectionSlug]/[slug]` |
+| `app/(public)/research/adaptive-reuse/page.tsx` | Rewritten — title + description + ResearchItemCard list |
+| `app/(public)/research/reinterpretation/page.tsx` | Rewritten — title + description + ResearchItemCard list |
+| `app/(public)/research/graphic-design/page.tsx` | Rewritten — title + description + ResearchItemCard list |
+| `app/(public)/research/adaptive-reuse/[slug]/page.tsx` | **New file** — item detail page (gallery + title + description, no enquiry) |
+| `app/(public)/research/reinterpretation/[slug]/page.tsx` | **New file** — item detail page |
+| `app/(public)/research/graphic-design/[slug]/page.tsx` | **New file** — item detail page |
+| `app/(public)/research/page.tsx` | Full rewrite — collections-style layout; Research h1 + description; 3 sections each with h2 link + description + ResearchItemCard items |

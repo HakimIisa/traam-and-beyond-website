@@ -61,15 +61,10 @@ export default function ResearchItemCard({
               )}
             </motion.div>
 
-            <motion.div variants={childVariants} className="px-4 sm:px-6 pt-5 pb-10">
-              <h3 className="font-display text-3xl text-cream mb-2 group-hover:text-terracotta transition-colors">
+            <motion.div variants={childVariants} className="px-4 sm:px-6 pt-5 pb-10 text-center">
+              <h3 className="font-display text-3xl text-cream group-hover:text-terracotta transition-colors">
                 {item.title}
               </h3>
-              {item.description && (
-                <p className="text-stone text-sm leading-relaxed line-clamp-3 whitespace-pre-line text-justify">
-                  {item.description}
-                </p>
-              )}
             </motion.div>
           </Link>
         </motion.div>
