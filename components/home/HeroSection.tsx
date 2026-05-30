@@ -22,13 +22,13 @@ export default function HeroSection({ content }: HeroSectionProps) {
   const bowlScale = useTransform(scrollYProgress, [0, 0.7], [0.7, 1]);
 
   // Mobile bowl: starts solid in lower viewport, rises to near top, fades, shrinks 5%
-  const bowlYMobile = useTransform(scrollYProgress, [0, 0.7], ["15vh", "-20vh"]);
+  const bowlYMobile = useTransform(scrollYProgress, [0, 0.7], ["15vh", "-18vh"]);
   const bowlOpacityMobile = useTransform(scrollYProgress, [0, 0.7], [1, 0.4]);
-  const bowlScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 0.95]);
+  const bowlScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 0.910]);
 
   // Mobile logo: starts above text (small), grows large + rises to overlay bowl
-  const logoScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 3.53125]);
-  const logoYMobile = useTransform(scrollYProgress, [0, 0.7], ["-36vh", "-15.10vh"]);
+  const logoScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 3.40625]);
+  const logoYMobile = useTransform(scrollYProgress, [0, 0.7], ["-36vh", "-15.25vh"]);
 
   // Mobile text: starts above center, moves down as bowl+logo take over
   const textScaleMobile = useTransform(scrollYProgress, [0, 0.7], [0.85, 1]);
@@ -47,7 +47,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
         className="lg:hidden absolute inset-y-0 left-0 w-full"
       >
         <Image
-          src="/hero-vessel.png"
+          src="/newherobackground.png"
           alt="Kashmiri copper vessel"
           fill
           priority
@@ -59,7 +59,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
       {/* Desktop bowl: diagonal rise (unchanged) */}
       <motion.div style={{ y: bowlY, x: bowlX, scale: bowlScale }} className="hidden lg:block absolute inset-y-0 left-0 w-[48%] opacity-40">
         <Image
-          src="/hero-vessel.png"
+          src="/newherobackground.png"
           alt="Kashmiri copper vessel"
           fill
           priority
@@ -72,8 +72,9 @@ export default function HeroSection({ content }: HeroSectionProps) {
       <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black" />
 
       {/* Mobile logo: starts bottom-center (small), grows + rises to overlay bowl */}
+      {/* logoXMobile: "0vw" = centered. Increase to move right, decrease to move left */}
       <motion.div
-        style={{ scale: logoScaleMobile, y: logoYMobile }}
+        style={{ scale: logoScaleMobile, y: logoYMobile, x: "1.25vw" }}
         className="lg:hidden absolute z-20 inset-0 flex items-center justify-center pointer-events-none"
       >
         <Image src="/Logo.png" alt="Traam and Beyond" width={480} height={480} className="h-40 w-auto" />

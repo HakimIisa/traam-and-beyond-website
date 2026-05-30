@@ -316,7 +316,7 @@ function TextBlock({
   return (
     <div
       ref={ref}
-      className="bg-[#1a130a] w-full pt-10 pb-40 px-6 lg:px-20 min-h-[75vh] flex flex-col items-center relative z-10"
+      className={`bg-[#1a130a] w-full ${index === 0 ? "pt-4" : "pt-10"} pb-40 px-6 lg:px-20 min-h-[75vh] flex flex-col items-center relative z-10`}
     >
       {/* Top separator — sits near the very top of the panel for panels 2+ */}
       {index > 0 && (
@@ -324,7 +324,7 @@ function TextBlock({
       )}
 
       {/* Top spacer — min-h-20 guarantees 80px breathing room below the top bar */}
-      <div className="flex-1 min-h-20" />
+      <div className={index === 0 ? "h-4" : "flex-1 min-h-20"} />
 
       {/* Main content */}
       <div className="max-w-2xl w-full mx-auto text-left space-y-6">
@@ -440,9 +440,10 @@ export default function CraftHeritageTimeline({ visible }: { visible: boolean })
       {/* Foreground pulled up to overlap the sticky background */}
       <div className="relative z-[2] w-full flex flex-col -mt-[100vh]">
         {/* Section title */}
-        <div className="bg-[#1a130a] w-full pt-24 pb-0 px-4 sm:px-6 lg:px-8">
+        <div className="bg-[#1a130a] w-full pt-10 pb-0 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mx-auto border-t border-white/10 mb-10" />
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-5xl sm:text-6xl text-cream text-center">
+            <h2 className="font-display text-3xl sm:text-6xl text-cream text-center">
               Craft Heritage of Kashmir
             </h2>
           </div>

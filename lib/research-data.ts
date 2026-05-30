@@ -20,6 +20,16 @@ export const RESEARCH_SECTIONS: ResearchSection[] = [
       "These works seek to reimagine artefacts beyond their original purpose to extend their lifespan while preserving the cultural memory and craftsmanship. Rooted in principles of sustainability, they encourage responsible design, allowing heritage objects to remain relevant in changing contexts by creating new meanings while maintaining a tangible connection to their rich material culture. Rather than replicating the past, these interventions offer new narratives that connect historical craftsmanship with present-day needs and future possibilities.",
     items: [
       {
+        slug: "coffee-table",
+        title: "Coffee Table",
+        description:
+          "This coffee table is created from an antique Kashmiri papier-mâché tray, preserving its original hand-painted motifs, gold detailing, and lacquered finish. A custom wooden base adapts the historic object for contemporary use, transforming a decorative craft piece into functional furniture.",
+        images: [
+          "/Research/AR1A.jpeg",
+          "/Research/AR1B.jpeg",
+        ],
+      },
+      {
         slug: "console",
         title: "Console",
         description:
@@ -44,10 +54,10 @@ export const RESEARCH_SECTIONS: ResearchSection[] = [
         description:
           "Inspired by the warusi, this wardrobe translates a traditional Kashmiri architectural element into a contemporary furniture form. Historically, warusi partitions were used to subdivide interior spaces through a system of removable timber panels framed by decorative arches. Drawing on this vocabulary, the wardrobe incorporates arched panel detailing and handmade pinjra kari (latticework) in deodar wood, recalling the craftsmanship of traditional Kashmiri interiors. Through reinterpretation rather than replication, the design seeks to preserve the essence of a vernacular architectural tradition while responding to contemporary needs.",
         images: [
-          "/Research/RE1A.jpeg",
-          "/Research/RE1B.jpeg",
-          "/Research/RE1C.jpeg",
-          "/Research/RE1D.jpeg",
+          "/Research/Wardrobe1.jpeg",
+          "/Research/Wardrobe2.jpeg",
+          "/Research/Wardrobe3.jpeg",
+          "/Research/Wardrobe4.jpeg",
         ],
       },
     ],
@@ -63,6 +73,12 @@ export const RESEARCH_SECTIONS: ResearchSection[] = [
         title: "Office Mugs",
         description: "",
         images: ["/Research/GD1A.jpeg", "/Research/GD1B.jpeg"],
+      },
+      {
+        slug: "invitation",
+        title: "Invitation Card",
+        description: "",
+        images: ["/Research/GD2.jpeg"],
       },
     ],
   },

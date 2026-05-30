@@ -100,7 +100,7 @@ function TimelineIndicator({ activeIndex, visible }: { activeIndex: number; visi
   );
 }
 
-function TextBlock({ story, index, setActiveIndex, setImageIndex, scrollDirRef }: { story: typeof STORIES[0], index: number, setActiveIndex: (i: number) => void, setImageIndex: (i: number) => void, scrollDirRef: React.RefObject<'up' | 'down'> }) {
+function TextBlock({ story, index, isLast, setActiveIndex, setImageIndex, scrollDirRef }: { story: typeof STORIES[0], index: number, isLast?: boolean, setActiveIndex: (i: number) => void, setImageIndex: (i: number) => void, scrollDirRef: React.RefObject<'up' | 'down'> }) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Timeline indicator: fires when panel is at viewport center
@@ -122,7 +122,7 @@ function TextBlock({ story, index, setActiveIndex, setImageIndex, scrollDirRef }
   }, [isNearTop, index, setImageIndex, scrollDirRef]);
 
   return (
-    <div ref={ref} className="bg-[#1a130a] w-full py-28 lg:py-40 px-6 lg:px-20 min-h-[75vh] flex flex-col justify-center items-center relative z-10">
+    <div ref={ref} className={`bg-[#1a130a] w-full ${index === 0 ? "pt-8 pb-28 lg:pt-12 lg:pb-40" : isLast ? "pt-28 pb-0 lg:pt-40 lg:pb-0" : "py-28 lg:py-40"} px-6 lg:px-20 min-h-[75vh] flex flex-col justify-center items-center relative z-10`}>
       <div className="max-w-2xl w-full mx-auto text-left space-y-6">
         <h3 className="text-lg lg:text-xl text-cream mb-1">{story.era}</h3>
         <p className="text-terracotta text-base lg:text-lg font-semibold mb-8">{story.location}</p>
@@ -191,12 +191,12 @@ export default function OurStoryTimeline({ visible }: { visible: boolean }) {
         {/* "Our Story" title — opaque, sits at very top, does not affect sticky container position */}
         <div className="bg-[#1a130a] w-full pt-24 pb-0 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-5xl sm:text-6xl text-cream text-center">Our Story</h2>
+            <h2 className="font-display text-3xl sm:text-6xl text-cream text-center">Our Story</h2>
           </div>
         </div>
         {STORIES.map((story, i) => (
           <div key={i} className="w-full">
-            <TextBlock story={story} index={i} setActiveIndex={setActiveIndex} setImageIndex={setImageIndex} scrollDirRef={scrollDirRef} />
+            <TextBlock story={story} index={i} isLast={i === STORIES.length - 1} setActiveIndex={setActiveIndex} setImageIndex={setImageIndex} scrollDirRef={scrollDirRef} />
             {story.image && (
               <div className="w-full aspect-square lg:h-[85vh] bg-transparent pointer-events-none" />
             )}
