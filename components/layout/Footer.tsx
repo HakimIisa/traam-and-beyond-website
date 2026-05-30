@@ -10,18 +10,23 @@ export default function Footer() {
               Traam and Beyond
             </p>
             <p className="text-sm max-w-xs leading-relaxed">
-              Curated Kashmiri handcrafted items — copper, silver, jade,
-              papier-mâché, and more.
+              Silenced crafts, Speaking again
+            </p>
+            <p className="text-sm leading-relaxed mt-2 whitespace-nowrap">
+              Timeless Kashmiri Treasures Curated by Hakim Ali Reza
             </p>
           </div>
-          <div className="flex flex-col gap-2">
-            <p className="text-cream font-medium text-sm mb-1">Explore</p>
-            <Link href="/about" className="text-sm hover:text-cream transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="text-sm hover:text-cream transition-colors">
-              Contact
-            </Link>
+          <div className="flex gap-12">
+            <div className="flex flex-col gap-2">
+              <Link href="/about" className="text-sm hover:text-cream transition-colors">About</Link>
+              <Link href="/collections" className="text-sm hover:text-cream transition-colors">Our Collections</Link>
+              <Link href="/research" className="text-sm hover:text-cream transition-colors">Research</Link>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Link href="/stories" className="text-sm hover:text-cream transition-colors">Stories</Link>
+              <Link href="/buy-from-artisans" className="text-sm hover:text-cream transition-colors">Buy from Artisans</Link>
+              <Link href="/contact" className="text-sm hover:text-cream transition-colors">Contact</Link>
+            </div>
           </div>
         </div>
         <div className="mt-10 pt-6 border-t border-cream/10 text-xs text-center">
