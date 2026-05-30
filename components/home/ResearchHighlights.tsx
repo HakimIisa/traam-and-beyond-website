@@ -188,9 +188,7 @@ export default function ResearchHighlights() {
           </div>
           <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center">Research</h2>
           <p className="text-stone mb-6 text-justify lg:text-center">
-            An ongoing exploration into the living relevance of Kashmiri craft traditions. These
-            research projects examine how heritage forms can evolve, be recontextualised, and find
-            new expression in contemporary practice — bridging the historical with the speculative.
+            An ongoing exploration into the living relevance of Kashmiri craft and building traditions. These projects investigate how heritage forms, materials, and visual languages can evolve, be recontextualised and find new expression in contemporary contexts. Through design-led inquiry, they create new narratives that connect cultural memory with present day design practices, ensuring that traditional knowledge remains meaningful, relevant, and capable of evolving into the future.
           </p>
           <div className="border-t border-white/5 mb-12" />
         </ScrollReveal>

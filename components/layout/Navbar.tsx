@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, X, Menu } from "lucide-react";
+import { Search, X, Menu, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -81,16 +81,67 @@ export default function Navbar() {
             : "bg-transparent"
         )}
       >
-        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Logo + site name */}
-          <Link href="/" onClick={closeMenu} className="flex items-center hover:opacity-80 transition-opacity">
-            <Image src="/Logo.png" alt="Traam and Beyond logo" width={240} height={80} className="lg:hidden h-16 w-auto" />
-            <Image src="/Logo.png" alt="Traam and Beyond logo" width={240} height={80} className="hidden lg:block h-14 w-auto" />
-            <span className="text-[23px] lg:text-2xl font-semibold text-cream tracking-wide ml-1 lg:ml-2">Traam and Beyond</span>
-          </Link>
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center">
 
-          {/* Right side: Search + Hamburger */}
-          <div className="flex items-center gap-3">
+          {/* ── Mobile layout ── */}
+          <div className="lg:hidden flex items-center justify-between w-full">
+            {/* Left: back button + logo */}
+            <div className="flex items-center gap-1">
+              {pathname !== "/" && (
+                <button
+                  onClick={() => router.back()}
+                  className="text-stone hover:text-terracotta transition-colors p-1 -ml-1"
+                  aria-label="Go back"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+              )}
+              <Link href="/" onClick={closeMenu} className="flex items-center hover:opacity-80 transition-opacity">
+                <Image src="/Logo.png" alt="Traam and Beyond logo" width={240} height={80} className="h-16 w-auto" />
+              </Link>
+            </div>
+
+            {/* Right: search + menu */}
+            <div className="flex items-center gap-3">
+              {searchOpen ? (
+                <form onSubmit={handleSearch} className="flex items-center gap-2">
+                  <input
+                    ref={searchRef}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search items..."
+                    className="text-sm border-b border-cream/40 bg-transparent outline-none w-36 pb-0.5 text-cream placeholder:text-stone"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setSearchOpen(false)}
+                    className="text-stone hover:text-cream transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={() => setSearchOpen(true)}
+                  className="text-stone hover:text-terracotta transition-colors"
+                  aria-label="Search"
+                >
+                  <Search size={20} />
+                </button>
+              )}
+              <button
+                onClick={() => setMenuOpen((o) => !o)}
+                className="text-stone hover:text-terracotta transition-colors p-1"
+                aria-label={menuOpen ? "Close menu" : "Open menu"}
+              >
+                {menuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            </div>
+          </div>
+
+          {/* ── Desktop layout (centered) ── */}
+          <div className="hidden lg:flex items-center justify-center w-full gap-5">
+            {/* Search */}
             {searchOpen ? (
               <form onSubmit={handleSearch} className="flex items-center gap-2">
                 <input
@@ -98,7 +149,7 @@ export default function Navbar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search items..."
-                  className="text-sm border-b border-cream/40 bg-transparent outline-none w-40 sm:w-56 pb-0.5 text-cream placeholder:text-stone"
+                  className="text-sm border-b border-cream/40 bg-transparent outline-none w-56 pb-0.5 text-cream placeholder:text-stone"
                 />
                 <button
                   type="button"
@@ -118,6 +169,12 @@ export default function Navbar() {
               </button>
             )}
 
+            {/* Logo */}
+            <Link href="/" onClick={closeMenu} className="flex items-center hover:opacity-80 transition-opacity">
+              <Image src="/Logo.png" alt="Traam and Beyond logo" width={240} height={80} className="h-18 w-auto" />
+            </Link>
+
+            {/* Menu button */}
             <button
               onClick={() => setMenuOpen((o) => !o)}
               className="text-stone hover:text-terracotta transition-colors p-1"
@@ -126,6 +183,7 @@ export default function Navbar() {
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
+
         </nav>
       </header>
 

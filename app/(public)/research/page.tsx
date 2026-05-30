@@ -1,60 +1,63 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ScrollReveal } from "@/components/ScrollReveal";
+import { RESEARCH_SECTIONS } from "@/lib/research-data";
+import ResearchItemCard from "@/components/items/ResearchItemCard";
 
 export const metadata: Metadata = {
   title: "Research — Traam and Beyond",
-  description: "Research into Kashmiri craft heritage: adaptive reuse, reinterpretation, and graphic design.",
+  description:
+    "An ongoing exploration into the living relevance of Kashmiri craft and building traditions.",
 };
-
-const RESEARCH_AREAS = [
-  {
-    title: "Adaptive Reuse",
-    href: "/research/adaptive-reuse",
-    description: "Exploring how traditional Kashmiri craft objects find new purpose and meaning in contemporary contexts.",
-  },
-  {
-    title: "Reinterpretation",
-    href: "/research/reinterpretation",
-    description: "Re-examining the visual language of Kashmiri craftsmanship through a modern lens.",
-  },
-  {
-    title: "Graphic Design",
-    href: "/research/graphic-design",
-    description: "Drawing on the patterns, motifs, and forms of Kashmiri crafts as a source for graphic design practice.",
-  },
-];
 
 export default function ResearchPage() {
   return (
-    <div className="bg-[#1a130a] min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <ScrollReveal>
-          <h1 className="font-display text-6xl sm:text-7xl text-cream mb-4">Research</h1>
-        </ScrollReveal>
-        <ScrollReveal delay={0.1}>
-          <p className="text-stone text-lg leading-relaxed mb-16">
-            An ongoing investigation into the heritage, material culture, and living legacy of Kashmiri craftsmanship.
-          </p>
-        </ScrollReveal>
-
-        <div className="flex flex-col gap-12">
-          {RESEARCH_AREAS.map((area, i) => (
-            <ScrollReveal key={area.href} delay={0.1 * (i + 2)}>
-              <Link
-                href={area.href}
-                className="group block border-t border-cream-dark/20 pt-8 hover:border-terracotta transition-colors duration-300"
-              >
-                <h2 className="font-display text-4xl sm:text-5xl text-cream group-hover:text-terracotta transition-colors duration-300 mb-3">
-                  {area.title}
-                </h2>
-                <p className="text-stone text-base leading-relaxed">{area.description}</p>
-                <span className="text-terracotta text-sm mt-4 inline-block">Explore →</span>
-              </Link>
-            </ScrollReveal>
-          ))}
-        </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      {/* Page header */}
+      <div className="mb-16">
+        <h1 className="font-display text-3xl lg:text-6xl text-cream mb-4">
+          Research
+        </h1>
+        <p className="text-stone text-sm lg:text-base leading-relaxed text-justify mb-8">
+          An ongoing exploration into the living relevance of Kashmiri craft and building
+          traditions. These projects investigate how heritage forms, materials, and visual
+          languages can evolve, be recontextualised and find new expression in contemporary
+          contexts. Through design-led inquiry, they create new narratives that connect
+          cultural memory with present day design practices, ensuring that traditional
+          knowledge remains meaningful, relevant, and capable of evolving into the future.
+        </p>
+        <div className="border-t border-white/10" />
       </div>
+
+      {/* Research sections */}
+      {RESEARCH_SECTIONS.map((section) => (
+        <section key={section.sectionSlug} className="mb-24">
+          <div className="mb-10">
+            <Link
+              href={`/research/${section.sectionSlug}`}
+              className="hover:text-terracotta transition-colors duration-200 inline-block"
+            >
+              <h2 className="font-display text-3xl lg:text-5xl text-cream mb-4">
+                {section.title}
+              </h2>
+            </Link>
+            <p className="text-stone text-sm lg:text-base leading-relaxed text-justify mb-8">
+              {section.description}
+            </p>
+            <div className="border-t border-white/10" />
+          </div>
+
+          <div className="flex flex-col">
+            {section.items.map((item, index) => (
+              <ResearchItemCard
+                key={item.slug}
+                item={item}
+                sectionSlug={section.sectionSlug}
+                index={index}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
