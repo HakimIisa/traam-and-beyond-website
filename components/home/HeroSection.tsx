@@ -27,8 +27,8 @@ export default function HeroSection({ content }: HeroSectionProps) {
   const bowlScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 0.910]);
 
   // Mobile logo: starts above text (small), grows large + rises to overlay bowl
-  const logoScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 3.40625]);
-  const logoYMobile = useTransform(scrollYProgress, [0, 0.7], ["-36vh", "-15.25vh"]);
+  const logoScaleMobile = useTransform(scrollYProgress, [0, 0.7], [1, 3.43125]);
+  const logoYMobile = useTransform(scrollYProgress, [0, 0.7], ["-36vh", "-15.40vh"]);
 
   // Mobile text: starts above center, moves down as bowl+logo take over
   const textScaleMobile = useTransform(scrollYProgress, [0, 0.7], [0.85, 1]);
@@ -69,12 +69,12 @@ export default function HeroSection({ content }: HeroSectionProps) {
       </motion.div>
 
       {/* Left-to-right darkening gradient */}
-      <div className="absolute inset-0 bg-gradient-to-l from-black/20 to-black" />
+      <div className="absolute inset-0 bg-gradient-to-l from-black/20 to-black/70" />
 
       {/* Mobile logo: starts bottom-center (small), grows + rises to overlay bowl */}
       {/* logoXMobile: "0vw" = centered. Increase to move right, decrease to move left */}
       <motion.div
-        style={{ scale: logoScaleMobile, y: logoYMobile, x: "1.25vw" }}
+        style={{ scale: logoScaleMobile, y: logoYMobile, x: "2.28vw" }}
         className="lg:hidden absolute z-20 inset-0 flex items-center justify-center pointer-events-none"
       >
         <Image src="/Logo.png" alt="Traam and Beyond" width={480} height={480} className="h-40 w-auto" />
