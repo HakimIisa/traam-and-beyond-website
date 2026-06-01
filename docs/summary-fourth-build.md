@@ -2257,3 +2257,136 @@ Section headings link to the individual section pages (e.g. `/research/adaptive-
 | `app/(public)/research/reinterpretation/[slug]/page.tsx` | **New file** — item detail page |
 | `app/(public)/research/graphic-design/[slug]/page.tsx` | **New file** — item detail page |
 | `app/(public)/research/page.tsx` | Full rewrite — collections-style layout; Research h1 + description; 3 sections each with h2 link + description + ResearchItemCard items |
+
+---
+
+# Seventeenth Build Session — Addendum
+
+**Date:** 2026-05-31
+**Scope:** ResearchItemCard mobile description + title centering, home page enquiry heading removed, footer text + links overhaul, research data content additions (Coffee Table, Invitation Card, Wardrobe image swap), hero section background image swap, mobile hero animation tuning (bowl + logo), about page title sizes + spacing fixes
+
+---
+
+## 92. ResearchItemCard — Mobile Description Hidden + Title Centered (`components/items/ResearchItemCard.tsx`)
+
+On mobile only:
+- Description `<p>` removed from the mobile card variant — only image and title shown
+- Title wrapper `<motion.div>` changed from default alignment to `text-center`
+
+Desktop (65% text panel) is unchanged — description still shows with `line-clamp-4`.
+
+---
+
+## 93. Home Page — "Get in Touch" Heading Removed (`components/home/HomePageClient.tsx`)
+
+The `<h2>` containing `{content.enquiry.title}` ("Get in Touch") was removed from the General Enquiry section. The subtitle `<p>` and `<EnquiryForm>` remain.
+
+---
+
+## 94. Footer — Text + Links Overhaul (`components/layout/Footer.tsx`)
+
+### Tagline text replaced
+| Before | After |
+|--------|-------|
+| "Curated Kashmiri handcrafted items — copper, silver, jade, papier-mâché, and more." | Two lines: "Silenced crafts, Speaking again" (line 1) + "Timeless Kashmiri Treasures Curated by Hakim Ali Reza" (line 2, `whitespace-nowrap`) |
+
+### Navigation links — 6 links in 2 columns
+The single "Explore" column (About + Contact) was replaced with two columns:
+
+| Column 1 | Column 2 |
+|----------|----------|
+| About → `/about` | Stories → `/stories` |
+| Our Collections → `/collections` | Buy from Artisans → `/buy-from-artisans` |
+| Research → `/research` | Contact → `/contact` |
+
+"Explore" heading removed. Both columns wrapped in `flex gap-12`.
+
+---
+
+## 95. Research Data — Content Additions (`lib/research-data.ts`)
+
+### Coffee Table added (Adaptive Reuse, first item)
+```
+slug: "coffee-table"
+images: ["/Research/AR1A.jpeg", "/Research/AR1B.jpeg"]
+```
+Placed before "Console" so it appears first in listing order.
+
+### Warusi Wardrobe — images replaced (Reinterpretation)
+Old: `RE1A.jpeg`, `RE1B.jpeg`, `RE1C.jpeg`, `RE1D.jpeg`
+New: `Wardrobe1.jpeg`, `Wardrobe2.jpeg`, `Wardrobe3.jpeg`, `Wardrobe4.jpeg`
+
+### Invitation Card added (Graphic Design, second item)
+```
+slug: "invitation"
+title: "Invitation Card"
+description: ""
+images: ["/Research/GD2.jpeg"]
+```
+
+---
+
+## 96. Hero Section — Background Image Swap + Mobile Animation Tuning (`components/home/HeroSection.tsx`)
+
+### Background image
+`/hero-vessel.png` → `/newherobackground.png` (both mobile and desktop instances).
+
+### Mobile bowl animation — final values
+
+| Parameter | Previous | Final |
+|-----------|----------|-------|
+| `bowlScaleMobile` end | `0.95` | `0.910` (≈355px on 390px viewport) |
+| `bowlYMobile` end | `-20vh` | `-18vh` |
+
+### Mobile logo animation — final values after iterative tuning
+
+| Parameter | Previous | Final |
+|-----------|----------|-------|
+| `logoScaleMobile` end | `3.53125` (565px) | `3.40625` (545px) |
+| `logoYMobile` end | `-15.10vh` | `-15.25vh` |
+| `logoXMobile` (x style) | `"0vw"` | `"1.25vw"` (right of center) |
+
+The `x` value was introduced as an explicit tweakable value (previously centered via flex only). It applies uniformly across the full scroll range (static, not animated).
+
+### X offset implementation
+`justify-center` flex centering was kept on the container. The `x: "1.25vw"` framer-motion style shifts the entire `inset-0` container right, effectively offsetting the centered logo.
+
+---
+
+## 97. About Page — Title Sizes + Spacing Fixes
+
+### "Our Story" + "Craft Heritage of Kashmir" — mobile font size
+Both reduced from `text-5xl` → `text-3xl` on mobile (matching collections/category page heading size):
+- `components/about/OurStoryTimeline.tsx`
+- `components/about/CraftHeritageTimeline.tsx`
+
+Desktop (`sm:text-6xl`) unchanged.
+
+### OurStoryTimeline — first panel top padding reduced
+`index === 0` panel: `pt-28` → `pt-8` (mobile), `lg:pt-40` → `lg:pt-12` (desktop). Closes the gap between "Our Story" title and "February 2004". Image-swap logic unaffected (tied to `useInView` ref on outer div).
+
+### OurStoryTimeline — last panel bottom padding removed
+`isLast` prop added to `TextBlock`. Last panel (`index === 4`): `pb-28` → `pb-0`. Closes excess space above the "Craft Heritage of Kashmir" separator.
+
+### CraftHeritageTimeline — horizontal separator added above title
+`<div className="max-w-2xl mx-auto border-t border-white/10 mb-10" />` added before the h2. Uses same `border-white/10` style as all other separators in the timeline.
+
+### CraftHeritageTimeline — title div top padding reduced
+`pt-24` → `pt-10` so space above separator = `mb-10` (40px) = space below separator (40px). Symmetric spacing.
+
+### CraftHeritageTimeline — first panel top padding + spacer reduced
+`index === 0` panel: `pt-10` → `pt-4`; top `flex-1 min-h-20` spacer → `h-4` (fixed 16px). Closes gap between "Craft Heritage of Kashmir" title and first paragraph text. Other panels and image-change logic unaffected.
+
+---
+
+## 98. Key Files Modified (Seventeenth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/items/ResearchItemCard.tsx` | Mobile description removed; mobile title `text-center` added |
+| `components/home/HomePageClient.tsx` | "Get in Touch" `<h2>` removed from enquiry section |
+| `components/layout/Footer.tsx` | Tagline replaced with 2-line text; nav replaced with 6-link two-column layout; "Explore" heading removed |
+| `lib/research-data.ts` | Coffee Table added (Adaptive Reuse, first); Wardrobe images replaced; Invitation Card added (Graphic Design) |
+| `components/home/HeroSection.tsx` | Background → `newherobackground.png`; `bowlScaleMobile` end `0.95` → `0.910`; `bowlYMobile` end `-20vh` → `-18vh`; `logoScaleMobile` end → `3.40625` (545px); `logoYMobile` end → `-15.25vh`; `x: "1.25vw"` added to logo motion style |
+| `components/about/OurStoryTimeline.tsx` | Title `text-5xl` → `text-3xl` mobile; first panel `pt-8`; last panel `pb-0` via `isLast` prop |
+| `components/about/CraftHeritageTimeline.tsx` | Title `text-5xl` → `text-3xl` mobile; separator added above title; title div `pt-24` → `pt-10`; first panel `pt-4` + `h-4` top spacer |

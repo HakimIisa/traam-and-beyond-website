@@ -14,20 +14,20 @@ interface CategoryHighlightsProps {
   content: HomeContent["collections"];
 }
 
-const URDU_NAMES: Record<string, string> = {
-  "copperware":        "کاپر ویئر",
-  "papier-mch":        "پیپر ماشی",
-  "silverware":        "سلور ویئر",
-  "enamelware":        "اینامل ویئر",
-  "terracotta":        "ٹیراکوٹا",
-  "green-serpentine":  "گرین سرپینٹائن",
-  "coins":             "سکے",
-  "shawls":            "شالیں",
-  "jewellery":         "زیورات",
+const KASHMIRI_NAMES: Record<string, string> = {
+  "copperware":        "ترٛام",
+  "papier-mch":        "نقاشی",
+  "silverware":        "رۄپھ",
+  "enamelware":        "میناکاری",
+  "terracotta":        "کَتٕر",
+  "green-serpentine":  "زہر مۄہر",
+  "coins":             "سِکہ جات",
+  "shawls":            "شال",
+  "jewellery":         "زیور",
   "carpets":           "قالین",
-  "willow-wicker":     "بید کی ٹوکری سازی",
-  "wood-work":         "لکڑی کا کام",
-  "brass-ware":        "پیتل کے برتن",
+  "willow-wicker":     "کانہِ کٮ۪م",
+  "wood-work":         "لٮ۪کَرِ کٮ۪م",
+  "brass-ware":        "سَرٛتَل",
 };
 
 export default function CategoryHighlights({ categories, content }: CategoryHighlightsProps) {
@@ -256,13 +256,13 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                     <h3 className="font-display text-3xl lg:text-4xl text-stone/70 group-hover:text-terracotta transition-colors duration-300 underline decoration-transparent decoration-1 underline-offset-4 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
                       {cat.name}
                     </h3>
-                    {URDU_NAMES[cat.slug] && (
+                    {KASHMIRI_NAMES[cat.slug] && (
                       <p
-                        className="text-stone/70 text-[24px] lg:text-[26px] mt-1 group-hover:text-terracotta transition-colors duration-300"
+                        className="text-stone/70 text-[27px] lg:text-[34px] mt-1 group-hover:text-terracotta transition-colors duration-300"
                         dir="rtl"
-                        lang="ur"
+                        lang="ks"
                       >
-                        {URDU_NAMES[cat.slug]}
+                        {KASHMIRI_NAMES[cat.slug]}
                       </p>
                     )}
                     <p className="text-terracotta text-sm mt-2 tracking-wide lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">
