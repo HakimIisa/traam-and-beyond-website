@@ -18,7 +18,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
 
   // Desktop bowl: vertical rise + horizontal drift + scale (unchanged)
   const bowlY = useTransform(scrollYProgress, [0, 0.7], ["45vh", "0vh"]);
-  const bowlX = useTransform(scrollYProgress, [0, 0.7], ["26vw", "0vw"]);
+  const bowlX = useTransform(scrollYProgress, [0, 0.7], ["-26vw", "0vw"]);
   const bowlScale = useTransform(scrollYProgress, [0, 0.7], [0.7, 1]);
 
   // Mobile bowl: starts solid in lower viewport, rises to near top, fades, shrinks 5%
@@ -57,19 +57,19 @@ export default function HeroSection({ content }: HeroSectionProps) {
       </motion.div>
 
       {/* Desktop bowl: diagonal rise (unchanged) */}
-      <motion.div style={{ y: bowlY, x: bowlX, scale: bowlScale }} className="hidden lg:block absolute inset-y-0 left-0 w-[48%] opacity-40">
+      <motion.div style={{ y: bowlY, x: bowlX, scale: bowlScale }} className="hidden lg:block absolute inset-y-0 right-0 w-[48%] opacity-40">
         <Image
           src="/newherobackground.png"
           alt="Kashmiri copper vessel"
           fill
           priority
-          className="object-contain object-left-bottom"
+          className="object-contain object-right-bottom"
           sizes="48vw"
         />
       </motion.div>
 
       {/* Left-to-right darkening gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-black" />
+      <div className="absolute inset-0 bg-gradient-to-l from-black/20 to-black" />
 
       {/* Mobile logo: starts bottom-center (small), grows + rises to overlay bowl */}
       {/* logoXMobile: "0vw" = centered. Increase to move right, decrease to move left */}

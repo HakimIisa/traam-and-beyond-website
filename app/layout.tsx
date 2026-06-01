@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Cormorant, Raleway } from "next/font/google";
+import { Cormorant_Garamond, Raleway } from "next/font/google";
 import "./globals.css";
 
 const helvetica = localFont({
@@ -15,7 +15,7 @@ const helvetica = localFont({
   display: "swap",
 });
 
-const cormorantGarant = Cormorant({
+const cormorantGaramond = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
@@ -45,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${helvetica.variable} ${cormorantGarant.variable} ${raleway.variable}`}>
+    <html lang="en" className={`${helvetica.variable} ${cormorantGaramond.variable} ${raleway.variable}`}>
       <body>{children}</body>
     </html>
   );

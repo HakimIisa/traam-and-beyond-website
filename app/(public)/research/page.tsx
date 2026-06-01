@@ -12,22 +12,6 @@ export const metadata: Metadata = {
 export default function ResearchPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-      {/* Page header */}
-      <div className="mb-16">
-        <h1 className="font-display text-3xl lg:text-6xl text-cream mb-4">
-          Research
-        </h1>
-        <p className="text-stone text-sm lg:text-base leading-relaxed text-justify mb-8">
-          An ongoing exploration into the living relevance of Kashmiri craft and building
-          traditions. These projects investigate how heritage forms, materials, and visual
-          languages can evolve, be recontextualised and find new expression in contemporary
-          contexts. Through design-led inquiry, they create new narratives that connect
-          cultural memory with present day design practices, ensuring that traditional
-          knowledge remains meaningful, relevant, and capable of evolving into the future.
-        </p>
-        <div className="border-t border-white/10" />
-      </div>
-
       {/* Research sections */}
       {RESEARCH_SECTIONS.map((section) => (
         <section key={section.sectionSlug} className="mb-24">
