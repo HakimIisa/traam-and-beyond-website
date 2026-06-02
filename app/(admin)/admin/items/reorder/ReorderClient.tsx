@@ -86,8 +86,8 @@ export default function ReorderClient({ items, categories }: Props) {
     .filter((i) => i.categoryId === selectedCategoryId)
     .sort((a, b) => {
       if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
-      if (a.order !== undefined) return -1;
-      if (b.order !== undefined) return 1;
+      if (a.order !== undefined) return 1;
+      if (b.order !== undefined) return -1;
       return 0;
     });
 
