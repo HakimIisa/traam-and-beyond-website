@@ -38,7 +38,7 @@ export default function EnquiriesClient({ enquiries: initial }: Props) {
   return (
     <Tabs defaultValue="general">
       <TabsList className="bg-cream-dark mb-6">
-        <TabsTrigger value="general" className="data-[state=active]:bg-white data-[state=active]:text-walnut">
+        <TabsTrigger value="general" className="text-stone data-[state=active]:bg-white data-[state=active]:text-walnut data-[state=inactive]:text-stone">
           General
           {unreadGeneral > 0 && (
             <span className="ml-2 bg-terracotta text-cream text-xs rounded-full px-1.5 py-0.5">
@@ -46,7 +46,7 @@ export default function EnquiriesClient({ enquiries: initial }: Props) {
             </span>
           )}
         </TabsTrigger>
-        <TabsTrigger value="item-specific" className="data-[state=active]:bg-white data-[state=active]:text-walnut">
+        <TabsTrigger value="item-specific" className="text-stone data-[state=active]:bg-white data-[state=active]:text-walnut data-[state=inactive]:text-stone">
           Item Enquiries
           {unreadItem > 0 && (
             <span className="ml-2 bg-terracotta text-cream text-xs rounded-full px-1.5 py-0.5">

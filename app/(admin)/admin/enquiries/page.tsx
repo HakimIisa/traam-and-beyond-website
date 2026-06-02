@@ -1,6 +1,8 @@
 import { getAllEnquiries } from "@/lib/firebase/enquiries";
 import EnquiriesClient from "./EnquiriesClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function EnquiriesPage() {
   const enquiries = await getAllEnquiries();
   return (
