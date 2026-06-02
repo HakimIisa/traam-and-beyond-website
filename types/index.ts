@@ -21,6 +21,7 @@ export interface Item {
   categoryName: string;
   images: string[];
   searchTokens: string[];
+  order?: number;
   createdAt: string;
 }
 

@@ -38,6 +38,7 @@ function serialize(id: string, data: DocumentData): Item {
     categoryName: data.categoryName,
     images: data.images ?? [],
     searchTokens: data.searchTokens ?? [],
+    order: data.order ?? undefined,
     createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
   };
 }
@@ -51,7 +52,13 @@ export async function getItemsByCategory(categorySlug: string): Promise<Item[]> 
     orderBy("createdAt", "desc")
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((d) => serialize(d.id, d.data()));
+  const items = snapshot.docs.map((d) => serialize(d.id, d.data()));
+  return items.sort((a, b) => {
+    if (a.order !== undefined && b.order !== undefined) return a.order - b.order;
+    if (a.order !== undefined) return -1;
+    if (b.order !== undefined) return 1;
+    return 0;
+  });
 }
 
 export async function getItemById(id: string): Promise<Item | null> {

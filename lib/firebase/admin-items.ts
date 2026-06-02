@@ -80,7 +80,18 @@ export async function adminGetAllItems(): Promise<Item[]> {
       categoryName: data.categoryName,
       images: data.images ?? [],
       searchTokens: data.searchTokens ?? [],
+      order: data.order ?? undefined,
       createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
     } as Item;
   });
+}
+
+export async function adminReorderItems(
+  items: Array<{ id: string; order: number }>
+): Promise<void> {
+  const batch = adminDb.batch();
+  for (const { id, order } of items) {
+    batch.update(adminDb.collection("items").doc(id), { order });
+  }
+  await batch.commit();
 }
