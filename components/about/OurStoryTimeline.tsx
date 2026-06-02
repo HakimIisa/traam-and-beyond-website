@@ -13,7 +13,7 @@ const STORIES = [
       "It was an evening like any other. During a casual stroll in my neighbourhood with mummy, we passed by this shop selling Kashmiri copperware, locally called “Traam”. My eyes fell upon an antique bowl with hand engraved and enamelled floral rim, it's patina worn off, just sitting there on a shelf among its fresh counterparts. Someone had once taken the time to craft it, while someone else, after years of use, had sold it by weight, in exchange for something new, a practice not uncommon even today.",
       "I couldn't look away. Mummy noticed, and got me that for 300 Indian rupees. She had no way of knowing, and nor did I, that she had brought me not just a bowl, but inspired the beginning of something beautiful and meaningful. That bowl still sits with me today. The first masterpiece. The one from where it all started."
     ],
-    image: "/aboutImages/story-1.jpg"
+    image: "/Story1b.jpg"
   },
   {
     era: "March 2010",

@@ -2390,3 +2390,210 @@ Desktop (`sm:text-6xl`) unchanged.
 | `components/home/HeroSection.tsx` | Background → `newherobackground.png`; `bowlScaleMobile` end `0.95` → `0.910`; `bowlYMobile` end `-20vh` → `-18vh`; `logoScaleMobile` end → `3.40625` (545px); `logoYMobile` end → `-15.25vh`; `x: "1.25vw"` added to logo motion style |
 | `components/about/OurStoryTimeline.tsx` | Title `text-5xl` → `text-3xl` mobile; first panel `pt-8`; last panel `pb-0` via `isLast` prop |
 | `components/about/CraftHeritageTimeline.tsx` | Title `text-5xl` → `text-3xl` mobile; separator added above title; title div `pt-24` → `pt-10`; first panel `pt-4` + `h-4` top spacer |
+
+---
+
+# Eighteenth Build Session — Addendum
+
+**Date:** 2026-06-01
+**Scope:** Kashmiri category names, font swap (Cormorant Garant → Cormorant Garamond), hero gradient + bowl direction flip + mobile logo tuning, contact page cleanup, research page header removal
+
+---
+
+## 99. CategoryHighlights — Kashmiri Names (`components/home/CategoryHighlights.tsx`)
+
+The `URDU_NAMES` map was replaced with `KASHMIRI_NAMES` containing authentic Kashmiri script names for all 13 categories. `lang="ur"` changed to `lang="ks"` (ISO 639-1 for Kashmiri).
+
+```tsx
+const KASHMIRI_NAMES: Record<string, string> = {
+  "copperware":        "ترٛام",
+  "papier-mch":        "نقاشی",
+  "silverware":        "رۄپھ",
+  "enamelware":        "میناکاری",
+  "terracotta":        "کَتٕر",
+  "green-serpentine":  "زہر مۄہر",
+  "coins":             "سِکہ جات",
+  "shawls":            "شال",
+  "jewellery":         "زیور",
+  "carpets":           "قالین",
+  "willow-wicker":     "کانہِ کٮ۪م",
+  "wood-work":         "لٮ۪کَرِ کٮ۪م",
+  "brass-ware":        "سَرٛتَل",
+};
+```
+
+`dir="rtl"` retained (Kashmiri Nastaliq is also RTL).
+
+### Font size tuning log
+
+| Step | Mobile | Desktop |
+|------|--------|---------|
+| Initial (Urdu) | `text-[24px]` | `text-[26px]` |
+| +6pt | `text-[30px]` | `text-[32px]` |
+| +2pt | `text-[32px]` | `text-[34px]` |
+| Mobile back | `text-[30px]` | `text-[34px]` |
+| Final | `text-[27px]` | `text-[34px]` |
+
+---
+
+## 100. Font Swap — Cormorant Garant → Cormorant Garamond (`app/layout.tsx`)
+
+All `font-display` elements site-wide now use **Cormorant Garamond** instead of Cormorant Garant. Both are variants of the Cormorant family by Christian Thalmann; Garamond has a more classical Garamond-inspired structure.
+
+Change was a single-file update — the CSS variable `--font-cormorant` and all component `font-display` classes required no changes.
+
+```ts
+// Before
+import { Cormorant, Raleway } from "next/font/google";
+const cormorantGarant = Cormorant({ ... variable: "--font-cormorant" });
+
+// After
+import { Cormorant_Garamond, Raleway } from "next/font/google";
+const cormorantGaramond = Cormorant_Garamond({ ... variable: "--font-cormorant" });
+```
+
+---
+
+## 101. HeroSection — Gradient Direction + Bowl Side Flip (`components/home/HeroSection.tsx`)
+
+### Gradient reversed
+`bg-gradient-to-r` → `bg-gradient-to-l`: dark side now on the left, light side on the right.
+
+### Gradient lightened
+`to-black` → `to-black/70`: left side reduced from full black to 70% opacity, brightening the bowl on both mobile and desktop.
+
+### Desktop bowl moved to right side
+Bowl container repositioned from left to right. Three changes:
+
+| Property | Before | After |
+|----------|--------|-------|
+| Container anchor | `left-0` | `right-0` |
+| `bowlX` animation | `["26vw", "0vw"]` | `["-26vw", "0vw"]` |
+| Object position | `object-left-bottom` | `object-right-bottom` |
+
+Bowl now starts from center (shifted `-26vw` left) and drifts to the right edge as scroll progresses.
+
+---
+
+## 102. HeroSection — Mobile Logo Animation Final Values (`components/home/HeroSection.tsx`)
+
+Extensive iterative tuning session. Final values:
+
+| Parameter | Previous | Final |
+|-----------|----------|-------|
+| `logoScaleMobile` end | `3.40625` (545px) | `3.43125` (549px) |
+| `logoYMobile` end | `-15.25vh` | `-15.40vh` |
+| `x` (static offset) | `1.25vw` | `2.28vw` |
+
+Base size remains `h-40` (160px). 549px = 160 × 3.43125.
+
+---
+
+## 103. Contact Page Cleanup (`app/(public)/contact/page.tsx`)
+
+| Change | Before | After |
+|--------|--------|-------|
+| "Get in Touch" h1 | Present | Removed |
+| Subtext | "Whether you have a question…" | "Have a question or want to know more? We'd love to hear from you." |
+| Email widget | Present | Removed |
+| "Based in" widget | Present | Removed |
+| `Mail`, `MapPin` imports | Present | Removed |
+| Paragraph top spacing | none | `mt-24` |
+| Info box position | top of right column | `mt-auto` (bottom of right column) |
+
+---
+
+## 104. Research Page — Header Removed (`app/(public)/research/page.tsx`)
+
+The "Research" `<h1>` title and full description paragraph were removed. The page now opens directly with the Adaptive Reuse section (first entry in `RESEARCH_SECTIONS`).
+
+---
+
+## 105. Key Files Modified (Eighteenth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/CategoryHighlights.tsx` | `URDU_NAMES` → `KASHMIRI_NAMES` with correct Kashmiri script; `lang="ur"` → `lang="ks"`; font size `27px` mobile / `34px` desktop |
+| `app/layout.tsx` | `Cormorant` → `Cormorant_Garamond` import; `cormorantGarant` → `cormorantGaramond` variable |
+| `components/home/HeroSection.tsx` | Gradient `to-r` → `to-l`; `to-black` → `to-black/70`; desktop bowl `left-0` → `right-0`, `bowlX` `["26vw","0vw"]` → `["-26vw","0vw"]`, `object-left-bottom` → `object-right-bottom`; mobile logo scale end `3.43125` (549px); `logoYMobile` end `-15.40vh`; `x` offset `2.28vw` |
+| `app/(public)/contact/page.tsx` | h1 removed; subtext replaced; Email + Based In widgets removed; `mt-24` on paragraph; `mt-auto` on info box |
+| `app/(public)/research/page.tsx` | "Research" h1 and description paragraph removed; page starts directly from sections |
+
+---
+
+# Nineteenth Build Session — Addendum
+
+**Date:** 2026-06-02
+**Scope:** Page title size standardisation (Stories, Buy from Artisans), Our Story first image swap, developer credit in footer, new `/developer` page
+
+---
+
+## 106. Title Size Standardisation (`app/(public)/stories/page.tsx`, `app/(public)/buy-from-artisans/page.tsx`)
+
+Both page h1 titles were reduced to match the `text-3xl sm:text-6xl` sizing used by "Our Story" and "Craft Heritage of Kashmir" on the About page.
+
+| File | Before | After |
+|------|--------|-------|
+| `stories/page.tsx` | `text-6xl sm:text-7xl` | `text-3xl sm:text-6xl` |
+| `buy-from-artisans/page.tsx` | `text-6xl sm:text-7xl` | `text-3xl sm:text-6xl` |
+
+---
+
+## 107. OurStoryTimeline — First Panel Image Swap (`components/about/OurStoryTimeline.tsx`)
+
+The February 2004 panel image was replaced:
+
+| Before | After |
+|--------|-------|
+| `/aboutImages/story-1.jpg` | `/Story1b.jpg` |
+
+---
+
+## 108. Footer — Developer Credit Line (`components/layout/Footer.tsx`)
+
+A developer credit line was added below the copyright line. The entire line is a clickable link to `/developer`.
+
+```tsx
+// Before
+© {new Date().getFullYear()} Traam and Beyond. All rights reserved.
+
+// After
+© {new Date().getFullYear()} Traam and Beyond. All rights reserved.
+<Link href="/developer">Developed by Hakim Iisa · Co-Founder - SEER</Link>
+```
+
+---
+
+## 109. Developer Page — New (`app/(public)/developer/page.tsx`)
+
+New page at `/developer` with professional profile layout.
+
+### Content
+- **Profile photo**: `/DeveloperImage.jpeg`, circular frame (`rounded-full overflow-hidden`), `w-56 h-56 sm:w-80 sm:h-80`
+- **Name**: `font-display text-3xl sm:text-5xl text-cream` — "Hakim Iisa"
+- **Designation**: `text-terracotta text-sm tracking-widest uppercase` — "Co-Founder — SEER"
+- **Sub-label**: `text-stone text-sm` — "Developer · Traam and Beyond"
+- Text block has `sm:pt-10` to align it below the image top edge on desktop
+
+### Contact links
+Three links with inline SVG icons (lucide-react has no LinkedIn/Instagram in this version):
+
+| Link | Icon | URL |
+|------|------|-----|
+| Email | `Mail` (lucide) | `hakimohdiisa@gmail.com` |
+| LinkedIn | Inline SVG | `linkedin.com/in/mohammad-iisa-hakim-099863362` |
+| Instagram | Inline SVG | `instagram.com/hakim_essa` |
+
+All icons use `text-terracotta`. Link text uses `text-stone` → `text-cream` on hover.
+
+---
+
+## 110. Key Files Modified (Nineteenth Build)
+
+| File | Change type |
+|------|-------------|
+| `app/(public)/stories/page.tsx` | h1 `text-6xl sm:text-7xl` → `text-3xl sm:text-6xl` |
+| `app/(public)/buy-from-artisans/page.tsx` | h1 `text-6xl sm:text-7xl` → `text-3xl sm:text-6xl` |
+| `components/about/OurStoryTimeline.tsx` | First panel image `/aboutImages/story-1.jpg` → `/Story1b.jpg` |
+| `components/layout/Footer.tsx` | Developer credit line added below copyright; full line links to `/developer` |
+| `app/(public)/developer/page.tsx` | **New file** — profile image, name, designation, email + LinkedIn + Instagram links |
