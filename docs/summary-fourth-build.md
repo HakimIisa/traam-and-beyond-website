@@ -2597,3 +2597,50 @@ All icons use `text-terracotta`. Link text uses `text-stone` → `text-cream` on
 | `components/about/OurStoryTimeline.tsx` | First panel image `/aboutImages/story-1.jpg` → `/Story1b.jpg` |
 | `components/layout/Footer.tsx` | Developer credit line added below copyright; full line links to `/developer` |
 | `app/(public)/developer/page.tsx` | **New file** — profile image, name, designation, email + LinkedIn + Instagram links |
+
+---
+
+# Twentieth Build Session — Addendum
+
+**Date:** 2026-06-02
+**Scope:** Developer page designation update, footer name font/size, second Instagram link added
+
+---
+
+## 111. Developer Page — Designation Update (`app/(public)/developer/page.tsx`)
+
+- "Co-Founder — SEER" → **"Director — SEER"**
+
+---
+
+## 112. Footer — "Hakim Iisa" Font + Size (`components/layout/Footer.tsx`)
+
+The name "Hakim Iisa" in the developer credit line was given a distinct typographic treatment:
+- `font-display` (Cormorant Garamond) applied to name only via `<span>`
+- `text-base` (16px) vs surrounding `text-xs` (12px)
+
+```tsx
+Developed by <span className="font-display text-base">Hakim Iisa</span> · Director - SEER
+```
+
+---
+
+## 113. Developer Page — Second Instagram Link (`app/(public)/developer/page.tsx`)
+
+Added `@seerarchitects` Instagram link directly below `@hakim_essa`:
+
+| Handle | URL |
+|--------|-----|
+| `@hakim_essa` | `instagram.com/hakim_essa` |
+| `@seerarchitects` | `instagram.com/seerarchitects/` |
+
+Same inline SVG icon and hover styling as the first Instagram link.
+
+---
+
+## 114. Key Files Modified (Twentieth Build)
+
+| File | Change type |
+|------|-------------|
+| `app/(public)/developer/page.tsx` | Designation → "Director — SEER"; `@seerarchitects` Instagram link added |
+| `components/layout/Footer.tsx` | "Hakim Iisa" wrapped in `<span className="font-display text-base">` |

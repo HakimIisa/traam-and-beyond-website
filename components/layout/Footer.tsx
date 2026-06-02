@@ -32,7 +32,7 @@ export default function Footer() {
         <div className="mt-10 pt-6 border-t border-cream/10 text-xs text-center space-y-1">
           <p>© {new Date().getFullYear()} Traam and Beyond. All rights reserved.</p>
           <Link href="/developer" className="hover:text-cream transition-colors">
-            Developed by Hakim Iisa · Co-Founder - SEER
+            Developed by <span className="font-display text-base">Hakim Iisa</span> · Director - SEER
           </Link>
         </div>
       </div>

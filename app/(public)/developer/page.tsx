@@ -26,7 +26,7 @@ export default function DeveloperPage() {
             Hakim Iisa
           </h1>
           <p className="text-terracotta text-sm tracking-widest uppercase mb-1">
-            Co-Founder — SEER
+            Director — SEER
           </p>
           <p className="text-stone text-sm">Developer · Traam and Beyond</p>
         </div>
@@ -71,6 +71,20 @@ export default function DeveloperPage() {
           </svg>
           <span className="text-stone text-sm group-hover:text-cream transition-colors duration-200">
             @hakim_essa
+          </span>
+        </a>
+
+        <a
+          href="https://www.instagram.com/seerarchitects/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-4 group"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-terracotta shrink-0">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+          </svg>
+          <span className="text-stone text-sm group-hover:text-cream transition-colors duration-200">
+            @seerarchitects
           </span>
         </a>
       </div>
