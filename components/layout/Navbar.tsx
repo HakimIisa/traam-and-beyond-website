@@ -230,7 +230,7 @@ export default function Navbar() {
                       onClick={closeMenu}
                       className="text-stone text-lg hover:text-terracotta transition-colors duration-200"
                     >
-                      Our Story
+                      From Trām to Beyond
                     </Link>
                     <Link
                       href="/about#craft-heritage"

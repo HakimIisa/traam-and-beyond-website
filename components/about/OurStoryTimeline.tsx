@@ -191,7 +191,7 @@ export default function OurStoryTimeline({ visible }: { visible: boolean }) {
         {/* "Our Story" title — opaque, sits at very top, does not affect sticky container position */}
         <div className="bg-[#1a130a] w-full pt-24 pb-0 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <h2 className="font-display text-3xl sm:text-6xl text-cream text-center">Our Story</h2>
+            <h2 className="font-display text-3xl sm:text-6xl text-cream text-center">From Trām to Beyond</h2>
           </div>
         </div>
         {STORIES.map((story, i) => (
