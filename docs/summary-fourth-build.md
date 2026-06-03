@@ -2644,3 +2644,180 @@ Same inline SVG icon and hover styling as the first Instagram link.
 |------|-------------|
 | `app/(public)/developer/page.tsx` | Designation → "Director — SEER"; `@seerarchitects` Instagram link added |
 | `components/layout/Footer.tsx` | "Hakim Iisa" wrapped in `<span className="font-display text-base">` |
+
+---
+
+# Twenty-First Build Session — Addendum
+
+**Date:** 2026-06-02 / 2026-06-03
+**Scope:** Security hardening (5 measures), admin enquiries fix, item reorder feature, navbar/about rename, footer credit update, developer page additions, public deployment to traamandbeyond.com, Google Search Console + sitemap
+
+---
+
+## 115. Security Hardening (5 measures)
+
+### 1. Server-side admin middleware (`middleware.ts` — new file)
+- Sets `admin-session=1` cookie on login (via `AdminAuthContext`) and clears it on logout
+- `onAuthStateChanged` refreshes the cookie on every page load
+- `middleware.ts` intercepts all `/admin/*` routes — redirects to `/login?from=...` if cookie absent
+- Matcher: `["/admin/:path*"]`
+
+### 2. Admin email check in `verifyAdminRequest` (`lib/admin-auth.ts`)
+- Added `decoded.email !== ADMIN_EMAIL` check using `OWNER_EMAIL` env var
+- **Reverted** in the same session after blocking the client's Firebase account — removed to allow all valid Firebase tokens
+
+### 3. Rate limiting on enquiry endpoint (`app/api/enquiry/route.ts`)
+- In-memory `Map` tracks submissions per IP
+- Limit: 5 per hour per IP (`RATE_LIMIT = 5`, `WINDOW_MS = 3600000`)
+- Returns `429` with "Too many requests" message when exceeded
+- IP extracted from `x-forwarded-for` header, falls back to `"unknown"`
+
+### 4. Security headers (`next.config.ts`)
+Applied to all routes via `async headers()`:
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `X-DNS-Prefetch-Control: on`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+
+### 5. Firestore security rules (Firebase Console)
+Added catch-all deny rule to existing rules:
+```
+match /{document=**} {
+  allow read, write: if false;
+}
+```
+Protects any future collections not explicitly listed.
+
+---
+
+## 116. Admin Enquiries — Caching + Tab Colour Fix
+
+### `force-dynamic` on enquiries page (`app/(admin)/admin/enquiries/page.tsx`)
+Page was served from Next.js cache — new enquiries not appearing until cold reload. Fixed with `export const dynamic = "force-dynamic"`.
+
+**Root cause:** Next.js Full Route Cache was serving a stale page. Firebase Admin SDK calls don't use `fetch`, so the Data Cache doesn't apply, but the Route Cache does.
+
+### Tab colour fix (`app/(admin)/admin/enquiries/EnquiriesClient.tsx`)
+Active/inactive tab styling conflicted — inactive tabs appeared dark. Fixed by adding `text-stone data-[state=inactive]:text-stone` to both `TabsTrigger` elements.
+
+---
+
+## 117. Item Reorder Feature (drag-and-drop per category)
+
+### Data model
+- `order?: number` added to `Item` interface (`types/index.ts`)
+- `serialize()` in `lib/firebase/items.ts` and `lib/firebase/admin-items.ts` both map `data.order`
+- `adminReorderItems()` added to `admin-items.ts` — Firestore batch write
+
+### Public sort logic (`lib/firebase/items.ts`)
+Client-side sort after Firestore fetch:
+- Items with `order` set sort by `order` ascending
+- Items without `order` (new additions) float to the **top** (appear first)
+- Within unordered items, `createdAt desc` order from Firestore is preserved
+
+### API endpoint — `POST /api/admin/items/reorder`
+Accepts `{ items: Array<{ id: string, order: number }> }`, validates with Zod, batch-updates all items.
+
+### Admin reorder page — `/admin/items/reorder`
+- `ReorderClient.tsx` — `@dnd-kit/core` + `@dnd-kit/sortable` drag-and-drop
+- Category tabs at top (only shows categories with items)
+- Each item row: grip handle icon, thumbnail, title
+- "Save Order" button — green tick on success, "Saving…" spinner during save
+- On drag end: `arrayMove` updates local state; on save: POST to API with index-based order values
+
+### Admin items page (`app/(admin)/admin/items/page.tsx`)
+"Reorder Items" button (with `ArrowUpDown` icon) added next to "Add Item".
+
+### Library installed
+`@dnd-kit/core@6.3.1`, `@dnd-kit/sortable@10.0.0`, `@dnd-kit/utilities`
+
+---
+
+## 118. Navbar + About Page — Section Rename
+
+| Location | Before | After |
+|----------|--------|-------|
+| Navbar hamburger menu (under About) | "Our Story" | "From Trām to Beyond" |
+| About page section h2 (`OurStoryTimeline.tsx`) | "Our Story" | "From Trām to Beyond" |
+
+Navigation href `/about#introduction` unchanged.
+
+---
+
+## 119. Footer — Developer Credit Update (`components/layout/Footer.tsx`)
+
+Added "Know more." with persistent underline after the developer credit. Entire line remains one clickable link to `/developer`:
+```tsx
+Developed by <span className="font-display text-base">Hakim Iisa</span> · Director - SEER. <span className="underline underline-offset-2">Know more.</span>
+```
+
+---
+
+## 120. Public Deployment — traamandbeyond.com
+
+### Domain
+- Purchased `traamandbeyond.com` on GoDaddy
+- Privacy protection included free
+
+### DNS configuration (GoDaddy)
+| Type | Name | Value |
+|------|------|-------|
+| A | @ | 216.198.79.1 (Vercel) |
+| CNAME | www | cname.vercel-dns.com |
+
+Deleted conflicting GoDaddy default records: `A @ → WebsiteBuilder Site`, `CNAME www → traamandbeyond.com.`
+
+### Vercel
+- Domain added to `traam-and-beyond-website` project
+- SSL certificate auto-provisioned
+- Both `traamandbeyond.com` and `www.traamandbeyond.com` show "Valid Configuration"
+
+### Firebase Auth
+- `traamandbeyond.com` and `www.traamandbeyond.com` added to Authorised Domains
+
+### Google Search Console
+- Property verified via GoDaddy DNS auto-verification
+- Sitemap submitted: `sitemap.xml`
+- **66 pages discovered** and processed successfully
+
+---
+
+## 121. Sitemap + SEO (`app/sitemap.ts` — new file, `app/layout.tsx`)
+
+### `app/sitemap.ts`
+Dynamic sitemap using Next.js `MetadataRoute.Sitemap`. Fetches all categories and items from Firestore at build/request time. Includes:
+- Static routes (home, about, collections, research, contact)
+- All category pages (`/category/[slug]`)
+- All item detail pages (`/category/[slug]/[id]`)
+- Falls back to static routes only if Firestore fetch fails
+
+### `app/layout.tsx`
+Added `metadataBase: new URL("https://traamandbeyond.com")` to global metadata — required for Next.js to resolve relative Open Graph URLs correctly.
+
+---
+
+## 122. Key Files Modified (Twenty-First Build)
+
+| File | Change type |
+|------|-------------|
+| `middleware.ts` | **New file** — server-side admin route protection via session cookie |
+| `context/AdminAuthContext.tsx` | Sets/clears `admin-session` cookie on login/logout/auth state change |
+| `lib/admin-auth.ts` | Email check added then reverted; final state = token verification only |
+| `app/api/enquiry/route.ts` | In-memory rate limiting (5/hour per IP) added |
+| `next.config.ts` | Security headers added for all routes |
+| `app/(admin)/admin/enquiries/page.tsx` | `force-dynamic` added |
+| `app/(admin)/admin/enquiries/EnquiriesClient.tsx` | Tab colour conflict fixed |
+| `types/index.ts` | `order?: number` added to `Item` |
+| `lib/firebase/items.ts` | `order` in serialize; client-side sort (new items first) |
+| `lib/firebase/admin-items.ts` | `order` in serialize; `adminReorderItems()` batch function |
+| `app/api/admin/items/reorder/route.ts` | **New file** — batch reorder endpoint |
+| `app/(admin)/admin/items/reorder/page.tsx` | **New file** — reorder page (server component) |
+| `app/(admin)/admin/items/reorder/ReorderClient.tsx` | **New file** — dnd-kit drag-and-drop reorder UI |
+| `app/(admin)/admin/items/page.tsx` | "Reorder Items" button added |
+| `components/layout/Navbar.tsx` | "Our Story" → "From Trām to Beyond" in hamburger menu |
+| `components/about/OurStoryTimeline.tsx` | Section h2 → "From Trām to Beyond" |
+| `components/layout/Footer.tsx` | "Know more." underlined span added to developer credit |
+| `app/sitemap.ts` | **New file** — dynamic sitemap (66 pages) |
+| `app/layout.tsx` | `metadataBase` added |
+| `package.json` | `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` added |
