@@ -37,6 +37,7 @@ export const metadata: Metadata = {
   },
   description:
     "Discover a curated collection of authentic Kashmiri handcrafted items — copper, silver, jade, papier-mâché, terracotta jewellery, and more.",
+  metadataBase: new URL("https://traamandbeyond.com"),
 };
 
 export default function RootLayout({
