@@ -30,33 +30,33 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#FAF6F0] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-semibold text-walnut">Traam and Beyond</h1>
-          <p className="text-stone text-sm mt-1">Admin Panel</p>
+          <h1 className="text-2xl font-semibold text-[#3D2B1F]">Traam and Beyond</h1>
+          <p className="text-[#8B7355] text-sm mt-1">Admin Panel</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-sm shadow-sm border border-cream-dark p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="bg-white rounded-sm shadow-sm border border-[#E8DDD4] p-8 space-y-5">
           <div className="space-y-1.5">
-            <Label className="text-walnut text-sm">Email</Label>
+            <Label className="text-[#3D2B1F] text-sm">Email</Label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@example.com"
-              className="border-stone/30 focus:border-terracotta"
+              className="border-[#C8B8A8] focus:border-terracotta text-[#3D2B1F] bg-white placeholder:text-[#B0A090]"
               required
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-walnut text-sm">Password</Label>
+            <Label className="text-[#3D2B1F] text-sm">Password</Label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="border-stone/30 focus:border-terracotta"
+              className="border-[#C8B8A8] focus:border-terracotta text-[#3D2B1F] bg-white placeholder:text-[#B0A090]"
               required
             />
           </div>
@@ -66,7 +66,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-terracotta hover:bg-terracotta-dark text-cream"
+            className="w-full bg-terracotta hover:bg-terracotta-dark text-white"
           >
             {loading ? "Signing in..." : "Sign In"}
           </Button>
