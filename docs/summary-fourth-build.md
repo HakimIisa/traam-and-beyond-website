@@ -2821,3 +2821,40 @@ Added `metadataBase: new URL("https://traamandbeyond.com")` to global metadata �
 | `app/sitemap.ts` | **New file** — dynamic sitemap (66 pages) |
 | `app/layout.tsx` | `metadataBase` added |
 | `package.json` | `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` added |
+
+---
+
+# Twenty-Second Build Session — Addendum
+
+**Date:** 2026-06-03
+**Scope:** Admin login page colour conflict fix
+
+---
+
+## 123. Admin Login Page — Colour Fix (`app/(admin)/login/page.tsx`)
+
+The login page bypasses the `AdminShell` wrapper (which applies the `light-theme` class), so Tailwind colour utilities like `text-walnut` and `text-stone` resolved to the dark-theme CSS variable values — making labels and borders nearly invisible against the white form card.
+
+**Fix:** Replaced all theme-variable-dependent classes with explicit hex values:
+
+| Element | Before | After |
+|---------|--------|-------|
+| Page background | `bg-cream` | `bg-[#FAF6F0]` |
+| Title | `text-walnut` | `text-[#3D2B1F]` |
+| Subtitle "Admin Panel" | `text-stone` | `text-[#8B7355]` |
+| Form border | `border-cream-dark` | `border-[#E8DDD4]` |
+| Labels | `text-walnut` | `text-[#3D2B1F]` |
+| Input border | `border-stone/30` | `border-[#C8B8A8]` |
+| Input typed text | (browser default) | `text-[#3D2B1F] bg-white` |
+| Placeholder text | (browser default) | `placeholder:text-[#B0A090]` |
+| Sign In button text | `text-cream` | `text-white` |
+
+**Root cause:** The admin login page returns `<>{children}</>` in `AdminShell` — it never receives the `light-theme` wrapper class. All other admin pages (which pass through `AdminShell`) do receive it and work correctly.
+
+---
+
+## 124. Key Files Modified (Twenty-Second Build)
+
+| File | Change type |
+|------|-------------|
+| `app/(admin)/login/page.tsx` | All colour classes replaced with explicit hex values |
