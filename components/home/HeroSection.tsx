@@ -32,7 +32,7 @@ export default function HeroSection({ content }: HeroSectionProps) {
 
   // Mobile text: starts above center, moves down as bowl+logo take over
   const textScaleMobile = useTransform(scrollYProgress, [0, 0.7], [0.85, 1]);
-  const textYMobile = useTransform(scrollYProgress, [0, 0.7], ["-20vh", "25vh"]);
+  const textYMobile = useTransform(scrollYProgress, [0, 0.7], ["-12vh", "25vh"]);
 
   // Desktop text scale (unchanged)
   const textScaleDesktop = useTransform(scrollYProgress, [0, 0.7], [0.7, 1]);
