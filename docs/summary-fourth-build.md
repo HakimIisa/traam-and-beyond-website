@@ -2858,3 +2858,87 @@ The login page bypasses the `AdminShell` wrapper (which applies the `light-theme
 | File | Change type |
 |------|-------------|
 | `app/(admin)/login/page.tsx` | All colour classes replaced with explicit hex values |
+
+---
+
+# Twenty-Third Build Session — Addendum
+
+**Date:** 2026-06-12 / 2026-06-17
+**Scope:** Vercel image optimization disabled, mobile hero text position fix, "Our Collections" → "Collections" rename (site-wide), Collections + Research home page titles wired as navigation links
+
+---
+
+## 125. Vercel Image Optimization Disabled (`next.config.ts`)
+
+`unoptimized: true` added to the `images` config. Next.js's built-in image optimization (resizing/re-encoding via Vercel's Image Optimization API) counts against Vercel's free-tier usage quota; with `unoptimized: true`, `<Image>` components serve the original files directly instead, avoiding overage charges.
+
+```ts
+images: {
+  unoptimized: true,
+  remotePatterns: [ ... ],
+}
+```
+
+---
+
+## 126. HeroSection — Mobile Text Position Fix (`components/home/HeroSection.tsx`)
+
+The mobile text block's start position was raised slightly to prevent overlap with the logo on small screens:
+
+| Parameter | Before | After |
+|-----------|--------|-------|
+| `textYMobile` start | `-20vh` | `-12vh` |
+
+`textYMobile` end (`25vh`) unchanged.
+
+---
+
+## 127. "Our Collections" → "Collections" Rename (site-wide)
+
+The client requested shortening "Our Collections" to "Collections" for a cleaner title. Changed in four places:
+
+| File | Element |
+|------|---------|
+| `types/home-content.ts` | `DEFAULT_HOME_CONTENT.collections.title` — fallback default only |
+| `components/layout/Navbar.tsx` | Hamburger menu link text (href `/collections` unchanged) |
+| `app/(public)/collections/page.tsx` | Page `<h1>` and `metadata.title` |
+
+**Important caveat discovered during this change:** the home page section title (`CategoryHighlights.tsx`'s `{content.title}`) is **not** hardcoded — it's fetched from Firestore via `getHomeContent()` (`lib/firebase/site-content.ts`), which merges a stored document over `DEFAULT_HOME_CONTENT`. Since the client had already saved "Our Collections" through the `/admin/home` panel, editing the code default had no visible effect. The client updated the live value directly through `/admin/home` → "Collections Section" card → Title field → Save. The `Footer.tsx` "Our Collections" link text (`components/layout/Footer.tsx:22`) was intentionally left unchanged — not requested.
+
+---
+
+## 128. Home Page — "Collections" + "Research" Titles Wired as Navigation Links
+
+Both home page section headings (previously static text) were turned into clickable links navigating to their respective full pages, matching the site's existing hover-affordance pattern (used on category/research cards): color transition to terracotta + underline reveal on hover.
+
+### `components/home/CategoryHighlights.tsx`
+```tsx
+<Link href="/collections" className="group block">
+  <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center underline decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
+    {content.title}
+  </h2>
+</Link>
+```
+
+### `components/home/ResearchHighlights.tsx`
+Identical pattern, `href="/research"`, static text "Research".
+
+### Color iteration
+First implementation used `hover:text-saffron` per an initial client request, but this was inconsistent with the rest of the site — every other interactive text element (navbar links, card titles, footer links) hovers to **terracotta**, and saffron is not used as a hover/interactive color anywhere else on the public site. Corrected to `group-hover:text-terracotta` / `group-hover:decoration-terracotta` to match.
+
+Both links sit inside the existing `ScrollReveal` wrapper, so the entrance animation is unaffected — only the hover interaction was added.
+
+---
+
+## 129. Key Files Modified (Twenty-Third Build)
+
+| File | Change type |
+|------|-------------|
+| `next.config.ts` | `images.unoptimized: true` added |
+| `components/home/HeroSection.tsx` | `textYMobile` start `-20vh` → `-12vh` |
+| `types/home-content.ts` | `collections.title` default "Our Collections" → "Collections" |
+| `components/layout/Navbar.tsx` | Hamburger menu "Our Collections" → "Collections" (link target unchanged) |
+| `app/(public)/collections/page.tsx` | `<h1>` and `metadata.title` "Our Collections" → "Collections" |
+| `components/home/CategoryHighlights.tsx` | Section title wrapped in `Link href="/collections"`; terracotta hover + underline-reveal affordance added |
+| `components/home/ResearchHighlights.tsx` | Section title wrapped in `Link href="/research"`; terracotta hover + underline-reveal affordance added |
+| Firestore (`home-content` doc, via `/admin/home`) | `collections.title` value updated live to "Collections" |

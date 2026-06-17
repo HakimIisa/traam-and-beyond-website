@@ -194,7 +194,11 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
               className="w-[420px] h-auto sm:w-[490px] lg:w-[560px]"
             />
           </div>
-          <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center">{content.title}</h2>
+          <Link href="/collections" className="group block">
+            <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center underline decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
+              {content.title}
+            </h2>
+          </Link>
           <p className="text-stone mb-6 text-justify lg:text-center">{content.subtitle}</p>
           <div className="border-t border-white/5 mb-12" />
         </ScrollReveal>

@@ -186,7 +186,11 @@ export default function ResearchHighlights() {
               className="w-[420px] h-auto sm:w-[490px] lg:w-[560px]"
             />
           </div>
-          <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center">Research</h2>
+          <Link href="/research" className="group block">
+            <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center underline decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
+              Research
+            </h2>
+          </Link>
           <p className="text-stone mb-6 text-justify lg:text-center">
             An ongoing exploration into the living relevance of Kashmiri craft and building traditions. These projects investigate how heritage forms, materials, and visual languages can evolve, be recontextualised and find new expression in contemporary contexts. Through design-led inquiry, they create new narratives that connect cultural memory with present day design practices, ensuring that traditional knowledge remains meaningful, relevant, and capable of evolving into the future.
           </p>

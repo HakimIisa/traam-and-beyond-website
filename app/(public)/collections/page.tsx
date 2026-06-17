@@ -8,7 +8,7 @@ import { CATEGORY_DESCRIPTIONS } from "@/lib/category-descriptions";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Our Collections",
+  title: "Collections",
   description: "Explore our entire collection of Kashmiri handcrafted items.",
 };
 
@@ -29,7 +29,7 @@ export default async function CollectionsPage() {
       {/* Page header */}
       <div className="mb-16">
         <h1 className="font-display text-3xl lg:text-6xl text-cream mb-4">
-          Our Collections
+          Collections
         </h1>
         <p className="text-stone text-sm lg:text-base leading-relaxed mb-8">
           Explore our entire collection.

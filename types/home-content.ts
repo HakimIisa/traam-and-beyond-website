@@ -32,7 +32,7 @@ export const DEFAULT_HOME_CONTENT: HomeContent = {
     body: "Traam and Beyond brings you a thoughtfully curated selection of Kashmiri handcrafted items — each piece made by skilled artisans carrying forward centuries of tradition. From hand-hammered copper vessels to delicate papier-mâché, every item is a testament to Kashmir's rich artistic legacy.",
   },
   collections: {
-    title: "Our Collections",
+    title: "Collections",
     subtitle: "Each category tells a distinct story of Kashmiri artisanship.",
   },
   enquiry: {

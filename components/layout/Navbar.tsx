@@ -249,7 +249,7 @@ export default function Navbar() {
                     onClick={closeMenu}
                     className="font-display text-5xl sm:text-6xl text-cream hover:text-terracotta transition-colors duration-200"
                   >
-                    Our Collections
+                    Collections
                   </Link>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-1.5 pl-6 border-l border-cream-dark/30">
                     {CRAFTS.map((craft) => (
