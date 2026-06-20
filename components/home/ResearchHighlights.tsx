@@ -160,6 +160,9 @@ export default function ResearchHighlights() {
     el.scrollBy({ left: direction * (el.clientWidth / 3.2), behavior: "smooth" });
   };
 
+  const isAtStart = thumbLeft <= 0.5;
+  const isAtEnd = thumbLeft + thumbWidth >= 99.5;
+
   const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging.current || !scrollContainerRef.current || !trackRef.current) return;
     const el = scrollContainerRef.current;
@@ -199,6 +202,7 @@ export default function ResearchHighlights() {
       </div>
 
       {/* Horizontal scroll track */}
+      <div className="relative group">
       <div
         ref={scrollContainerRef}
         className="flex gap-4 overflow-x-auto px-4 sm:px-6 lg:px-8 pt-12 pb-12 [&::-webkit-scrollbar]:hidden bg-[#0a0a0a]"
@@ -259,16 +263,29 @@ export default function ResearchHighlights() {
         })}
       </div>
 
-      {/* Custom scrollbar with arrows */}
-      <div className="flex items-center gap-4 mx-4 sm:mx-6 lg:mx-8 mt-1">
+      {/* Large Netflix-style hover arrows — always visible on mobile, fade in on row hover on desktop */}
+      {!isAtStart && (
         <button
           onClick={() => scrollByCard(-1)}
-          className="shrink-0 text-cream/50 hover:text-cream transition-colors duration-200"
           aria-label="Scroll left"
+          className="absolute inset-y-0 left-0 z-10 flex items-center justify-center w-10 sm:w-14 lg:w-20 bg-black/40 hover:bg-black/60 active:bg-black/60 text-cream hover:text-terracotta active:text-terracotta opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-[opacity,background-color,color] duration-300"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={44} strokeWidth={1.5} className="w-11 h-11 lg:w-16 lg:h-16" />
         </button>
+      )}
+      {!isAtEnd && (
+        <button
+          onClick={() => scrollByCard(1)}
+          aria-label="Scroll right"
+          className="absolute inset-y-0 right-0 z-10 flex items-center justify-center w-10 sm:w-14 lg:w-20 bg-black/40 hover:bg-black/60 active:bg-black/60 text-cream hover:text-terracotta active:text-terracotta opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-[opacity,background-color,color] duration-300"
+        >
+          <ChevronRight size={44} strokeWidth={1.5} className="w-11 h-11 lg:w-16 lg:h-16" />
+        </button>
+      )}
+      </div>
 
+      {/* Scroll position track */}
+      <div className="flex items-center mx-4 sm:mx-6 lg:mx-8 mt-1">
         <div
           ref={trackRef}
           className="relative flex-1 h-3 flex items-center cursor-pointer"
@@ -276,7 +293,7 @@ export default function ResearchHighlights() {
         >
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-stone/20" />
           <div
-            className={`absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full bg-cream transition-[width] duration-200 ease-out ${
+            className={`absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full bg-cream hover:bg-terracotta active:bg-terracotta transition-[width,background-color] duration-200 ease-out ${
               dragging ? "cursor-grabbing" : "cursor-grab"
             }`}
             style={{ left: `${thumbLeft}%`, width: `${thumbWidth}%` }}
@@ -284,14 +301,6 @@ export default function ResearchHighlights() {
             onTouchStart={handleThumbTouchStart}
           />
         </div>
-
-        <button
-          onClick={() => scrollByCard(1)}
-          className="shrink-0 text-cream/50 hover:text-cream transition-colors duration-200"
-          aria-label="Scroll right"
-        >
-          <ChevronRight size={18} />
-        </button>
       </div>
     </section>
   );

@@ -2942,3 +2942,87 @@ Both links sit inside the existing `ScrollReveal` wrapper, so the entrance anima
 | `components/home/CategoryHighlights.tsx` | Section title wrapped in `Link href="/collections"`; terracotta hover + underline-reveal affordance added |
 | `components/home/ResearchHighlights.tsx` | Section title wrapped in `Link href="/research"`; terracotta hover + underline-reveal affordance added |
 | Firestore (`home-content` doc, via `/admin/home`) | `collections.title` value updated live to "Collections" |
+
+---
+
+# Twenty-Fourth Build Session — Addendum
+
+**Date:** 2026-06-20
+**Scope:** Netflix-style hover arrows for the Collections + Research horizontal scroll panels (`components/home/CategoryHighlights.tsx`, `components/home/ResearchHighlights.tsx`)
+
+---
+
+## 130. Horizontal Scroll Panels — Netflix-Style Hover Arrows
+
+The client referenced Netflix's row-navigation arrows (large chevrons that fade in over the row edges on hover, darken further on direct hover) and asked for the same behavior on the Collections and Research carousels. Previously both panels had only small (18px) `ChevronLeft`/`ChevronRight` buttons sitting in a thin bar below the image row, next to a draggable scrollbar thumb.
+
+### Structural change
+The scroll track (`scrollContainerRef` div) was wrapped in a `relative group` container so the new arrow buttons could be absolutely positioned over the image row itself, rather than living in the bar below it:
+
+```tsx
+<div className="relative group">
+  <div ref={scrollContainerRef} className="flex gap-4 overflow-x-auto ... bg-[#0a0a0a]">
+    {/* cards */}
+  </div>
+
+  {!isAtStart && (
+    <button onClick={() => scrollByCard(-1)} className="absolute inset-y-0 left-0 z-10 ...">
+      <ChevronLeft ... />
+    </button>
+  )}
+  {!isAtEnd && (
+    <button onClick={() => scrollByCard(1)} className="absolute inset-y-0 right-0 z-10 ...">
+      <ChevronRight ... />
+    </button>
+  )}
+</div>
+```
+
+### Boundary hiding
+`isAtStart` / `isAtEnd` booleans were derived from the existing `thumbLeft`/`thumbWidth` scrollbar-position state (already tracked for the draggable thumb) — no new scroll-tracking logic needed:
+```ts
+const isAtStart = thumbLeft <= 0.5;
+const isAtEnd = thumbLeft + thumbWidth >= 99.5;
+```
+The left arrow doesn't render at the very start of the row; the right arrow doesn't render at the very end — matching Netflix's behavior.
+
+### Visibility — mobile vs desktop
+Mobile and desktop intentionally diverge, because `:hover` only exists for mouse input:
+- **Mobile:** arrows always visible (`opacity-100`) since there's no hover state to fade in from.
+- **Desktop (`lg:`):** arrows are invisible by default and fade in only when hovering anywhere over the row (`lg:opacity-0 lg:group-hover:opacity-100`).
+
+### Two-tier darken/color effect
+- Background: `bg-black/40` baseline, `hover:bg-black/60` when the cursor is directly on the arrow.
+- Arrow color: `text-cream` baseline, `hover:text-terracotta` when the cursor is directly on the arrow (added in a follow-up tweak — see below).
+- `active:` variants (`active:bg-black/60`, `active:text-terracotta`) were added alongside the `hover:` ones so touch devices get an equivalent color change while actively pressing, since `:hover` doesn't fire from touch input at all (see note below).
+
+### Old bottom bar — chevrons removed, thumb track kept
+The two small 18px chevron buttons were removed from the bar below the row. The draggable scrollbar thumb/track was kept as-is (renamed to "Scroll position track" in code comments) since it's still useful as a position indicator and for direct scrubbing.
+
+### Size tuning (desktop only)
+Icon size was increased on desktop only, leaving mobile/tablet untouched:
+```tsx
+<ChevronLeft size={44} strokeWidth={1.5} className="w-11 h-11 lg:w-16 lg:h-16" />
+```
+Lucide's `size` prop sets the base SVG width/height attributes; the `className` `w-*`/`h-*` utilities override them via CSS (which takes precedence over presentation attributes), enabling the `lg:` breakpoint override. The clickable zone width was widened to match (`lg:w-16` → `lg:w-20`).
+
+### Progress bar hover/active color
+The draggable thumb on the bottom track also received the same terracotta hover treatment, independent of the arrows:
+```tsx
+className={`absolute top-1/2 -translate-y-1/2 h-[3px] rounded-full bg-cream hover:bg-terracotta active:bg-terracotta transition-[width,background-color] duration-200 ease-out ...`}
+```
+
+### Why hover-only color didn't work on mobile (client question)
+`:hover` tracks mouse cursor position — touchscreens have no persistent pointer, only touch-start/touch-end events, so there's no real "hover" moment to trigger from a tap. Mobile browsers sometimes emulate a brief "sticky hover" after a tap, but it's inconsistent across devices. The fix was adding `active:` variants (which map to `:active` and do fire on touch, while the finger is down) alongside every `hover:` class added in this session, giving mobile a comparable color-change moment.
+
+### Code structure decision
+Both components received identical edits made directly in each file rather than extracting a shared component — consistent with the existing codebase convention (everything in `CategoryHighlights.tsx`/`ResearchHighlights.tsx` is already duplicated verbatim, as established in the Sixteenth Build).
+
+---
+
+## 131. Key Files Modified (Twenty-Fourth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/CategoryHighlights.tsx` | Scroll track wrapped in `relative group`; large hover/always-visible arrows added over row edges with boundary hiding (`isAtStart`/`isAtEnd`); old small chevrons removed from bottom bar; desktop-only icon size increase; `hover:`/`active:` terracotta color on arrows and progress bar thumb |
+| `components/home/ResearchHighlights.tsx` | Identical changes, mirrored verbatim from `CategoryHighlights.tsx` |
