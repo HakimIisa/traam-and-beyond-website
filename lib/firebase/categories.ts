@@ -19,6 +19,7 @@ function serialize(id: string, data: DocumentData): Category {
   return {
     id,
     name: data.name,
+    nameKashmiri: data.nameKashmiri ?? undefined,
     slug: data.slug,
     order: data.order,
     coverImage: data.coverImage ?? undefined,

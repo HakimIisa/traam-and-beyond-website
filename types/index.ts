@@ -1,6 +1,7 @@
 export interface Category {
   id: string;
   name: string;
+  nameKashmiri?: string;
   slug: string;
   order: number;
   coverImage?: string;
@@ -34,6 +35,17 @@ export interface Enquiry {
   itemTitle: string | null;
   type: "general" | "item-specific";
   read: boolean;
+  createdAt: string;
+}
+
+export interface ResearchItem {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  images: string[];
+  sectionSlug: string;
+  order: number;
   createdAt: string;
 }
 

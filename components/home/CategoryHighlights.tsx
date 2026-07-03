@@ -8,27 +8,12 @@ import { useRef, useEffect, useState } from "react";
 import type { Category } from "@/types";
 import type { HomeContent } from "@/types/home-content";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { CATEGORY_KASHMIRI_NAMES } from "@/lib/category-kashmiri-names";
 
 interface CategoryHighlightsProps {
   categories: Category[];
   content: HomeContent["collections"];
 }
-
-const KASHMIRI_NAMES: Record<string, string> = {
-  "copperware":        "ترٛام",
-  "papier-mch":        "نقاشی",
-  "silverware":        "رۄپھ",
-  "enamelware":        "میناکاری",
-  "terracotta":        "کَتٕر",
-  "green-serpentine":  "زہر مۄہر",
-  "coins":             "سِکہ جات",
-  "shawls":            "شال",
-  "jewellery":         "زیور",
-  "carpets":           "قالین",
-  "willow-wicker":     "کانہِ کٮ۪م",
-  "wood-work":         "لٮ۪کَرِ کٮ۪م",
-  "brass-ware":        "سَرٛتَل",
-};
 
 export default function CategoryHighlights({ categories, content }: CategoryHighlightsProps) {
   if (categories.length === 0) return null;
@@ -264,13 +249,13 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
                     <h3 className="font-display text-3xl lg:text-4xl text-stone/70 group-hover:text-terracotta transition-colors duration-300 underline decoration-transparent decoration-1 underline-offset-4 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
                       {cat.name}
                     </h3>
-                    {KASHMIRI_NAMES[cat.slug] && (
+                    {(cat.nameKashmiri || CATEGORY_KASHMIRI_NAMES[cat.slug]) && (
                       <p
                         className="text-stone/70 text-[27px] lg:text-[34px] mt-1 group-hover:text-terracotta transition-colors duration-300"
                         dir="rtl"
                         lang="ks"
                       >
-                        {KASHMIRI_NAMES[cat.slug]}
+                        {cat.nameKashmiri || CATEGORY_KASHMIRI_NAMES[cat.slug]}
                       </p>
                     )}
                     <p className="text-terracotta text-sm mt-2 tracking-wide lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">

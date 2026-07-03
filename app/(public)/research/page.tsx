@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getResearchItemsBySection } from "@/lib/firebase/research";
 import { RESEARCH_SECTIONS } from "@/lib/research-data";
 import ResearchItemCard from "@/components/items/ResearchItemCard";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Research — Traam and Beyond",
@@ -9,11 +12,17 @@ export const metadata: Metadata = {
     "An ongoing exploration into the living relevance of Kashmiri craft and building traditions.",
 };
 
-export default function ResearchPage() {
+export default async function ResearchPage() {
+  const sectionItems = await Promise.all(
+    RESEARCH_SECTIONS.map(async (section) => ({
+      section,
+      items: await getResearchItemsBySection(section.sectionSlug),
+    }))
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-      {/* Research sections */}
-      {RESEARCH_SECTIONS.map((section) => (
+      {sectionItems.map(({ section, items }) => (
         <section key={section.sectionSlug} className="mb-24">
           <div className="mb-10">
             <Link
@@ -31,9 +40,9 @@ export default function ResearchPage() {
           </div>
 
           <div className="flex flex-col">
-            {section.items.map((item, index) => (
+            {items.map((item, index) => (
               <ResearchItemCard
-                key={item.slug}
+                key={item.id}
                 item={item}
                 sectionSlug={section.sectionSlug}
                 index={index}

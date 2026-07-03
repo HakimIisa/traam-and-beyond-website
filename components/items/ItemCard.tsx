@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -9,6 +8,7 @@ import { ArrowRight } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import type { Item } from "@/types";
 import EnquiryDialog from "@/components/forms/EnquiryDialog";
+import ImageCarousel from "@/components/items/ImageCarousel";
 
 const cardVariants = {
   hidden: {},
@@ -45,20 +45,12 @@ export default function ItemCard({ item, index }: ItemCardProps) {
           className="group"
         >
           <Link href={`/category/${item.categorySlug}/${item.id}`} className="block">
-            <motion.div variants={childVariants} className="relative w-full aspect-square overflow-hidden">
-              {item.images[0] ? (
-                <Image
-                  src={item.images[0]}
-                  alt={item.title}
-                  fill
-                  sizes="100vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full bg-walnut-light flex items-center justify-center">
-                  <span className="text-stone/30 text-4xl">✦</span>
-                </div>
-              )}
+            <motion.div variants={childVariants}>
+              <ImageCarousel
+                images={item.images}
+                title={item.title}
+                sizes="100vw"
+              />
             </motion.div>
 
             <motion.div variants={childVariants} className="px-4 sm:px-6 pt-5 pb-10">
@@ -100,20 +92,12 @@ export default function ItemCard({ item, index }: ItemCardProps) {
       >
         <Link href={`/category/${item.categorySlug}/${item.id}`} className="block">
           <div className={`flex items-stretch ${isOdd ? "flex-row-reverse" : ""}`}>
-            <motion.div variants={childVariants} className="relative w-[35%] aspect-square overflow-hidden">
-              {item.images[0] ? (
-                <Image
-                  src={item.images[0]}
-                  alt={item.title}
-                  fill
-                  sizes="35vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full bg-walnut-light flex items-center justify-center">
-                  <span className="text-stone/30 text-4xl">✦</span>
-                </div>
-              )}
+            <motion.div variants={childVariants} className="w-[35%]">
+              <ImageCarousel
+                images={item.images}
+                title={item.title}
+                sizes="35vw"
+              />
             </motion.div>
 
             <motion.div

@@ -106,6 +106,34 @@ export async function apiUpdateAboutSection(section: string, data: object): Prom
   if (!res.ok) throw new Error("Failed to update about content");
 }
 
+// ── Research ─────────────────────────────────────────────────────────────────
+export async function apiCreateResearchItem(data: object): Promise<string> {
+  const headers = await getAuthHeader();
+  const res = await fetch("/api/admin/research", { method: "POST", headers, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Failed to create research item");
+  const { id } = await res.json();
+  return id;
+}
+
+export async function apiUpdateResearchItem(id: string, data: object): Promise<void> {
+  const headers = await getAuthHeader();
+  const res = await fetch(`/api/admin/research/${id}`, { method: "PUT", headers, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Failed to update research item");
+}
+
+export async function apiDeleteResearchItem(id: string): Promise<void> {
+  const headers = await getAuthHeader();
+  const res = await fetch(`/api/admin/research/${id}`, { method: "DELETE", headers });
+  if (!res.ok) throw new Error("Failed to delete research item");
+}
+
+export async function apiSeedResearch(): Promise<{ created: string[]; skipped: string[] }> {
+  const headers = await getAuthHeader();
+  const res = await fetch("/api/admin/seed-research", { method: "POST", headers });
+  if (!res.ok) throw new Error("Seed failed");
+  return res.json();
+}
+
 // ── Seed ────────────────────────────────────────────────────────────────────
 export async function apiSeedCategories(): Promise<{ renamed: string[]; created: string[]; skipped: string[] }> {
   const headers = await getAuthHeader();

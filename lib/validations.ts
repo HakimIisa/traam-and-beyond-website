@@ -26,6 +26,7 @@ export const itemSchema = z.object({
 
 export const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
+  nameKashmiri: z.string().optional(),
   slug: z.string().min(1),
   order: z.number().int().min(0),
   coverImage: z.string().optional(),

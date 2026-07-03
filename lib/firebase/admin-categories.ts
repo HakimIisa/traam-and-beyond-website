@@ -5,6 +5,7 @@ import type { Category } from "@/types";
 
 export interface CategoryWriteData {
   name: string;
+  nameKashmiri?: string;
   slug: string;
   order: number;
   coverImage?: string;
@@ -47,6 +48,7 @@ export async function adminGetAllCategories(): Promise<Category[]> {
     return {
       id: d.id,
       name: data.name,
+      nameKashmiri: data.nameKashmiri ?? undefined,
       slug: data.slug,
       order: data.order,
       coverImage: data.coverImage ?? undefined,

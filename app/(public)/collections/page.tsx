@@ -4,6 +4,7 @@ import { getAllCategories } from "@/lib/firebase/categories";
 import { getItemsByCategory } from "@/lib/firebase/items";
 import CollectionItemCard from "@/components/items/CollectionItemCard";
 import { CATEGORY_DESCRIPTIONS } from "@/lib/category-descriptions";
+import { CATEGORY_KASHMIRI_NAMES } from "@/lib/category-kashmiri-names";
 
 export const dynamic = "force-dynamic";
 
@@ -44,14 +45,25 @@ export default async function CollectionsPage() {
         return (
           <section key={category.id} className="mb-24">
             <div className="mb-10">
-              <Link
-                href={`/category/${category.slug}`}
-                className="hover:text-terracotta transition-colors duration-200 inline-block"
-              >
-                <h2 className="font-display text-3xl lg:text-5xl text-cream mb-4">
-                  {category.name}
-                </h2>
-              </Link>
+              <div className="flex items-baseline justify-between gap-6 mb-4">
+                <Link
+                  href={`/category/${category.slug}`}
+                  className="hover:text-terracotta transition-colors duration-200"
+                >
+                  <h2 className="font-display text-3xl lg:text-5xl text-cream">
+                    {category.name}
+                  </h2>
+                </Link>
+                {(category.nameKashmiri || CATEGORY_KASHMIRI_NAMES[category.slug]) && (
+                  <p
+                    className="font-display text-3xl lg:text-5xl text-stone shrink-0"
+                    dir="rtl"
+                    lang="ks"
+                  >
+                    {category.nameKashmiri || CATEGORY_KASHMIRI_NAMES[category.slug]}
+                  </p>
+                )}
+              </div>
               {description && (
                 <p className="text-stone text-sm lg:text-base leading-relaxed text-justify mb-8">
                   {description}

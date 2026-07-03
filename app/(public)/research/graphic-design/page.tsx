@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
+import { getResearchItemsBySection } from "@/lib/firebase/research";
 import { getResearchSection } from "@/lib/research-data";
 import ResearchItemCard from "@/components/items/ResearchItemCard";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Graphic Design",
   description: "Research on graphic design inspired by Kashmiri visual aesthetics.",
 };
 
-export default function GraphicDesignPage() {
+export default async function GraphicDesignPage() {
   const section = getResearchSection("graphic-design")!;
+  const items = await getResearchItemsBySection("graphic-design");
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
@@ -23,9 +27,9 @@ export default function GraphicDesignPage() {
       </div>
 
       <div className="flex flex-col">
-        {section.items.map((item, index) => (
+        {items.map((item, index) => (
           <ResearchItemCard
-            key={item.slug}
+            key={item.id}
             item={item}
             sectionSlug="graphic-design"
             index={index}

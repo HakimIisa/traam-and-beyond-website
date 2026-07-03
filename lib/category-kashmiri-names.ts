@@ -1,0 +1,15 @@
+export const CATEGORY_KASHMIRI_NAMES: Record<string, string> = {
+  "copperware":       "ترٛام",
+  "papier-mch":       "نقاشی",
+  "silverware":       "رۄپھ",
+  "enamelware":       "میناکاری",
+  "terracotta":       "کَتٕر",
+  "green-serpentine": "زہر مۄہر",
+  "coins":            "سِکہ جات",
+  "shawls":           "شال",
+  "jewellery":        "زیور",
+  "carpets":          "قالین",
+  "willow-wicker":    "کانہِ کٮ۪م",
+  "wood-work":        "لٮ۪کَرِ کٮ۪م",
+  "brass-ware":       "سَرٛتَل",
+};

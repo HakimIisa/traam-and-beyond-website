@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
+import { getResearchItemsBySection } from "@/lib/firebase/research";
 import { getResearchSection } from "@/lib/research-data";
 import ResearchItemCard from "@/components/items/ResearchItemCard";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Reinterpretation",
   description: "Research on reinterpretation of Kashmiri crafts and building traditions.",
 };
 
-export default function ReinterpretationPage() {
+export default async function ReinterpretationPage() {
   const section = getResearchSection("reinterpretation")!;
+  const items = await getResearchItemsBySection("reinterpretation");
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
@@ -23,9 +27,9 @@ export default function ReinterpretationPage() {
       </div>
 
       <div className="flex flex-col">
-        {section.items.map((item, index) => (
+        {items.map((item, index) => (
           <ResearchItemCard
-            key={item.slug}
+            key={item.id}
             item={item}
             sectionSlug="reinterpretation"
             index={index}

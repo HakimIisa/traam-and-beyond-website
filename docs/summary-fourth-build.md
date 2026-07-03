@@ -3026,3 +3026,357 @@ Both components received identical edits made directly in each file rather than 
 |------|-------------|
 | `components/home/CategoryHighlights.tsx` | Scroll track wrapped in `relative group`; large hover/always-visible arrows added over row edges with boundary hiding (`isAtStart`/`isAtEnd`); old small chevrons removed from bottom bar; desktop-only icon size increase; `hover:`/`active:` terracotta color on arrows and progress bar thumb |
 | `components/home/ResearchHighlights.tsx` | Identical changes, mirrored verbatim from `CategoryHighlights.tsx` |
+
+---
+
+# Twenty-Fifth Build Session — Addendum
+
+**Date:** 2026-07-03
+**Scope:** Image carousel with indicator dots on catalogue cards, Kashmiri category titles on Collections and category pages
+
+---
+
+## 132. Image Carousel — New Component (`components/items/ImageCarousel.tsx`)
+
+A new reusable carousel component replaces the bare `<Image>` on all catalogue item cards. It shows a swipeable image gallery with dot indicators below.
+
+### Features
+- **Swipe gesture** (mobile): horizontal touch with 40px threshold — left swipe advances, right swipe retreats
+- **Dot click**: click any dot to jump to that image directly
+- **Direction-aware slide animation**: uses Framer Motion `AnimatePresence` with `mode="popLayout"`; images slide in from the correct side (right when advancing, left when retreating), easing `[0.22, 1, 0.36, 1]` at 380ms
+- **Always shows dots** when `images.length > 0` (even for single-image items — 1 dot shown)
+- **`dotsPosition` prop**: `"below"` (default — dots below the image container) or `"inside"` (dots absolutely positioned over the image, `z-10 bottom-3`)
+- All dot/swipe interactions use `e.stopPropagation()` + `e.preventDefault()` to avoid triggering the surrounding `<Link>` card
+
+### Dot design (brand palette)
+| State | Mobile | Desktop | Color |
+|-------|--------|---------|-------|
+| Active | `w-2 h-2` | `lg:w-3 lg:h-3` | `bg-terracotta` |
+| Inactive | `w-1.5 h-1.5` | `lg:w-2 lg:h-2` | `bg-cream/30`, `hover:bg-cream/60` |
+| Hover scale | — | `lg:hover:scale-150` | — |
+| Gap | `gap-1.5` | `lg:gap-2` | — |
+
+### Slide animation variants
+```ts
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? "100%" : "-100%" }),
+  center: { x: 0 },
+  exit:  (dir: number) => ({ x: dir > 0 ? "-100%" : "100%" }),
+};
+```
+Each image is `absolute inset-0` inside the `relative overflow-hidden` container; `AnimatePresence` lets old and new images coexist for the slide duration.
+
+### Direction tracking
+`direction` state is set alongside `current` index on every navigation:
+- `navigate(e, dir)` — used by swipe and future arrow buttons
+- `goTo(e, index)` — used by dot clicks; direction derived from `index > current ? 1 : -1`
+
+---
+
+## 133. CollectionItemCard — Uses ImageCarousel (`components/items/CollectionItemCard.tsx`)
+
+The inline `<div className="relative w-full aspect-square overflow-hidden">` + `<Image>` block was replaced with `<ImageCarousel images={item.images} title={item.title} sizes="(max-width: 1024px) 100vw, 50vw" />`. The unused `Image` import was removed.
+
+The title block's top padding changed from `pt-4` → `pt-3` to account for the dots' `pt-2` now sitting between image and title.
+
+---
+
+## 134. ItemCard — Uses ImageCarousel (`components/items/ItemCard.tsx`)
+
+Both the mobile and desktop image blocks were replaced with `<ImageCarousel>`:
+
+| Layout | Previous | After |
+|--------|----------|-------|
+| Mobile | `<motion.div className="relative w-full aspect-square overflow-hidden">` + `<Image>` | `<motion.div>` wrapping `<ImageCarousel sizes="100vw" />` |
+| Desktop | `<motion.div className="relative w-[35%] aspect-square overflow-hidden">` + `<Image>` | `<motion.div className="w-[35%]">` wrapping `<ImageCarousel sizes="35vw" />` |
+
+The `w-[35%]` width control was moved to the outer `motion.div`; the carousel owns `w-full aspect-square overflow-hidden` internally. The `Image` import was removed.
+
+---
+
+## 135. Kashmiri Category Names — Shared File (`lib/category-kashmiri-names.ts`)
+
+The `KASHMIRI_NAMES` constant previously defined inline in `CategoryHighlights.tsx` was extracted to a new shared module:
+
+**New file:** `lib/category-kashmiri-names.ts`
+```ts
+export const CATEGORY_KASHMIRI_NAMES: Record<string, string> = {
+  "copperware":       "ترٛام",
+  "papier-mch":       "نقاشی",
+  "silverware":       "رۄپھ",
+  "enamelware":       "میناکاری",
+  "terracotta":       "کَتٕر",
+  "green-serpentine": "زہر مۄہر",
+  "coins":            "سِکہ جات",
+  "shawls":           "شال",
+  "jewellery":        "زیور",
+  "carpets":          "قالین",
+  "willow-wicker":    "کانہِ کٮ۪م",
+  "wood-work":        "لٮ۪کَرِ کٮ۪م",
+  "brass-ware":       "سَرٛتَل",
+};
+```
+
+`CategoryHighlights.tsx` was updated to import `CATEGORY_KASHMIRI_NAMES` from this file (replacing the inline `KASHMIRI_NAMES` constant) — no visible change on the home page carousel.
+
+---
+
+## 136. Kashmiri Category Titles on Collections Page (`app/(public)/collections/page.tsx`)
+
+The Kashmiri name now appears to the right of each category heading on the `/collections` page, both on the same baseline in a flex row.
+
+### Layout
+```tsx
+<div className="flex items-baseline justify-between gap-6 mb-4">
+  <Link href={`/category/${category.slug}`} className="hover:text-terracotta ...">
+    <h2 className="font-display text-3xl lg:text-5xl text-cream">
+      {category.name}
+    </h2>
+  </Link>
+  {CATEGORY_KASHMIRI_NAMES[category.slug] && (
+    <p
+      className="font-display text-3xl lg:text-5xl text-stone shrink-0"
+      dir="rtl"
+      lang="ks"
+    >
+      {CATEGORY_KASHMIRI_NAMES[category.slug]}
+    </p>
+  )}
+</div>
+```
+
+- `items-baseline` — aligns English and Kashmiri text on their shared text baseline
+- `justify-between` — English left, Kashmiri right
+- `shrink-0` — prevents Kashmiri title from wrapping or shrinking
+- `dir="rtl" lang="ks"` — correct Nastaliq character shaping; right-to-left reading direction
+- Font size matches the English heading: `text-3xl lg:text-5xl`
+
+---
+
+## 137. Kashmiri Category Titles on Individual Category Pages (`app/(public)/category/[slug]/page.tsx`)
+
+Same pattern applied to the `h1` header on each category's own page:
+
+```tsx
+<div className="flex items-baseline justify-between gap-6 mb-4">
+  <h1 className="font-display text-3xl lg:text-6xl text-cream">
+    {category.name}
+  </h1>
+  {CATEGORY_KASHMIRI_NAMES[slug] && (
+    <p
+      className="font-display text-3xl lg:text-6xl text-stone shrink-0"
+      dir="rtl"
+      lang="ks"
+    >
+      {CATEGORY_KASHMIRI_NAMES[slug]}
+    </p>
+  )}
+</div>
+```
+
+Font size matches the `h1`: `text-3xl lg:text-6xl`.
+
+---
+
+## 138. Key Files Modified (Twenty-Fifth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/items/ImageCarousel.tsx` | **New file** — swipeable carousel, direction-aware slide animation, dot indicators with brand colours, desktop hover scale on dots |
+| `components/items/CollectionItemCard.tsx` | Bare `<Image>` + wrapper replaced with `<ImageCarousel>`; `Image` import removed; title `pt-4` → `pt-3` |
+| `components/items/ItemCard.tsx` | Bare `<Image>` + wrappers replaced with `<ImageCarousel>` in both mobile and desktop layouts; `Image` import removed; desktop outer `motion.div` width moved up one level |
+| `lib/category-kashmiri-names.ts` | **New file** — shared `CATEGORY_KASHMIRI_NAMES` map (13 slugs) extracted from `CategoryHighlights.tsx` |
+| `components/home/CategoryHighlights.tsx` | Inline `KASHMIRI_NAMES` removed; imports from `lib/category-kashmiri-names.ts` |
+| `app/(public)/collections/page.tsx` | `CATEGORY_KASHMIRI_NAMES` imported; heading restructured as `flex items-baseline justify-between` row with Kashmiri title on the right (`text-3xl lg:text-5xl`, `dir="rtl" lang="ks"`) |
+| `app/(public)/category/[slug]/page.tsx` | `CATEGORY_KASHMIRI_NAMES` imported; `h1` restructured as `flex items-baseline justify-between` row with Kashmiri title on the right (`text-3xl lg:text-6xl`, `dir="rtl" lang="ks"`) |
+
+---
+
+# Twenty-Sixth Build Session — Addendum
+
+**Date:** 2026-07-03
+**Scope:** Admin Research panel (full CRUD), Research items migrated to Firestore, CategoryForm "Save Changes" bug fix, Firestore permissions + composite index fixes
+
+---
+
+## 139. CategoryForm — "Save Changes" Bug Fix (`components/forms/CategoryForm.tsx`)
+
+The "Save Changes" button on the admin Categories edit form failed with "Invalid input: expected string, received undefined" under the Display Order field.
+
+### Root cause
+`type="number"` HTML inputs managed by react-hook-form `Controller` can return a number or `undefined`, but the schema had `order: z.string().min(1)` which rejects non-strings.
+
+### Fix
+- Schema: `z.string().min(1)` → `z.coerce.number().int().min(0, "Order must be 0 or greater")`
+- `defaultValues.order`: `String(existing?.order ?? 0)` → `existing?.order ?? 0`
+- Removed manual `parseInt` block from `onSubmit`; `order: values.order` used directly
+- TypeScript incompatibility between Zod v4 `z.coerce` input type (`unknown`) and @hookform/resolvers v5 strict typing required casts: `resolver: zodResolver(schema) as any`, `control={form.control as any}`, `(form.handleSubmit as any)(onSubmit)`
+
+### Kashmiri Name autofill fix
+`autoComplete="off"` added to the `nameKashmiri` `<Input>` to prevent browser autofill populating the field with a cached description value when opening an existing category for editing.
+
+---
+
+## 140. Research Admin Panel — Full Implementation
+
+A complete admin panel for research items, mirroring the Items admin page structure.
+
+### `types/index.ts`
+Added `ResearchItem` interface:
+```typescript
+export interface ResearchItem {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  images: string[];
+  sectionSlug: string;
+  order: number;
+  createdAt: string;
+}
+```
+
+### `components/layout/AdminSidebar.tsx`
+`BookOpen` icon imported from lucide-react. Research link added between Categories and Enquiries:
+```typescript
+{ href: "/admin/research", label: "Research", icon: BookOpen, exact: false },
+```
+
+### `lib/firebase/admin-research.ts` (new file)
+Admin SDK CRUD for the `research_items` Firestore collection:
+- `adminGetAllResearchItems()` — all items ordered by `order` asc
+- `adminGetResearchItemsBySection(sectionSlug)` — filters by section, sorts in memory (avoids composite index requirement)
+- `adminGetResearchItemBySlug(sectionSlug, slug)` — two equality filters + `limit(1)`
+- `adminCreateResearchItem(data)` — creates doc, returns id
+- `adminUpdateResearchItem(id, data)` — partial update
+- `adminDeleteResearchItem(id)` — deletes doc + clears `research/${id}/` storage prefix
+
+A shared `serializeItem()` helper converts Firestore `QueryDocumentSnapshot` to `ResearchItem`.
+
+### `lib/firebase/research.ts` (new file — Admin SDK backed)
+Public-facing query functions that delegate to the Admin SDK via dynamic import (so they can be called from server components without bundling `firebase-admin` into the client):
+- `getResearchItemsBySection(sectionSlug)` — calls `adminGetResearchItemsBySection`
+- `getAllResearchItems()` — calls `adminGetAllResearchItems`
+- `getResearchItemBySlug(sectionSlug, slug)` — calls `adminGetResearchItemBySlug`
+
+All three fall back to `RESEARCH_SECTIONS` static data when Firebase is not configured (`NEXT_PUBLIC_FIREBASE_PROJECT_ID` absent).
+
+### API Routes (3 new files)
+
+| File | Methods | Purpose |
+|------|---------|---------|
+| `app/api/admin/research/route.ts` | GET, POST | List all / create new research item |
+| `app/api/admin/research/[id]/route.ts` | PUT, DELETE | Update / delete by id |
+| `app/api/admin/seed-research/route.ts` | POST | Seed static `RESEARCH_SECTIONS` data to Firestore; deduplicates via `where("sectionSlug","==").where("slug","==")` query before creating; returns `{ created: string[], skipped: string[] }` |
+
+All routes use `verifyAdminRequest` for auth.
+
+### `lib/admin-api.ts`
+Added four functions:
+```typescript
+export async function apiCreateResearchItem(data: object): Promise<string>
+export async function apiUpdateResearchItem(id: string, data: object): Promise<void>
+export async function apiDeleteResearchItem(id: string): Promise<void>
+export async function apiSeedResearch(): Promise<{ created: string[]; skipped: string[] }>
+```
+
+### Admin Pages (6 new files)
+
+| File | Purpose |
+|------|---------|
+| `app/(admin)/admin/research/page.tsx` | List page — item count, "Add Item" button, `force-dynamic` |
+| `app/(admin)/admin/research/ResearchClient.tsx` | Client component — section filter tabs (All + 3 sections), table with thumbnail/title/section/Edit/Delete |
+| `app/(admin)/admin/research/DeleteResearchItemButton.tsx` | Confirm + delete pattern matching existing admin buttons |
+| `app/(admin)/admin/research/SeedResearchButton.tsx` | Calls `apiSeedResearch()`, shows created/skipped result — removed from page after use |
+| `app/(admin)/admin/research/new/page.tsx` | Renders `<ResearchItemForm />` |
+| `app/(admin)/admin/research/[id]/page.tsx` | Fetches item via `adminGetAllResearchItems().find(id)`, renders `<ResearchItemForm existing={item} />` |
+
+### `components/forms/ResearchItemForm.tsx` (new file)
+Form with:
+- Native `<select>` for section (Adaptive Reuse / Reinterpretation / Graphic Design) — matches ItemForm's category dropdown pattern, avoids shadcn `Select` dependency
+- Title, description (optional), display order fields
+- Multi-image `ImageUploadField` (no `single` prop)
+- Same `z.coerce.number()` + `as any` casts as CategoryForm
+- On create: `slug = slugify(values.title)`; on edit: `slug = existing.slug` (preserves existing URLs)
+- Storage path: `research/${existing.id}` or `research/temp-${Date.now()}`
+
+---
+
+## 141. ResearchItemCard — Updated to Use ImageCarousel (`components/items/ResearchItemCard.tsx`)
+
+The static `<Image>` inside `ResearchItemCard` was replaced with `<ImageCarousel>` matching the pattern applied to `ItemCard` and `CollectionItemCard` in the previous session:
+- Mobile: `<ImageCarousel images={item.images} title={item.title} sizes="100vw" />` inside `motion.div`
+- Desktop: `<ImageCarousel images={item.images} title={item.title} sizes="35vw" />` in `w-[35%]` div (carousel owns `aspect-square overflow-hidden`)
+- `ResearchItem` now imported from `@/types` (not `@/lib/research-data`)
+
+---
+
+## 142. Public Research Pages — Firestore-Backed
+
+All public research pages updated from static data to Firestore queries via `lib/firebase/research.ts`:
+
+| File | Change |
+|------|--------|
+| `app/(public)/research/page.tsx` | Async server component; `Promise.all` fetches items for all 3 sections via `getResearchItemsBySection` |
+| `app/(public)/research/adaptive-reuse/page.tsx` | Async; calls `getResearchItemsBySection("adaptive-reuse")` |
+| `app/(public)/research/reinterpretation/page.tsx` | Async; calls `getResearchItemsBySection("reinterpretation")` |
+| `app/(public)/research/graphic-design/page.tsx` | Async; calls `getResearchItemsBySection("graphic-design")` |
+| `app/(public)/research/adaptive-reuse/[slug]/page.tsx` | Async; calls `getResearchItemBySlug("adaptive-reuse", slug)` |
+| `app/(public)/research/reinterpretation/[slug]/page.tsx` | Async; calls `getResearchItemBySlug("reinterpretation", slug)` |
+| `app/(public)/research/graphic-design/[slug]/page.tsx` | Async; calls `getResearchItemBySlug("graphic-design", slug)` |
+
+All pages have `export const dynamic = "force-dynamic"`. Section titles/descriptions remain static (sourced from `RESEARCH_SECTIONS`); only items come from Firestore.
+
+---
+
+## 143. Firestore Permissions + Composite Index Fix
+
+### Problem 1 — "Missing or insufficient permissions"
+The original `lib/firebase/research.ts` used the **client SDK** (`firebase/firestore`). The Firestore security rules only permitted authenticated reads — unauthenticated public page requests were blocked.
+
+**Fix:** Rewrote `lib/firebase/research.ts` to use the **Admin SDK** via dynamic import (`await import("./admin-research")`). Since all callers are server components (never client-side), this is safe. The Admin SDK authenticates via the service account and bypasses Firestore security rules entirely.
+
+### Problem 2 — "9 FAILED_PRECONDITION: The query requires an index"
+The compound query `.where("sectionSlug", "==", sectionSlug).orderBy("order", "asc")` requires a composite Firestore index that did not exist.
+
+**Fix:** Removed `.orderBy("order", "asc")` from `adminGetResearchItemsBySection`. Items are now sorted in JavaScript after fetching (`items.sort((a, b) => a.order - b.order)`). This produces identical results for the small item counts involved and avoids the index creation requirement entirely.
+
+---
+
+## 144. Seed Button Removed
+
+After successfully seeding all 5 research items to Firestore via the "Seed Existing Items" button, the button was removed from the admin Research page:
+- `SeedResearchButton` import removed from `app/(admin)/admin/research/page.tsx`
+- `<SeedResearchButton />` render removed
+- `<div className="flex items-center gap-2">` wrapper simplified back to a direct `<Link>` for the "Add Item" button
+
+---
+
+## 145. Key Files Modified (Twenty-Sixth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/forms/CategoryForm.tsx` | `order` schema `z.string().min(1)` → `z.coerce.number().int().min(0)`; `defaultValues.order` → number; `parseInt` block removed; `as any` casts for Zod v4 + hookform v5; `autoComplete="off"` on Kashmiri name field |
+| `types/index.ts` | `ResearchItem` interface added |
+| `lib/firebase/admin-research.ts` | **New file** — Admin SDK CRUD; `serializeItem` helper; `adminGetResearchItemsBySection` + `adminGetResearchItemBySlug` added (in-memory sort, no composite index) |
+| `lib/firebase/research.ts` | **New file** — public queries delegating to Admin SDK via dynamic import; static fallback when Firebase unconfigured |
+| `app/api/admin/research/route.ts` | **New file** — GET + POST handlers |
+| `app/api/admin/research/[id]/route.ts` | **New file** — PUT + DELETE handlers |
+| `app/api/admin/seed-research/route.ts` | **New file** — seed static data to Firestore with deduplication |
+| `lib/admin-api.ts` | `apiCreateResearchItem`, `apiUpdateResearchItem`, `apiDeleteResearchItem`, `apiSeedResearch` added |
+| `components/layout/AdminSidebar.tsx` | `BookOpen` import; Research link added |
+| `app/(admin)/admin/research/page.tsx` | **New file** — list page (seed button subsequently removed) |
+| `app/(admin)/admin/research/ResearchClient.tsx` | **New file** — section filter tabs + table |
+| `app/(admin)/admin/research/DeleteResearchItemButton.tsx` | **New file** — confirm + delete |
+| `app/(admin)/admin/research/SeedResearchButton.tsx` | **New file** — seed trigger (used once, button removed from page) |
+| `app/(admin)/admin/research/new/page.tsx` | **New file** — create form page |
+| `app/(admin)/admin/research/[id]/page.tsx` | **New file** — edit form page |
+| `components/forms/ResearchItemForm.tsx` | **New file** — section picker, title, description, order, multi-image upload |
+| `components/items/ResearchItemCard.tsx` | `<Image>` → `<ImageCarousel>`; `ResearchItem` imported from `@/types` |
+| `app/(public)/research/page.tsx` | Async; `Promise.all` fetches from Firestore |
+| `app/(public)/research/adaptive-reuse/page.tsx` | Async; Firestore fetch |
+| `app/(public)/research/reinterpretation/page.tsx` | Async; Firestore fetch |
+| `app/(public)/research/graphic-design/page.tsx` | Async; Firestore fetch |
+| `app/(public)/research/adaptive-reuse/[slug]/page.tsx` | Async; Firestore item detail |
+| `app/(public)/research/reinterpretation/[slug]/page.tsx` | Async; Firestore item detail |
+| `app/(public)/research/graphic-design/[slug]/page.tsx` | Async; Firestore item detail |

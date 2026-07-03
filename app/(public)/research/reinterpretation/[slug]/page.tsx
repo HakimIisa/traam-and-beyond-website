@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { getResearchItem } from "@/lib/research-data";
+import { getResearchItemBySlug } from "@/lib/firebase/research";
 import ItemImageGallery from "@/components/items/ItemImageGallery";
+
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -11,7 +13,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const item = getResearchItem("reinterpretation", slug);
+  const item = await getResearchItemBySlug("reinterpretation", slug);
   if (!item) return {};
   return {
     title: item.title,
@@ -22,13 +24,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ReinterpretationItemPage({ params }: Props) {
   const { slug } = await params;
-  const item = getResearchItem("reinterpretation", slug);
+  const item = await getResearchItemBySlug("reinterpretation", slug);
 
   if (!item) notFound();
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm text-stone mb-8 flex-wrap">
         <Link href="/" className="hover:text-terracotta transition-colors">Home</Link>
         <ChevronRight size={14} />
@@ -40,12 +41,9 @@ export default async function ReinterpretationItemPage({ params }: Props) {
       </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Gallery */}
         <div>
           <ItemImageGallery images={item.images} title={item.title} />
         </div>
-
-        {/* Details */}
         <div className="flex flex-col gap-6">
           <h1 className="text-4xl font-semibold text-[#FAF6F0]">{item.title}</h1>
           {item.description && (
