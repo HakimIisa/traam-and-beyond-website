@@ -72,6 +72,16 @@ export async function adminUpdateResearchItem(
   await adminDb.collection("research_items").doc(id).update(data);
 }
 
+export async function adminReorderResearchItems(
+  items: Array<{ id: string; order: number }>
+): Promise<void> {
+  const batch = adminDb.batch();
+  for (const { id, order } of items) {
+    batch.update(adminDb.collection("research_items").doc(id), { order });
+  }
+  await batch.commit();
+}
+
 export async function adminDeleteResearchItem(id: string): Promise<void> {
   await adminDb.collection("research_items").doc(id).delete();
   try {

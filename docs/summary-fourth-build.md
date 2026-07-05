@@ -3380,3 +3380,67 @@ After successfully seeding all 5 research items to Firestore via the "Seed Exist
 | `app/(public)/research/adaptive-reuse/[slug]/page.tsx` | Async; Firestore item detail |
 | `app/(public)/research/reinterpretation/[slug]/page.tsx` | Async; Firestore item detail |
 | `app/(public)/research/graphic-design/[slug]/page.tsx` | Async; Firestore item detail |
+
+---
+
+## Twenty-Seventh Build Session
+
+**Date:** 2026-07-05
+**Scope:** Research admin reorder functionality — mirrors the existing Items reorder panel
+
+---
+
+## 146. Research Reorder Button + Page
+
+The client requested a "Reorder Items" button on the Research admin panel that works identically to the one on the Items page.
+
+### Changes
+
+**`lib/firebase/admin-research.ts`** — Added `adminReorderResearchItems`:
+```typescript
+export async function adminReorderResearchItems(
+  items: Array<{ id: string; order: number }>
+): Promise<void> {
+  const batch = adminDb.batch();
+  for (const { id, order } of items) {
+    batch.update(adminDb.collection("research_items").doc(id), { order });
+  }
+  await batch.commit();
+}
+```
+Uses an atomic Firestore batch write, identical pattern to `adminReorderItems` in `admin-items.ts`.
+
+**`app/api/admin/research/reorder/route.ts`** — New POST endpoint:
+- Protected by `verifyAdminRequest`
+- Zod schema: `{ items: [{ id: string, order: number }] }` (min 1 item)
+- Calls `adminReorderResearchItems` and returns `{ success: true }`
+
+**`app/(admin)/admin/research/reorder/page.tsx`** — New server page:
+- Fetches all research items via `adminGetAllResearchItems()`
+- Renders heading + `<ReorderResearchClient items={items} />`
+- `export const dynamic = "force-dynamic"`
+
+**`app/(admin)/admin/research/reorder/ReorderResearchClient.tsx`** — New client component:
+- Drag-and-drop list using `@dnd-kit/core` + `@dnd-kit/sortable` (same libraries as items reorder)
+- **Section tabs** instead of category tabs — derived dynamically from item `sectionSlug` values using `slugToTitle` helper (e.g. `"graphic-design"` → `"Graphic Design"`)
+- Each tab shows the section name + item count badge
+- `Save Order` button POSTs ordered `[{id, order}]` to `/api/admin/research/reorder`
+- Saving/saved/error states identical to items reorder
+- `SortableResearchItem` sub-component: grip handle, 40×40 thumbnail, title
+
+**`app/(admin)/admin/research/page.tsx`** — Added Reorder button:
+- Added `ArrowUpDown` import from lucide-react
+- Wrapped existing `Add Item` link in `<div className="flex items-center gap-2">`
+- Added `<Link href="/admin/research/reorder">` with matching outline style (`bg-white border border-walnut text-walnut`)
+
+---
+
+## 147. Key Files Modified (Twenty-Seventh Build)
+
+| File | Change type |
+|------|-------------|
+| `lib/firebase/admin-research.ts` | Added `adminReorderResearchItems` (batch write pattern) |
+| `app/api/admin/research/reorder/route.ts` | **New file** — POST reorder endpoint |
+| `app/(admin)/admin/research/reorder/page.tsx` | **New file** — server page |
+| `app/(admin)/admin/research/reorder/ReorderResearchClient.tsx` | **New file** — DnD client with section tabs |
+| `app/(admin)/admin/research/page.tsx` | Added `ArrowUpDown` import; Reorder Items button added |
