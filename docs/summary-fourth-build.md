@@ -3444,3 +3444,55 @@ Uses an atomic Firestore batch write, identical pattern to `adminReorderItems` i
 | `app/(admin)/admin/research/reorder/page.tsx` | **New file** — server page |
 | `app/(admin)/admin/research/reorder/ReorderResearchClient.tsx` | **New file** — DnD client with section tabs |
 | `app/(admin)/admin/research/page.tsx` | Added `ArrowUpDown` import; Reorder Items button added |
+
+---
+
+# Twenty-Eighth Build Session — Addendum
+
+**Date:** 2026-07-21
+**Scope:** Fixed Safari "This Connection Is Not Private" SSL warning on `www.traamandbeyond.com` — infrastructure/DNS fix only, no code changes
+
+---
+
+## 148. `www.traamandbeyond.com` — SSL Certificate Mismatch Fix
+
+### Symptom
+Visitors opening `www.traamandbeyond.com` in Safari (mobile) saw a full-page "This Connection Is Not Private" interstitial warning them the site "may be impersonating www.traamandbeyond.com to steal your personal or financial information" — a serious trust-destroying error for first-time visitors.
+
+### Diagnosis
+DNS resolution was confirmed correct (`www` → CNAME → `cname.vercel-dns.com`; apex → A → `216.198.79.1`), ruling out a DNS misconfiguration. The actual fault was found by inspecting the TLS certificate directly:
+
+```
+$ openssl s_client -connect www.traamandbeyond.com:443 -servername www.traamandbeyond.com | openssl x509 -noout -subject -ext subjectAltName
+subject=CN=traamandbeyond.com
+X509v3 Subject Alternative Name:
+    DNS:traamandbeyond.com          ← no www entry
+```
+
+`curl` reproduced the exact failure mode: `SEC_E_WRONG_PRINCIPAL — the target principal name is incorrect`.
+
+**Root cause:** `www.traamandbeyond.com` had never been (re-)added as a domain on the Vercel project (`Settings → Domains` only listed `traamandbeyond.com` and the default `.vercel.app` domain). With no domain entry, Vercel never issued a certificate covering the `www` hostname, so every browser correctly flagged the hostname/certificate mismatch as a potential phishing indicator — this was not an actual security compromise, just a missing cert.
+
+### Fix (Vercel dashboard, `Settings → Domains → Add Existing`)
+- Added `www.traamandbeyond.com` to the project
+- **Did not** check "Redirect apex domains to www" (would have flipped the canonical domain to `www`, conflicting with the existing `metadataBase` and `sitemap.ts` config which are keyed to the bare apex domain — see §121)
+- Configured as **"Redirect to Another Domain"** → `traamandbeyond.com`, **308 Permanent Redirect** (not "Connect to an environment", which would have served the site independently at both hostnames and created duplicate-content/SEO issues)
+- Vercel auto-issued a new Let's Encrypt certificate scoped to `www.traamandbeyond.com`
+
+### Verification
+```
+subject=CN=www.traamandbeyond.com
+X509v3 Subject Alternative Name:
+    DNS:www.traamandbeyond.com
+```
+```
+HTTP/1.1 308 Permanent Redirect
+Location: https://traamandbeyond.com/
+```
+followed by `200 OK` on the apex domain.
+
+### Follow-up (non-urgent, cosmetic)
+After adding the domain, Vercel flagged "DNS Change Recommended" — they've expanded their IP range and now prefer a newer CNAME target (`07c03a6e4430f07e.vercel-dns-017.com`) over the legacy one (`cname.vercel-dns.com`) already in place. Vercel's own messaging confirms the legacy record "will continue to work" — this is optional cleanup, not a fix for the SSL issue, which was already resolved before this step. The `www` CNAME record was updated at GoDaddy (`dcc.godaddy.com → Domain → DNS`) to the new target; propagation window quoted as 1–48 hours, no downtime expected during the transition since the old record remains valid throughout.
+
+### No application code changes
+This was entirely a Vercel project settings + GoDaddy DNS fix. No files in the repository were modified.
