@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between gap-8">
           <div>
             <p className="text-cream text-lg font-semibold mb-2">
-              Traam and Beyond
+              Traam and Beyond<span style={{ position: "relative", top: "-0.6em", fontSize: "0.5em" }} className="font-normal ml-0.5">&trade;</span>
             </p>
             <p className="text-sm max-w-xs leading-relaxed">
               Silenced crafts, Speaking again
@@ -31,6 +31,7 @@ export default function Footer() {
         </div>
         <div className="mt-10 pt-6 border-t border-cream/10 text-xs text-center space-y-1">
           <p>© {new Date().getFullYear()} Traam and Beyond. All rights reserved.</p>
+          <p>Traam and Beyond&trade; is a trademark of Hakim Ali Reza.</p>
           <Link href="/developer" className="hover:text-cream transition-colors">
             Developed by <span className="font-display text-base">Hakim Iisa</span> · Director - SEER. <span className="underline underline-offset-2">Know more.</span>
           </Link>

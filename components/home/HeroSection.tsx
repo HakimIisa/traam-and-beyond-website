@@ -89,9 +89,9 @@ export default function HeroSection({ content }: HeroSectionProps) {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="font-display text-5xl sm:text-6xl font-semibold text-cream leading-tight mb-4"
+          className="font-display text-5xl sm:text-6xl font-semibold text-cream leading-tight mb-4 whitespace-nowrap"
         >
-          {content.headline}
+          {content.headline.trim()}<span style={{ position: "relative", top: "-1.5em", fontSize: "0.35em" }} className="font-normal ml-1">&trade;</span>
         </motion.h1>
 
         <motion.p
@@ -132,9 +132,9 @@ export default function HeroSection({ content }: HeroSectionProps) {
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="font-display text-5xl sm:text-6xl lg:text-8xl font-semibold text-cream leading-tight mb-4"
+          className="font-display text-5xl sm:text-6xl lg:text-8xl font-semibold text-cream leading-tight mb-4 lg:whitespace-nowrap"
         >
-          {content.headline}
+          {content.headline.trim()}<span style={{ position: "relative", top: "-1.5em", fontSize: "0.35em" }} className="font-normal ml-1">&trade;</span>
         </motion.h1>
 
         <motion.p

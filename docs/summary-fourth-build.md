@@ -3496,3 +3496,82 @@ After adding the domain, Vercel flagged "DNS Change Recommended" — they've exp
 
 ### No application code changes
 This was entirely a Vercel project settings + GoDaddy DNS fix. No files in the repository were modified.
+
+---
+
+# Twenty-Ninth Build Session — Addendum
+
+**Date:** 2026-08-04
+**Scope:** Trademark (™) notice added to hero headline (mobile + desktop) and footer, ahead of the pending trademark registration for the site name/logo
+
+---
+
+## 149. Trademark Symbol — Placement Strategy
+
+The client is in the process of registering "Traam and Beyond" as a trademark. Rather than tagging ™ on every spelled-out occurrence of the name site-wide, standard trademark notice practice was followed: mark the first/most prominent use per key page (hero headline) plus a single sitewide ownership notice in the footer. Nav links, page titles, and body-copy mentions were intentionally left untagged.
+
+Since the mark is *pending* (not yet registered), **™** was used rather than **®** — the registered-mark symbol is only appropriate once registration is actually granted. `&trade;` → `&reg;` is the swap to make in both files if/when that happens.
+
+---
+
+## 150. HeroSection — ™ on Headline (`components/home/HeroSection.tsx`)
+
+A superscript ™ was appended after `content.headline` in both the mobile and desktop `h1` blocks. It's rendered in the JSX rather than baked into the stored `headline` string (which is admin-editable via `/admin/home` → Firestore), so it survives future copy edits made through the admin panel.
+
+### Issues hit during implementation
+
+1. **JSX whitespace was not the real cause of the first wrap.** The initial fix assumed a newline between `{content.headline}` and `<sup>` was collapsing into a rendered space; joining them onto one line in the source didn't resolve it.
+2. **Actual root cause of the wrap:** the Firestore-stored `headline` value itself had a trailing space baked into the text ("Traam and Beyond "), confirmed by inspecting the raw served HTML. Fixed by rendering `{content.headline.trim()}` instead of `{content.headline}`.
+3. **`<sup>` wasn't visually raised.** Tailwind's preflight reset for `sup`/`sub` (`font-size: 75%; position: relative; top: -0.5em`) wasn't taking effect in this stack, so the mark sat on the baseline instead of raised. Replaced `<sup>` with a plain `<span>` using explicit inline styles instead of relying on the browser/preflight default.
+4. **Headline wrapped to an extra line.** The ™ span's added width pushed the already tight-fitting "Traam and Beyond" past the `max-w-3xl` container edge on desktop (dropping "Beyond™" to its own line), and similarly forced a wrap on mobile. Fixed with `whitespace-nowrap` — `lg:whitespace-nowrap` on the desktop `h1` (scoped since that heading only renders at `lg:` and up), and an unconditional `whitespace-nowrap` on the mobile `h1` (safe since that heading is `lg:hidden` and never shows above the breakpoint).
+5. **Vertical position tuning.** The mark's raise height was iterated from the browser-default `vertical-align: super` (too subtle, barely lifted) to an explicit `top` offset, tuned through `-0.9em` up to a final **`-1.5em`**.
+
+### Final implementation (both mobile and desktop `h1`)
+
+```tsx
+{content.headline.trim()}
+<span
+  style={{ position: "relative", top: "-1.5em", fontSize: "0.35em" }}
+  className="font-normal ml-1"
+>
+  &trade;
+</span>
+```
+
+Mobile `h1` className gained `whitespace-nowrap`; desktop `h1` className gained `lg:whitespace-nowrap`.
+
+### Known tradeoff — flagged, not yet resolved
+The hero `<section>` has `overflow-hidden`. Forcing the headline onto a single line via `whitespace-nowrap` is safe at the viewport widths tested during this session, but on very narrow phones (~375px and below) it could in theory push text past the screen edge and get clipped rather than wrap. Not confirmed as an actual issue yet — worth checking on a small real device. If it surfaces, the fix is stepping the mobile base font size down (e.g. `text-4xl` at the smallest breakpoint), not removing the `nowrap`.
+
+---
+
+## 151. Footer — ™ Symbol + Ownership Notice (`components/layout/Footer.tsx`)
+
+### Site name mark
+A superscript ™ was added next to "Traam and Beyond" in the footer's brand line, using the same explicit-offset `<span>` pattern as the hero, scaled down for the footer's smaller text:
+
+```tsx
+<p className="text-cream text-lg font-semibold mb-2">
+  Traam and Beyond
+  <span style={{ position: "relative", top: "-0.6em", fontSize: "0.5em" }} className="font-normal ml-0.5">
+    &trade;
+  </span>
+</p>
+```
+
+### Ownership notice line
+A new line was added beneath the copyright line, serving as the sitewide trademark notice referenced in the placement strategy (§149) — this single notice is intended to cover the rest of the site so other occurrences of the name don't need individual ™ tags:
+
+```tsx
+<p>© {new Date().getFullYear()} Traam and Beyond. All rights reserved.</p>
+<p>Traam and Beyond&trade; is a trademark of Hakim Ali Reza.</p>
+```
+
+---
+
+## 152. Key Files Modified (Twenty-Ninth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/HeroSection.tsx` | ™ superscript `<span>` added after `content.headline.trim()` on mobile + desktop `h1`; `whitespace-nowrap` (mobile, unconditional) / `lg:whitespace-nowrap` (desktop) added to stop the mark forcing a line wrap; raise height tuned to `top: "-1.5em"` |
+| `components/layout/Footer.tsx` | ™ superscript added to "Traam and Beyond" brand line; new ownership notice line added below copyright ("Traam and Beyond™ is a trademark of Hakim Ali Reza.") |
