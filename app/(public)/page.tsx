@@ -8,9 +8,9 @@ import { getHomeContent } from "@/lib/firebase/site-content";
 import { getAboutContent } from "@/lib/firebase/about-content";
 
 export const metadata: Metadata = {
-  title: "Traam and Beyond — Kashmiri Handcrafted Items",
+  title: "Traam and Beyond — Silenced crafts, Speaking again",
   description:
-    "Discover a curated collection of authentic Kashmiri handcrafted items — copper, silver, jade, papier-mâché, terracotta jewellery, and more.",
+    "An evolving repository of Kashmir’s material heritage, bringing together distinctive antiques, craft research, artisan stories, and contemporary approaches to its traditional design language.",
 };
 
 export default async function HomePage() {
