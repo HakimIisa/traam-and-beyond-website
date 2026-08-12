@@ -23,12 +23,14 @@ interface ResearchItemCardProps {
   item: ResearchItem;
   sectionSlug: string;
   index: number;
+  showDescription?: boolean;
 }
 
 export default function ResearchItemCard({
   item,
   sectionSlug,
   index,
+  showDescription = true,
 }: ResearchItemCardProps) {
   const isOdd = index % 2 === 1;
   const href = `/research/${sectionSlug}/${item.slug}`;
@@ -81,19 +83,34 @@ export default function ResearchItemCard({
               />
             </motion.div>
 
-            <motion.div
-              variants={childVariants}
-              className="w-[65%] flex flex-col justify-center px-16 bg-walnut"
-            >
-              <h3 className="font-display text-6xl text-cream mb-3 group-hover:text-terracotta transition-colors">
-                {item.title}
-              </h3>
-              {item.description && (
-                <p className="text-stone leading-relaxed line-clamp-4 whitespace-pre-line text-justify">
-                  {item.description}
-                </p>
-              )}
-            </motion.div>
+            {showDescription ? (
+              <motion.div
+                variants={childVariants}
+                className="w-[65%] flex flex-col justify-center px-16 bg-walnut"
+              >
+                <h3 className="font-display text-6xl text-cream mb-3 group-hover:text-terracotta transition-colors">
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <p className="text-stone leading-relaxed line-clamp-4 whitespace-pre-line text-justify">
+                    {item.description}
+                  </p>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div variants={childVariants} className="w-[65%] flex flex-col px-16 bg-walnut">
+                <div style={{ flexBasis: "61.8%" }} className="shrink-0 flex flex-col justify-end">
+                  <h3
+                    className={`font-display text-6xl text-cream group-hover:text-terracotta transition-colors translate-y-1/2 ${
+                      isOdd ? "text-right" : "text-left"
+                    }`}
+                  >
+                    {item.title}
+                  </h3>
+                </div>
+                <div style={{ flexBasis: "38.2%" }} className="shrink-0" />
+              </motion.div>
+            )}
           </div>
         </Link>
       </motion.div>

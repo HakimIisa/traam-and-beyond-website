@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getResearchItemsBySection } from "@/lib/firebase/research";
 import { getResearchSection } from "@/lib/research-data";
 import ResearchItemCard from "@/components/items/ResearchItemCard";
+import MobileScrollIndicator from "@/components/collections/MobileScrollIndicator";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ export default async function GraphicDesignPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <MobileScrollIndicator />
       <div className="mb-10">
         <h1 className="font-display text-3xl lg:text-6xl text-cream mb-4">
           {section.title}

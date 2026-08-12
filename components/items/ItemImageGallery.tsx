@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ItemImageGalleryProps {
@@ -11,12 +11,22 @@ interface ItemImageGalleryProps {
   title: string;
 }
 
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? "100%" : "-100%" }),
+  center: { x: 0 },
+  exit: (dir: number) => ({ x: dir > 0 ? "-100%" : "100%" }),
+};
+
+const transition = { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
+
 export default function ItemImageGallery({
   images,
   title,
 }: ItemImageGalleryProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   if (images.length === 0) {
     return (
@@ -26,12 +36,54 @@ export default function ItemImageGallery({
     );
   }
 
-  function prev() {
-    setActiveIndex((i) => (i === 0 ? images.length - 1 : i - 1));
-  }
-  function next() {
-    setActiveIndex((i) => (i === images.length - 1 ? 0 : i + 1));
-  }
+  const total = images.length;
+
+  const navigate = (dir: 1 | -1) => {
+    setDirection(dir);
+    setActiveIndex((i) => (i + dir + total) % total);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const delta = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(delta) > 40) {
+      navigate(delta > 0 ? 1 : -1);
+    }
+    setTouchStartX(null);
+  };
+
+  const goTo = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setDirection(index > activeIndex ? 1 : -1);
+    setActiveIndex(index);
+  };
+
+  const thumbnails = (thumbSize: string) => (
+    <div className="flex gap-2 overflow-x-auto pb-1">
+      {images.map((img, i) => (
+        <button
+          key={i}
+          onClick={(e) => goTo(e, i)}
+          className={cn(
+            `relative flex-shrink-0 ${thumbSize} rounded-xl overflow-hidden border-2 transition-colors`,
+            i === activeIndex ? "border-terracotta" : "border-transparent"
+          )}
+        >
+          <Image
+            src={img}
+            alt={`${title} thumbnail ${i + 1}`}
+            fill
+            sizes="64px"
+            className="object-cover"
+          />
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <>
@@ -40,84 +92,97 @@ export default function ItemImageGallery({
         className="relative aspect-square overflow-hidden rounded-xl cursor-zoom-in bg-cream-dark"
         onClick={() => setLightboxOpen(true)}
       >
-        <Image
-          src={images[activeIndex]}
-          alt={`${title} — image ${activeIndex + 1}`}
-          fill
-          priority
-          sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover"
-        />
-        {images.length > 1 && (
-          <>
-            <button
-              onClick={(e) => { e.stopPropagation(); prev(); }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-cream/80 hover:bg-cream rounded-full p-1 transition-colors"
+        {/* Desktop: static, no swipe (unchanged) */}
+        <div className="hidden lg:block absolute inset-0">
+          <Image
+            src={images[activeIndex]}
+            alt={`${title} — image ${activeIndex + 1}`}
+            fill
+            priority
+            sizes="50vw"
+            className="object-cover"
+          />
+        </div>
+
+        {/* Mobile: swipeable */}
+        <div
+          className="lg:hidden absolute inset-0"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={activeIndex}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={transition}
+              className="absolute inset-0"
             >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); next(); }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-cream/80 hover:bg-cream rounded-full p-1 transition-colors"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </>
-        )}
+              <Image
+                src={images[activeIndex]}
+                alt={`${title} — image ${activeIndex + 1}`}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover"
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Thumbnail strip */}
-      {images.length > 1 && (
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-          {images.map((img, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveIndex(i)}
-              className={cn(
-                "relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors",
-                i === activeIndex ? "border-terracotta" : "border-transparent"
-              )}
-            >
-              <Image
-                src={img}
-                alt={`${title} thumbnail ${i + 1}`}
-                fill
-                sizes="64px"
-                className="object-cover"
-              />
-            </button>
-          ))}
-        </div>
-      )}
+      {images.length > 1 && <div className="mt-3">{thumbnails("w-16 h-16")}</div>}
 
       {/* Lightbox */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-        <DialogContent className="max-w-3xl bg-walnut border-none p-2">
+        <DialogContent className="max-w-3xl bg-black border-none shadow-none p-0 gap-0">
           <div className="relative aspect-square">
-            <Image
-              src={images[activeIndex]}
-              alt={`${title} — image ${activeIndex + 1}`}
-              fill
-              sizes="800px"
-              className="object-contain"
-            />
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={prev}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-cream/20 hover:bg-cream/40 rounded-full p-2 transition-colors"
+            {/* Desktop: static, no swipe (unchanged) */}
+            <div className="hidden lg:block absolute inset-0">
+              <Image
+                src={images[activeIndex]}
+                alt={`${title} — image ${activeIndex + 1}`}
+                fill
+                sizes="800px"
+                className="object-contain"
+              />
+            </div>
+
+            {/* Mobile: swipeable */}
+            <div
+              className="lg:hidden absolute inset-0"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                <motion.div
+                  key={activeIndex}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={transition}
+                  className="absolute inset-0"
                 >
-                  <ChevronLeft size={22} className="text-cream" />
-                </button>
-                <button
-                  onClick={next}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-cream/20 hover:bg-cream/40 rounded-full p-2 transition-colors"
-                >
-                  <ChevronRight size={22} className="text-cream" />
-                </button>
-              </>
-            )}
+                  <Image
+                    src={images[activeIndex]}
+                    alt={`${title} — image ${activeIndex + 1}`}
+                    fill
+                    sizes="100vw"
+                    className="object-contain"
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
+          {images.length > 1 && (
+            <div className="p-4 pt-3">{thumbnails("w-16 h-16")}</div>
+          )}
         </DialogContent>
       </Dialog>
     </>

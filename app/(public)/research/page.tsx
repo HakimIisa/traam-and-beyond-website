@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getResearchItemsBySection } from "@/lib/firebase/research";
 import { RESEARCH_SECTIONS } from "@/lib/research-data";
 import ResearchItemCard from "@/components/items/ResearchItemCard";
+import MobileScrollIndicator from "@/components/collections/MobileScrollIndicator";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function ResearchPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <MobileScrollIndicator />
       {sectionItems.map(({ section, items }) => (
         <section key={section.sectionSlug} className="mb-24">
           <div className="mb-10">
@@ -46,6 +48,7 @@ export default async function ResearchPage() {
                 item={item}
                 sectionSlug={section.sectionSlug}
                 index={index}
+                showDescription={false}
               />
             ))}
           </div>

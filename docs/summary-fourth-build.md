@@ -3694,3 +3694,180 @@ The same hover-only discoverability issue exists on the individual card titles i
 | `components/home/HomePageClient.tsx` | Button strip emptied (trigger div kept for crossfade); foreground wrapper pointer-events architecture reworked (`pointer-events-none` on wrapper + `pointer-events-auto` on each opaque child) to fix the unclickable Our Story link |
 | `components/home/CategoryHighlights.tsx` | "Collections" `h2` restructured — underline/hover classes moved to inner text `<span>`, mobile-only arrow added, always-visible underline + press-feedback scale added for mobile |
 | `components/home/ResearchHighlights.tsx` | "Research" `h2` — identical treatment to CategoryHighlights above |
+
+---
+
+# Thirty-First Build Session — Addendum
+
+**Date:** 2026-08-12
+**Scope:** `/collections` page header removal and desktop layout overhaul (Research-style alternating split, golden-ratio text positioning), new `MobileScrollIndicator` component rolled out across catalogue/research pages, `ItemImageGallery` arrow removal + lightbox fixes + mobile swipe, `/research` index card variant without description
+
+---
+
+## 157. Collections Page — Header Removed (`app/(public)/collections/page.tsx`)
+
+The top-of-page "Collections" title, "Explore our entire collection." subtext, and the divider line beneath them were removed entirely. The page now opens directly on the first category section ("Copperware").
+
+---
+
+## 158. Collections Page — Desktop Layout Overhaul (`components/items/CollectionItemCard.tsx`)
+
+The desktop grid (`grid-cols-1 lg:grid-cols-2`, two items per row) was replaced with the same single-column alternating layout already used on the Research page (`ResearchItemCard.tsx`), at the client's request to make the two feel consistent.
+
+### Structure
+`CollectionItemCard` was split into two fully separate render branches — mirroring the `lg:hidden` / `hidden lg:block` pattern used elsewhere in this codebase (Hero, `ItemCard`, etc.):
+- **Mobile** (`lg:hidden`): unchanged square card, image + centered title/Kashmiri title below.
+- **Desktop** (`hidden lg:block`, new): 35%/65% image/text split row, direction alternates per item via a new `index` prop (`isOdd = index % 2 === 1` → `flex-row-reverse`).
+
+`app/(public)/collections/page.tsx` was updated to pass `index` to each card and swap the container from `grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12` to `grid grid-cols-1 gap-y-12 lg:block lg:gap-y-0` (desktop becomes plain block flow so the full-width alternating rows can stack, matching Research's `flex flex-col` container).
+
+Per explicit confirmation, the desktop text panel shows **title only** (+ Kashmiri title) — no item description, unlike Research's default card which does show one (see §165 for where these two later converged).
+
+---
+
+## 159. CollectionItemCard — Kashmiri Title Alignment Fix
+
+The Kashmiri title (`dir="rtl"`) was rendering flush to the **right edge** of the 65% text panel, visually disconnected from the English title on the left — caused by the browser's RTL default text-alignment with no override. Fixed by adding `text-left` explicitly, matching the pattern already used on the individual item detail page's card (`ItemCard.tsx`, which has the identical `text-left` override on its own Kashmiri paragraph). Same fix later needed conditional handling once mirrored rows were introduced (§161).
+
+---
+
+## 160. CollectionItemCard — Golden-Ratio Text Positioning
+
+The text panel's vertical alignment was changed from simple `justify-center` to a **golden-ratio split** (61.8% / 38.2%), per client design direction, using two stacked flex zones instead of a single centered block:
+
+```tsx
+<div className="w-[65%] flex flex-col px-16 bg-walnut">
+  <div style={{ flexBasis: "61.8%" }} className="shrink-0 flex flex-col justify-end">
+    <h3 className="...">{item.title}</h3>
+  </div>
+  <div style={{ flexBasis: "38.2%" }} className="shrink-0 flex flex-col justify-start">
+    {item.titleKashmiri && <p className="... mt-1" dir="rtl" lang="ks">{item.titleKashmiri}</p>}
+  </div>
+</div>
+```
+
+- Percentage `flex-basis` resolves against the flex container's height on a column axis (unlike percentage `padding`, which is always relative to *width* — a common CSS pitfall avoided here).
+- Top zone (61.8% of the stretched row height, shared with the image via `items-stretch`) holds the English title, bottom-aligned (`justify-end`) so it sits right at the golden-ratio line.
+- Bottom zone (38.2%) holds the Kashmiri title, top-aligned (`justify-start`) so it begins right at the line and reads downward.
+- Net effect: English title above the line, Kashmiri title below it — confirmed working as intended by the client.
+
+---
+
+## 161. CollectionItemCard — Mirrored Text Alignment for Right-Image Rows
+
+On odd-indexed rows (`isOdd`, image on the right via `flex-row-reverse`), both title lines were still left-aligned within the text panel — landing them on the far side of the row, away from the image, instead of mirroring the left-image layout. Fixed by making both the English `h3` and Kashmiri `p` alignment conditional:
+
+```tsx
+className={`... ${isOdd ? "text-right" : "text-left"}`}
+```
+
+so text now hugs whichever inner edge is adjacent to the image, regardless of row direction.
+
+**Scope note:** the identical issue exists on `components/items/ItemCard.tsx` (the individual `/category/[slug]/[itemId]` detail page component), which has the same `flex-row-reverse` alternation but a hardcoded `text-left` on its Kashmiri title — flagged during this pass but left unfixed; out of scope for this session.
+
+---
+
+## 162. MobileScrollIndicator — New Component (`components/collections/MobileScrollIndicator.tsx`)
+
+A custom mobile-only scroll thumb was added, modeled on native phone gallery-app scroll indicators (fades in while scrolling, fades out when idle), after `/ui-ux-pro-max`'s CLI search tool failed in this environment (broken git symlinks for `scripts`/`data` under `.claude/skills/ui-ux-pro-max/` on this Windows setup — the loaded Quick Reference guidance was used directly instead: `duration-timing`, `opacity-threshold`, `gesture-conflicts`, `reduced-motion`).
+
+### Behavior
+- **Proportional thumb**: height reflects `viewport / documentHeight`, position reflects scroll progress — a real scrollbar thumb, not a generic indicator. `MIN_THUMB = 24px` floor so it's never invisibly thin on very long pages.
+- **Fade**: appears immediately on scroll, fades fully to `opacity: 0` after 1s idle (`HIDE_DELAY`), 300ms transition, `motion-reduce:transition-none` for `prefers-reduced-motion`. Deliberately fades all the way rather than lingering at low opacity, per the `opacity-threshold` guideline.
+- **Draggable**: implemented via Pointer Events (`onPointerDown` + window-level `pointermove`/`pointerup`/`pointercancel`), translating drag distance into `window.scrollTo()` proportionally to the track/content-height ratio. Dragging pauses the auto-hide timer; releasing resumes it.
+- **Touch target**: separate invisible hit-area layer, sized independently from the visible bar — floor of `44px` tall (iterated from 44 → 60 → back to 44 per client feedback) × `48px` wide (`w-12`, iterated up from an initial `w-8`), centered on the thumb's current position. The *track* stays `pointer-events-none` throughout so normal page scrolling anywhere else in that screen column is unaffected; only the small moving hit-area is `pointer-events-auto` + `touch-none`.
+- **Visual bar**: thin by default (`w-0.5`, 2px) and grows to `w-1.5` (6px) only while pressed (`pressed` state), `right-1` offset from the true screen edge, terracotta color at 85% opacity (client's choice over a muted stone/cream alternative).
+- **Native scrollbar hidden**: only on mobile widths (`max-width: 1023px`) and only while the component is mounted, via a `<style jsx global>` block — Next.js removes this automatically on navigation, so it never leaks to other pages.
+- **Track insets**: 80px top/bottom to clear the navbar and `BottomTabBar`.
+
+### Pages it was applied to
+Fully generic/self-contained (no props) — dropped into:
+- `app/(public)/collections/page.tsx` (where it was designed and locked in first)
+- `app/(public)/category/[slug]/page.tsx` (single dynamic route covering all 13 category listing pages)
+- `app/(public)/research/page.tsx`
+- `app/(public)/research/adaptive-reuse/page.tsx`
+- `app/(public)/research/reinterpretation/page.tsx`
+- `app/(public)/research/graphic-design/page.tsx`
+
+---
+
+## 163. ItemImageGallery — Arrow Removal, Lightbox Border Fix, Lightbox Thumbnails (`components/items/ItemImageGallery.tsx`)
+
+This single component is shared by the category item detail page (`/category/[slug]/[itemId]`) and all three research item detail pages (`/research/*/[slug]`), so each change below applies uniformly across the whole catalogue and all research sections.
+
+### Arrows removed
+The left/right chevron navigation buttons were removed from both the inline main-image gallery and the full-screen lightbox popup (client's explicit choice — "both" over "inline only" when asked, accepting that the lightbox loses in-popup navigation in exchange, since it gained a thumbnail strip in the same pass — see below). Dead code cleaned up alongside: the now-unused `prev`/`next` functions and the `ChevronLeft`/`ChevronRight` imports (the `X` icon import was already unused before this change and was removed too).
+
+### Lightbox border fix
+The lightbox appeared to have a brown border framing the image. Root cause: not an actual `border` utility, but the Dialog's own `p-2` padding revealing its `bg-walnut` background around the edges. Fixed by changing the `DialogContent` className from `bg-walnut border-none p-2` to `bg-black border-none shadow-none p-0 gap-0` — image now sits flush against pure black, matching the overlay behind it.
+
+### Lightbox thumbnail strip (new)
+Since removing the lightbox's arrows left no way to navigate between images while it was open, a thumbnail strip was added inside the lightbox (below the image), reusing the exact same thumbnail markup as the main page via an extracted `thumbnails(thumbSize)` helper shared between both locations — clicking a thumbnail updates the same `activeIndex` state used by the main view.
+
+---
+
+## 164. ItemImageGallery — Mobile-Only Swipe-to-Navigate
+
+Following the same request pattern as before ("investigate how the existing swipe mechanic works, apply the same mechanic here, mobile only"), the swipe-to-change-image behavior from `components/items/ImageCarousel.tsx` (used on the catalogue/research grid pages) was ported into `ItemImageGallery`, applied to **both** the main page image and the lightbox image.
+
+### Implementation
+Copied `ImageCarousel`'s exact `slideVariants`/`transition` constants and touch-delta logic (40px threshold) into `ItemImageGallery`:
+
+```tsx
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? "100%" : "-100%" }),
+  center: { x: 0 },
+  exit: (dir: number) => ({ x: dir > 0 ? "-100%" : "100%" }),
+};
+const transition = { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const };
+```
+
+Both the main image and the lightbox image were split into a `hidden lg:block` static branch (completely unchanged desktop behavior — no swipe, no animation) and an `lg:hidden` branch wrapped in `AnimatePresence`/`motion.div` with `onTouchStart`/`onTouchEnd` handlers driving a shared `navigate(dir)` function. Thumbnail clicks were also updated to set the swipe `direction` (`index > activeIndex ? 1 : -1`, matching `ImageCarousel`'s `goTo`), so on mobile even a thumbnail tap now animates with the correct slide direction instead of a hard cut — harmless on desktop since that branch never reads `direction`.
+
+Because rendering both breakpoint branches simultaneously (one hidden via CSS) means both `<Image>` instances mount in the DOM, this duplicates image requests across breakpoints — an accepted tradeoff, matching the same pattern already used elsewhere in this codebase (`HeroSection`, `CollectionItemCard`) rather than introducing a new `useMediaQuery`-based conditional-render approach.
+
+---
+
+## 165. Research Page — Card Variant Without Description (`components/items/ResearchItemCard.tsx`, `app/(public)/research/page.tsx`)
+
+The client asked for the `/research` index page's cards to drop their description text and match the Collections card treatment. Since `ResearchItemCard` is shared across four pages (`/research` plus the three individual section pages), scope was confirmed before implementing: **only** the `/research` index page changes; the three section pages (`/research/adaptive-reuse`, `/research/reinterpretation`, `/research/graphic-design`) keep their current centered-title-with-description layout untouched.
+
+### Implementation
+Added a `showDescription` prop (default `true`, preserving existing behavior everywhere it isn't explicitly overridden):
+
+```tsx
+interface ResearchItemCardProps {
+  item: ResearchItem;
+  sectionSlug: string;
+  index: number;
+  showDescription?: boolean;
+}
+```
+
+When `showDescription={false}` (passed only from `app/(public)/research/page.tsx`), the desktop text panel branches to the same golden-ratio structure introduced for Collections in §160 — no description, mirrored `text-right`/`text-left` alignment on alternating rows (§161's fix, ported here too) — instead of the default `justify-center` + description layout.
+
+### Golden-ratio line-through-title adjustment
+After implementing, the title sat entirely *above* the golden-ratio line (bottom-edge-aligned to it, per §160's original design). The client asked for the line to instead pass through the vertical *middle* of the title text. Fixed with a simple transform on the title itself:
+
+```tsx
+<h3 className="... translate-y-1/2 ...">{item.title}</h3>
+```
+
+`translateY(50%)` shifts the element down by half of its own rendered height — since it was previously bottom-anchored exactly at the line, this centers the text vertically across the boundary instead of sitting fully above it. Scoped only to the `showDescription={false}` branch (Collections cards were not asked to receive this adjustment and remain bottom-anchored at the line).
+
+---
+
+## 166. Key Files Modified (Thirty-First Build)
+
+| File | Change type |
+|------|-------------|
+| `app/(public)/collections/page.tsx` | Page header (title/subtitle/divider) removed; `index` passed to cards; container switched from 2-col grid to block flow for the new alternating desktop layout |
+| `components/items/CollectionItemCard.tsx` | Desktop split into alternating 35/65 layout (new `index` prop); Kashmiri title `text-left` fix; golden-ratio (61.8%/38.2%) text positioning; mirrored `text-right`/`text-left` alignment for right-image rows |
+| `components/collections/MobileScrollIndicator.tsx` | **New file** — proportional, draggable, auto-fading mobile scroll thumb; native scrollbar hidden while mounted |
+| `app/(public)/category/[slug]/page.tsx` | `MobileScrollIndicator` added |
+| `app/(public)/research/page.tsx` | `MobileScrollIndicator` added; `ResearchItemCard` now passed `showDescription={false}` |
+| `app/(public)/research/adaptive-reuse/page.tsx` | `MobileScrollIndicator` added |
+| `app/(public)/research/reinterpretation/page.tsx` | `MobileScrollIndicator` added |
+| `app/(public)/research/graphic-design/page.tsx` | `MobileScrollIndicator` added |
+| `components/items/ItemImageGallery.tsx` | Left/right arrows removed (inline + lightbox); lightbox `p-2`/`bg-walnut` border fixed to flush black; thumbnail strip added inside lightbox; mobile-only swipe-to-navigate added to both main image and lightbox (desktop unchanged); dead `prev`/`next`/unused icon imports cleaned up |
+| `components/items/ResearchItemCard.tsx` | New `showDescription` prop (default `true`); golden-ratio no-description branch added for `/research` index use; title `translate-y-1/2` so the golden-ratio line passes through its vertical center |

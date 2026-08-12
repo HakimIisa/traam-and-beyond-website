@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getAllCategories } from "@/lib/firebase/categories";
 import { getItemsByCategory } from "@/lib/firebase/items";
 import CollectionItemCard from "@/components/items/CollectionItemCard";
+import MobileScrollIndicator from "@/components/collections/MobileScrollIndicator";
 import { CATEGORY_DESCRIPTIONS } from "@/lib/category-descriptions";
 import { CATEGORY_KASHMIRI_NAMES } from "@/lib/category-kashmiri-names";
 
@@ -27,17 +28,7 @@ export default async function CollectionsPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-      {/* Page header */}
-      <div className="mb-16">
-        <h1 className="font-display text-3xl lg:text-6xl text-cream mb-4">
-          Collections
-        </h1>
-        <p className="text-stone text-sm lg:text-base leading-relaxed mb-8">
-          Explore our entire collection.
-        </p>
-        <div className="border-t border-white/10" />
-      </div>
-
+      <MobileScrollIndicator />
       {/* Category sections */}
       {populated.map(({ category, items }) => {
         const description =
@@ -71,9 +62,9 @@ export default async function CollectionsPage() {
               )}
               <div className="border-t border-white/10" />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-12">
-              {items.map((item) => (
-                <CollectionItemCard key={item.id} item={item} />
+            <div className="grid grid-cols-1 gap-y-12 lg:block lg:gap-y-0">
+              {items.map((item, index) => (
+                <CollectionItemCard key={item.id} item={item} index={index} />
               ))}
             </div>
           </section>

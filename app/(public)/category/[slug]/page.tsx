@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCategoryBySlug } from "@/lib/firebase/categories";
 import { getItemsByCategory } from "@/lib/firebase/items";
 import ItemGrid from "@/components/items/ItemGrid";
+import MobileScrollIndicator from "@/components/collections/MobileScrollIndicator";
 import { CATEGORY_DESCRIPTIONS } from "@/lib/category-descriptions";
 import { CATEGORY_KASHMIRI_NAMES } from "@/lib/category-kashmiri-names";
 
@@ -35,6 +36,7 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      <MobileScrollIndicator />
       {/* Header */}
       <div className="mb-10">
         <div className="flex items-baseline justify-between gap-6 mb-4">
