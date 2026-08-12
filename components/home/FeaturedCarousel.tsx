@@ -23,7 +23,7 @@ export default function FeaturedCarousel({ images }: FeaturedCarouselProps) {
 
   React.useEffect(() => {
     if (images.length <= 1) return;
-    const timer = setInterval(handleNext, 4000);
+    const timer = setInterval(handleNext, 2500);
     return () => clearInterval(timer);
   }, [handleNext, images.length]);
 
