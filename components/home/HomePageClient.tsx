@@ -64,38 +64,39 @@ export default function HomePageClient({ categories, content, aboutContent }: Pr
         </div>
       </div>
 
-      {/* Foreground — pulled up to overlap sticky background */}
-      <div className="relative z-[2] -mt-[100vh]">
+      {/* Foreground — pulled up to overlap sticky background. pointer-events-none here so the
+          transparent gaps let clicks reach the sticky layer beneath (e.g. the Our Story link);
+          each opaque child re-enables pointer-events-auto for itself. */}
+      <div className="relative z-[2] -mt-[100vh] pointer-events-none">
         {/* HeroSection — opaque (bg-walnut), all animations unchanged */}
-        <HeroSection content={content.hero} />
+        <div className="pointer-events-auto">
+          <HeroSection content={content.hero} />
+        </div>
 
         {/* Transparent gap 1 — OurStory visible beneath */}
         <div className="aspect-square lg:h-[85vh] w-full" />
 
-        {/* Button strip — first opaque element after gap 1; trigger ref fires switch */}
+        {/* Trigger strip — first opaque element after gap 1; ref fires the crossfade switch */}
         <div
           ref={buttonStripRef}
-          className="bg-[#1a130a] flex flex-col items-center justify-center px-8 py-6 gap-4"
-        >
-          <a
-            href="/about"
-            className="inline-block px-8 py-3 bg-terracotta hover:bg-terracotta-light text-cream text-sm tracking-wide transition-colors rounded-sm"
-          >
-            Read Our Story ›››
-          </a>
-        </div>
+          className="bg-[#1a130a] px-8 py-6"
+        />
 
         {/* Our Collections — opaque */}
-        <CategoryHighlights categories={categories} content={content.collections} />
+        <div className="pointer-events-auto">
+          <CategoryHighlights categories={categories} content={content.collections} />
+        </div>
 
         {/* Transparent gap 2 — Featured visible beneath */}
         <div className="aspect-square lg:h-[85vh] w-full" />
 
         {/* Research — opaque */}
-        <ResearchHighlights />
+        <div className="pointer-events-auto">
+          <ResearchHighlights />
+        </div>
 
         {/* General Enquiry — opaque */}
-        <section className="bg-cream-dark py-16">
+        <section className="bg-cream-dark py-16 pointer-events-auto">
           <div className="max-w-xl mx-auto px-4 sm:px-6">
             <p className="text-stone text-center mb-8">{content.enquiry.subtitle}</p>
             <EnquiryForm type="general" />

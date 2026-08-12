@@ -30,6 +30,12 @@ export default function OurStorySection({ content }: OurStorySectionProps) {
           <div className="px-6 py-5 text-center space-y-3">
             <p className="text-[#1a130a] text-base leading-relaxed">{MOBILE_P1}</p>
             <p className="text-[#FAF6F0] text-base leading-relaxed">{MOBILE_P2}</p>
+            <a
+              href="/about#introduction"
+              className="inline-block text-[#1a130a] text-sm lg:text-base font-bold underline decoration-[#1a130a] lg:decoration-transparent underline-offset-4 transition-all duration-300 ease-out lg:hover:decoration-[#1a130a] lg:hover:scale-105"
+            >
+              Read Our Story →
+            </a>
           </div>
 
           <Image

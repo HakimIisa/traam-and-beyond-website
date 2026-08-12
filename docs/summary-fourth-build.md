@@ -3575,3 +3575,122 @@ A new line was added beneath the copyright line, serving as the sitewide tradema
 |------|-------------|
 | `components/home/HeroSection.tsx` | ™ superscript `<span>` added after `content.headline.trim()` on mobile + desktop `h1`; `whitespace-nowrap` (mobile, unconditional) / `lg:whitespace-nowrap` (desktop) added to stop the mark forcing a line wrap; raise height tuned to `top: "-1.5em"` |
 | `components/layout/Footer.tsx` | ™ superscript added to "Traam and Beyond" brand line; new ownership notice line added below copyright ("Traam and Beyond™ is a trademark of Hakim Ali Reza.") |
+
+---
+
+# Thirtieth Build Session — Addendum
+
+**Date:** 2026-08-11 to 2026-08-12
+**Scope:** Homepage SEO metadata update, "Read Our Story" button replaced with an inline text link (plus a foreground pointer-events architecture fix that was blocking it), and mobile tap-discoverability treatment for the "Collections"/"Research" section headings
+
+---
+
+## 153. Homepage Metadata — Title & Description Update (`app/(public)/page.tsx`)
+
+The homepage's route-level `metadata` export (which overrides the site-wide default in `app/layout.tsx` for `/` specifically) was updated:
+
+```tsx
+export const metadata: Metadata = {
+  title: "Traam and Beyond — Silenced crafts, Speaking again",
+  description:
+    "An evolving repository of Kashmir's material heritage, bringing together distinctive antiques, craft research, artisan stories, and contemporary approaches to its traditional design language.",
+};
+```
+
+This is the text Google shows in search results (confirmed via a live `traam and beyond` Google search showing the old description). Since it's static text (not Firestore-driven), the change required a code deploy rather than an admin-panel edit. After deploying, re-indexing was requested via Google Search Console (Domain property `traamandbeyond.com`, verified via DNS TXT record at GoDaddy) using URL Inspection → Request Indexing on the homepage — there's no guaranteed timeline for the new snippet to actually replace the cached one in search results.
+
+---
+
+## 154. Our Story Section — "Read Our Story" Button Replaced with Inline Link
+
+### The change
+The standalone terracotta "Read Our Story ›››" button (previously its own opaque strip on the home page, see §18/§27) was removed entirely. In its place, a text link was added directly inside `OurStorySection.tsx`, centered beneath the two intro paragraphs:
+
+```tsx
+// components/home/OurStorySection.tsx
+<div className="px-6 py-5 text-center space-y-3">
+  <p className="text-[#1a130a] text-base leading-relaxed">{MOBILE_P1}</p>
+  <p className="text-[#FAF6F0] text-base leading-relaxed">{MOBILE_P2}</p>
+  <a
+    href="/about#introduction"
+    className="inline-block text-[#1a130a] text-sm lg:text-base font-bold underline decoration-[#1a130a] lg:decoration-transparent underline-offset-4 transition-all duration-300 ease-out lg:hover:decoration-[#1a130a] lg:hover:scale-105"
+  >
+    Read Our Story →
+  </a>
+</div>
+```
+
+- Links to `/about#introduction` — matching the target the navbar's own "Our Story" sub-link already uses.
+- Color fixed at `text-[#1a130a]` (matches the "In 2004…" paragraph) — an earlier iteration dimmed the color on hover (`hover:text-[#1a130a]/80`); this was explicitly removed at the client's request so the text color never changes.
+- **Desktop:** underline starts transparent (`decoration-transparent`) and reveals via `lg:hover:decoration-[#1a130a]`, plus a `lg:hover:scale-105` grow — both gated to `lg:` so no lingering "stuck hover" state occurs on a mobile tap.
+- **Mobile:** underline is always visible (`decoration-[#1a130a]`, no transparent state) since there's no hover to reveal it, and font size is dropped to `text-sm` (from `text-base` on desktop).
+
+`components/home/HomePageClient.tsx`'s button strip was reduced to an empty `bg-[#1a130a] px-8 py-6` div — it's kept in the DOM (not deleted) because it's the scroll-trigger element (`buttonStripRef`) that fires the OurStory→Featured crossfade switch (see §29/§43); removing it outright would have broken that transition.
+
+### Root-cause debugging: the link was unclickable
+After the initial implementation, the link was visible but clicks did nothing. This took several iterations to fully diagnose:
+
+1. **First hypothesis (wrong-ish):** the "Transparent gap 1" spacer div (`<div className="aspect-square lg:h-[85vh] w-full" />` in `HomePageClient.tsx`, sitting at `z-[2]` directly above the sticky background layer at `z-[1]`) was assumed to be capturing clicks since it's a normal block element with no visual content but default `pointer-events: auto`. Added `pointer-events-none` to it — this did not fully fix the issue.
+2. **Actual root cause (confirmed via Chrome DevTools element picker):** `pointer-events: none` on a child only defers hit-testing to that child's *nearest ancestor* that still accepts pointer events — it does **not** skip across to an entirely different branch of the DOM (the sticky background layer where the link actually lives, a sibling subtree, not an ancestor). Since the foreground wrapper itself (`<div className="relative z-[2] -mt-[100vh]">`, wrapping the entire Hero-through-Enquiry page content) had no `pointer-events-none` of its own, clicks in the gap area kept resolving to *that* wrapper — confirmed directly by using DevTools' element picker on the link's screen position, which highlighted `div.relative.z-[2].-mt-[100vh]` as the hit target, not the `<a>`.
+3. **Fix:** disabled `pointer-events` on the whole foreground wrapper, then explicitly re-enabled it (`pointer-events-auto`) on each opaque child section that needs to stay interactive — Hero, the trigger strip, Collections, Research, and the Enquiry form. Since `pointer-events` is an inherited CSS property, the transparent gap divs need no class of their own; they inherit `none` from the wrapper and become click-through automatically, letting clicks fall through to the sticky background layer's link.
+
+```tsx
+// components/home/HomePageClient.tsx
+<div className="relative z-[2] -mt-[100vh] pointer-events-none">
+  <div className="pointer-events-auto"><HeroSection ... /></div>
+  <div className="aspect-square lg:h-[85vh] w-full" />                 {/* gap 1 — click-through, inherits none */}
+  <div ref={buttonStripRef} className="bg-[#1a130a] px-8 py-6" />       {/* trigger strip — no interactive content, left as none */}
+  <div className="pointer-events-auto"><CategoryHighlights ... /></div>
+  <div className="aspect-square lg:h-[85vh] w-full" />                 {/* gap 2 */}
+  <div className="pointer-events-auto"><ResearchHighlights /></div>
+  <section className="bg-cream-dark py-16 pointer-events-auto">...</section>
+</div>
+```
+
+---
+
+## 155. Mobile Tap-Discoverability — "Collections" / "Research" Section Headings
+
+### Problem
+Both section headings (`components/home/CategoryHighlights.tsx` and `components/home/ResearchHighlights.tsx`) are themselves navigation links (to `/collections` and `/research` respectively), signaled on desktop only via a hover-triggered underline + terracotta color change (`group-hover:decoration-terracotta`, `group-hover:text-terracotta`). Touch devices have no hover state, so on mobile these headings looked like inert section titles with no indication they were tappable.
+
+### Design pass
+Ran through `/ui-ux-pro-max` for grounded options (the skill's CLI search tool itself hit a broken symlink in this environment — `scripts`/`data` under `.claude/skills/ui-ux-pro-max/` are unmaterialized git symlinks on this Windows setup — so the loaded Quick Reference rules were used directly: `hover-vs-tap`, `nav-label-icon`, `press-feedback`). Discussed four options (static underline / underline+arrow / press-feedback-only / eyebrow microcopy) before implementing.
+
+### Implementation (mobile only; desktop hover behavior untouched)
+Applied to both headings identically:
+
+1. **Always-visible underline on mobile**, matching text color: `decoration-cream` at the base breakpoint (was briefly `decoration-terracotta` first, then corrected to match `text-cream`), reset to `lg:decoration-transparent` so desktop keeps its existing hover-reveal.
+2. **Press/tap feedback**: `group-active:scale-[0.85]` on the `h2` (fired via the wrapping `<Link className="group block">`), reset to `lg:group-active:scale-100` so desktop clicks are unaffected. Iterated from an initial `scale-[0.97]` (too subtle, didn't read as a deliberate press) up to `0.85`.
+3. **Mobile-only arrow** (`→`) appended after the heading text, wrapped in `lg:hidden` so desktop's clean look is unchanged.
+
+### Underline-under-arrow rendering bug
+Initially the arrow lived inside the same underlined element as the text, with `no-underline` applied to just the arrow's `<span>` to suppress the inherited decoration. In practice this produced a visibly separate underline segment floating under the arrow, disconnected from the line under the text — most likely caused by the arrow's smaller font size (`text-2xl` vs. the heading's `text-5xl`) creating a font-metric discontinuity in how the browser draws the decoration line across differently-sized inline boxes, which `no-underline` didn't reliably suppress.
+
+**Fix:** restructured so the underline/decoration/hover-color classes live only on an inner `<span>` wrapping just the text, with the arrow as a plain sibling `<span>` that never had underline styling in the first place — no override needed:
+
+```tsx
+// components/home/CategoryHighlights.tsx (ResearchHighlights.tsx is identical in structure)
+<h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center group-active:scale-[0.85] lg:group-active:scale-100 transition-transform duration-150">
+  <span className="underline decoration-cream lg:decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
+    {content.title}
+  </span><span className="lg:hidden text-2xl align-middle ml-1">→</span>
+</h2>
+```
+
+Scale/press-feedback stayed on the outer `h2` so text and arrow visually scale together as one unit on tap.
+
+### Scope note
+The same hover-only discoverability issue exists on the individual card titles inside both sections (`CategoryHighlights.tsx` / `ResearchHighlights.tsx` card `h3`s use the identical `decoration-transparent` → `group-hover:decoration-terracotta` pattern) — flagged during the design discussion but intentionally left unchanged; only the two section headings were in scope for this pass.
+
+---
+
+## 156. Key Files Modified (Thirtieth Build)
+
+| File | Change type |
+|------|-------------|
+| `app/(public)/page.tsx` | Homepage `metadata` title/description updated (SEO snippet text) |
+| `components/home/OurStorySection.tsx` | "Read Our Story →" link added beneath intro paragraphs (replaces the removed button); styled with mobile-always-underlined / desktop-hover-reveal treatment |
+| `components/home/HomePageClient.tsx` | Button strip emptied (trigger div kept for crossfade); foreground wrapper pointer-events architecture reworked (`pointer-events-none` on wrapper + `pointer-events-auto` on each opaque child) to fix the unclickable Our Story link |
+| `components/home/CategoryHighlights.tsx` | "Collections" `h2` restructured — underline/hover classes moved to inner text `<span>`, mobile-only arrow added, always-visible underline + press-feedback scale added for mobile |
+| `components/home/ResearchHighlights.tsx` | "Research" `h2` — identical treatment to CategoryHighlights above |

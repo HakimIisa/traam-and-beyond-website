@@ -190,8 +190,10 @@ export default function ResearchHighlights() {
             />
           </div>
           <Link href="/research" className="group block">
-            <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center underline decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
-              Research
+            <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center group-active:scale-[0.85] lg:group-active:scale-100 transition-transform duration-150">
+              <span className="underline decoration-cream lg:decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
+                Research
+              </span><span className="lg:hidden text-2xl align-middle ml-1">→</span>
             </h2>
           </Link>
           <p className="text-stone mb-6 text-justify lg:text-center">
