@@ -30,7 +30,7 @@ export default function FeaturedCarousel({ images }: FeaturedCarouselProps) {
   if (images.length === 0) return null;
 
   return (
-    <div className="relative w-full py-16 md:py-20 overflow-hidden bg-[#0a0a0a]">
+    <div className="relative w-full py-16 md:py-20 overflow-hidden bg-[#1a130a]">
       {/* Background glow — brand colors */}
       <div className="absolute inset-0 z-0 opacity-20" aria-hidden="true">
         <div className="absolute top-1/2 left-[-10%] -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-[radial-gradient(circle_farthest-side,rgba(248,232,210,0.35),rgba(255,255,255,0))]" />
@@ -38,7 +38,7 @@ export default function FeaturedCarousel({ images }: FeaturedCarouselProps) {
       </div>
 
       {/* Showcase */}
-      <div className="relative z-10 w-full h-72 sm:h-72 md:h-80 lg:h-[32rem] flex items-center justify-center [perspective:1000px]">
+      <div className="relative z-10 w-full h-72 sm:h-72 md:h-80 lg:h-[42rem] flex items-center justify-center [perspective:1000px]">
         {images.map((image, index) => {
           const offset = index - currentIndex;
           const total = images.length;
@@ -51,7 +51,7 @@ export default function FeaturedCarousel({ images }: FeaturedCarouselProps) {
           return (
             <div
               key={image + index}
-              className="absolute w-[300px] h-[300px] sm:w-[300px] sm:h-[300px] md:w-64 md:h-64 lg:w-[28rem] lg:h-[28rem] transition-all duration-500 ease-in-out flex items-center justify-center"
+              className="absolute w-[300px] h-[300px] sm:w-[300px] sm:h-[300px] md:w-64 md:h-64 lg:w-[38rem] lg:h-[38rem] transition-all duration-500 ease-in-out flex items-center justify-center"
               style={{
                 transform: `
                   translateX(${pos * 45}%)
@@ -64,13 +64,13 @@ export default function FeaturedCarousel({ images }: FeaturedCarouselProps) {
                 visibility: Math.abs(pos) > 1 ? "hidden" : "visible",
               }}
             >
-              <div className="relative w-full h-full rounded-3xl overflow-hidden border-2 border-cream-dark/20 shadow-2xl">
+              <div className="relative w-full h-full">
                 <Image
                   src={image}
                   alt={`Featured ${index + 1}`}
                   fill
                   sizes="(max-width: 768px) 224px, 288px"
-                  className="object-cover"
+                  className="object-contain"
                 />
               </div>
             </div>

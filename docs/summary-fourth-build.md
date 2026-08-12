@@ -4136,3 +4136,62 @@ Not a code or config issue at all — both the email and password fields showed 
 | `components/home/HomePageClient.tsx` | `featuredImages` prop threaded through to `CategoryHighlights` |
 | `components/home/CategoryHighlights.tsx` | Header split into three siblings (image / carousel / title blocks) so the carousel can be full-width; `FeaturedCarousel` wired in with `mb-10` spacing |
 | `app/(admin)/login/page.tsx` | Temporary debug `console.error` added then removed during the login investigation (§177) — no net change |
+
+---
+
+# Thirty-Fourth Build Session — Addendum
+
+**Date:** 2026-08-12
+**Scope:** FeaturedCarousel follow-up tuning — background color reversal, further desktop size increases, and removing the opaque card frame so transparent cutout PNGs float without a visible border/shadow
+
+---
+
+## 179. FeaturedCarousel — Background Color Reversed to Match the Page
+
+§176 had changed the wrapper from the surrounding section's `#1a130a` to a distinct near-black `#0a0a0a` so the panel would read as its own section. After seeing it live, the client reversed this decision — wanted it to blend with the page instead of standing apart. Changed `bg-[#0a0a0a]` → `bg-[#1a130a]`, exactly matching `CategoryHighlights`' own section background once again.
+
+---
+
+## 180. FeaturedCarousel — Further Desktop Size Increases
+
+Continued the desktop-only (`lg:`) sizing iteration from §176 across four more rounds, each keeping the same ~64px margin between the slide box and its showcase container established in §176:
+
+| Round | Slide size | Showcase height |
+|-------|-----------|------------------|
+| (§176 end state) | `28rem` (448px) | `32rem` (512px) |
+| +1 | `32rem` (512px) | `36rem` (576px) |
+| +2 ("a little more") | `34rem` (544px) | `38rem` (608px) |
+| +3 ("by 4rem") | `38rem` (608px) | `42rem` (672px) |
+
+Mobile/tablet sizing (base, `sm:`, `md:`) untouched throughout — all changes scoped to `lg:` only, per instruction each round.
+
+---
+
+## 181. FeaturedCarousel — Removed Opaque Card Frame for Transparent PNGs
+
+Client's actual production images are PNGs with backgrounds removed (transparent cutouts), and reported a visible "opaque frame" around each floating object — a rounded square with a border and shadow showing through even though the image itself had no background.
+
+### Root cause
+The per-slide image wrapper had `rounded-3xl overflow-hidden border-2 border-cream-dark/20 shadow-2xl` — a card-style frame that renders regardless of the image content, since it's drawn on the *container div*, not derived from the image's actual alpha shape. Combined with `object-cover` (which fills/crops to the square bounding box), this produced a visible bordered, shadowed square card around every image — fine for opaque photography (the original test images), but wrong for the client's actual background-removed art direction, where the object itself should appear to float with nothing framing it.
+
+### Fix
+```tsx
+// Before
+<div className="relative w-full h-full rounded-3xl overflow-hidden border-2 border-cream-dark/20 shadow-2xl">
+  <Image ... className="object-cover" />
+</div>
+
+// After
+<div className="relative w-full h-full">
+  <Image ... className="object-contain" />
+</div>
+```
+Removed the rounded corners, border, `overflow-hidden`, and drop shadow entirely, and switched `object-cover` → `object-contain` so a non-square or off-center transparent PNG isn't cropped to fill the box — the isolated object now renders directly against the panel's own background with no frame of any kind.
+
+---
+
+## 182. Key Files Modified (Thirty-Fourth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/FeaturedCarousel.tsx` | Background reverted to `#1a130a` (matches page); desktop (`lg:`) slide/showcase sizing increased across four rounds (448px → 608px slide, 512px → 672px showcase); card frame (rounded corners, border, shadow) removed and `object-cover` → `object-contain`, so transparent cutout PNGs float without an opaque frame |
