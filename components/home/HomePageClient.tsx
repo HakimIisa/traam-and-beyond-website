@@ -79,7 +79,7 @@ export default function HomePageClient({ categories, content, aboutContent }: Pr
         {/* Trigger strip — first opaque element after gap 1; ref fires the crossfade switch */}
         <div
           ref={buttonStripRef}
-          className="bg-[#1a130a] px-8 py-6"
+          className="bg-[#1a130a] px-8 py-[12px] lg:py-[16px]"
         />
 
         {/* Our Collections — opaque */}

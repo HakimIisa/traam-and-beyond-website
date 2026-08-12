@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { useScrollPositionRestore } from "@/hooks/useScrollPositionRestore";
 
 const RESEARCH_ITEMS = [
   {
@@ -32,6 +33,9 @@ export default function ResearchHighlights() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useScrollPositionRestore(scrollContainerRef, "researchHighlightsScrollLeft");
+
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const dragStartScrollLeft = useRef(0);

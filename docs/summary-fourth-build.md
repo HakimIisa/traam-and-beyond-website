@@ -3871,3 +3871,140 @@ After implementing, the title sat entirely *above* the golden-ratio line (bottom
 | `app/(public)/research/graphic-design/page.tsx` | `MobileScrollIndicator` added |
 | `components/items/ItemImageGallery.tsx` | Left/right arrows removed (inline + lightbox); lightbox `p-2`/`bg-walnut` border fixed to flush black; thumbnail strip added inside lightbox; mobile-only swipe-to-navigate added to both main image and lightbox (desktop unchanged); dead `prev`/`next`/unused icon imports cleaned up |
 | `components/items/ResearchItemCard.tsx` | New `showDescription` prop (default `true`); golden-ratio no-description branch added for `/research` index use; title `translate-y-1/2` so the golden-ratio line passes through its vertical center |
+
+---
+
+# Thirty-Second Build Session — Addendum
+
+**Date:** 2026-08-12
+**Scope:** Page-navigation loading feedback (pulsing bowl-mark overlay), horizontal-carousel scroll-position restoration on browser back navigation
+
+---
+
+## 167. Navigation Loading Feedback — Design Discussion
+
+The client reported that clicking a nav link gave zero feedback until the next page abruptly appeared, leaving an "did my click register?" feeling. Per instruction, options were discussed before writing any code, grounded in `/ui-ux-pro-max`'s loaded Quick Reference (the skill's CLI search tool again hit the same broken-symlink issue as prior sessions — `scripts`/`data` under `.claude/skills/ui-ux-pro-max/` are unmaterialized git symlinks on this Windows setup).
+
+### Two-layer feedback model
+Per `tap-feedback-speed` (feedback within ~100ms of a tap) and `loading-states` (only show a spinner/progress indicator past ~300ms, to avoid flashing on fast navigations), the two concerns don't resolve to one indicator: an instant acknowledgment layer and a separate, delay-gated loader layer.
+
+### Mechanism options presented
+1. **Next.js native `loading.tsx`** — framework-native Suspense-boundary swap, automatic show/hide tied to real route-render latency, zero click-listening code. Chosen first.
+2. **Custom click-intercept overlay** — shows the instant a link is clicked rather than waiting on route rendering; more code (must correctly ignore hash links, external links, new-tab clicks, back/forward) but guarantees click-tied timing.
+3. Top progress bar (YouTube/GitHub-style) — named as the common alternative convention, not pursued since the client wanted a centered element.
+
+### Visual options presented for the loader itself
+Discussed generic spinner vs. text-only ("Loading...") vs. an animated version of the existing bowl logo mark (`Logo.png`, already used in navbar/hero) — client chose the animated bowl mark for on-brand consistency, then asked specifically for the animation-treatment options for that mark:
+1. Scale + opacity pulse ("breathing") — **chosen**
+2. Scale pulse only
+3. Opacity pulse only
+4. Continuous rotation (flagged as risky since the mark isn't rotationally symmetric)
+5. Stroke "draw-on" shimmer (flagged as needing an SVG source, which doesn't exist — `Logo.png` is raster)
+
+---
+
+## 168. First Implementation — `app/(public)/loading.tsx` (superseded, see §169)
+
+Initial implementation used Next.js's native per-route-group loading file:
+
+```tsx
+"use client";
+export default function Loading() {
+  const prefersReducedMotion = useReducedMotion();
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-walnut">
+      <motion.div
+        animate={prefersReducedMotion ? { opacity: 0.8 } : { scale: [0.9, 1.05, 0.9], opacity: [0.4, 1, 0.4] }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Image src="/Logo.png" alt="Loading" width={240} height={240} className="h-24 w-auto" priority />
+      </motion.div>
+    </div>
+  );
+}
+```
+
+Placed at the `(public)` route-group level so it covered every public-site navigation via one file, since most pages here use `dynamic = "force-dynamic"` and genuinely await Firestore reads — real latency for Suspense to catch.
+
+### Why this was replaced
+After seeing it, the client wanted the loading icon to appear **over the still-visible current page** (optionally dimmed) rather than on a separate blank loading screen — impossible with `loading.tsx`, since React Suspense *replaces* the segment's content rather than compositing on top of the previous page. This requires an entirely different mechanism (a persistent overlay component decoupled from route rendering), so `loading.tsx` was deleted in favor of §169's approach, after confirming with the client that having two different-looking loading mechanisms active simultaneously wasn't wanted.
+
+---
+
+## 169. Final Implementation — `components/layout/NavigationLoadingOverlay.tsx`
+
+A global click-intercept overlay, mounted once in `app/(public)/layout.tsx` (alongside Navbar/Footer, so it persists across navigations rather than unmounting/remounting with page content) rather than per-page.
+
+### Click detection
+A single `document`-level click listener determines whether a click should trigger the overlay:
+- Left-click only (`e.button === 0`), no modifier keys held (so ctrl/cmd/shift-click to open in a new tab is left alone)
+- Target resolves to an `<a>` via `closest("a")`
+- Skips `target="_blank"` and `download` links
+- Same-origin only (parses `anchor.href` as a `URL`, compares `.origin`)
+- Skips same-page navigations, including pure hash-only jumps (compares `pathname` + `search` against `window.location`)
+
+### Root-cause bug: nothing appeared on click
+The very first version included `if (e.defaultPrevented || e.button !== 0) return;` as an early guard, intended to skip clicks some other handler had already fully handled. In practice this broke the entire mechanism: Next.js's `<Link>` component calls `e.preventDefault()` to intercept the browser's default navigation and route client-side instead — and since the overlay's listener was registered for the *bubble* phase (fires last, after Link's own handler has already run), `e.defaultPrevented` was `true` on every single qualifying Link click by the time the overlay's handler executed, causing it to bail out immediately before ever calling `setLoading(true)`.
+
+**Fix:** removed the `e.defaultPrevented` check, and switched the listener to the *capture* phase (`{ capture: true }`), which fires before any bubble-phase handler — including Link's own — making the ordering issue structurally impossible to hit again regardless of what other click handlers exist on the page.
+
+### Behavior
+- **Dimmed scrim**: `fixed inset-0 z-[100] bg-black/50`, sitting above the navbar (`z-50`) and everything else, fading in over 150ms — fast enough to register as an instant response (per `tap-feedback-speed`) without being a jarring hard-cut. Per client's explicit choice, the old page is dimmed rather than left fully undimmed underneath.
+- **Pulsing bowl mark**: same scale (90%↔105%) + opacity (40%↔100%) breathing loop from §168's abandoned `loading.tsx`, carried over unchanged, `prefers-reduced-motion` respected.
+- **Hide condition**: tracked via `usePathname()` — clears once the pathname actually changes, signaling the new page has mounted. (`useSearchParams()` was deliberately not used for this, since it requires wrapping the component in a `<Suspense>` boundary for static rendering in the App Router, and this site has no query-string-driven pages that would need it — pathname alone is sufficient here.)
+- **Safety timeout**: 8s auto-hide fallback in case a navigation stalls or is cancelled without a pathname change, so the overlay can never get permanently stuck.
+
+---
+
+## 170. Horizontal Carousel Scroll-Position Restoration on Back Navigation
+
+### Problem
+Reported via a concrete repro: on the homepage, scroll the "Collections" horizontal carousel over, click a category card (e.g. "Shawls") to navigate to `/category/shawls`, then use the browser's back button. The page's vertical scroll position was correctly preserved, but the carousel's own horizontal scroll position reset to the start.
+
+### Root cause
+The browser's native scroll restoration only tracks the document's `scrollY`. It has no concept of restoring an arbitrary nested `overflow-x-auto` element's `scrollLeft`. Compounding this, these pages use `dynamic = "force-dynamic"`, so back-navigating to the homepage triggers a genuine fresh server fetch and component remount rather than reusing a cached React tree instance — the carousel's DOM node is a brand-new element with `scrollLeft: 0` by default, not merely a hidden/revealed existing one.
+
+### Fix — `hooks/useScrollPositionRestore.ts` (new shared hook)
+```ts
+export function useScrollPositionRestore(ref: RefObject<HTMLElement | null>, key: string) {
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const stored = sessionStorage.getItem(key);
+    if (stored !== null) el.scrollLeft = parseInt(stored, 10) || 0;
+
+    let frame: number;
+    const handleScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => sessionStorage.setItem(key, String(el.scrollLeft)));
+    };
+    el.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      el.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(frame);
+      sessionStorage.setItem(key, String(el.scrollLeft));
+    };
+  }, [key]);
+}
+```
+- **Restore** happens in `useLayoutEffect` (before paint) rather than `useEffect`, avoiding a visible snap-from-zero flash.
+- **Save** happens continuously on scroll (throttled via `requestAnimationFrame`) and again on unmount, so the position is captured at the moment of navigating away regardless of exactly when the component tears down.
+- `sessionStorage` chosen over `localStorage` — scroll memory should last for the browsing session, not persist permanently across browser restarts.
+
+### Scope
+Client confirmed this should apply to **both** homepage horizontal carousels, not just the Collections one from the repro — `components/home/ResearchHighlights.tsx` has the identical `scrollContainerRef`/`overflow-x-auto` structure and would have had the same bug. Wired in with distinct sessionStorage keys (`categoryHighlightsScrollLeft` / `researchHighlightsScrollLeft`) so the two carousels don't clobber each other's saved position.
+
+---
+
+## 171. Key Files Modified (Thirty-Second Build)
+
+| File | Change type |
+|------|-------------|
+| `components/layout/NavigationLoadingOverlay.tsx` | **New file** — global click-intercept navigation loading overlay (dimmed scrim + pulsing bowl mark), replaces the abandoned `loading.tsx` approach |
+| `app/(public)/layout.tsx` | `NavigationLoadingOverlay` mounted alongside Navbar/Footer |
+| `app/(public)/loading.tsx` | **Deleted** — superseded by `NavigationLoadingOverlay` |
+| `hooks/useScrollPositionRestore.ts` | **New file** — sessionStorage-backed horizontal scroll position save/restore hook |
+| `components/home/CategoryHighlights.tsx` | `useScrollPositionRestore` wired to the horizontal carousel (`categoryHighlightsScrollLeft`) |
+| `components/home/ResearchHighlights.tsx` | `useScrollPositionRestore` wired to the horizontal carousel (`researchHighlightsScrollLeft`) |

@@ -9,6 +9,7 @@ import type { Category } from "@/types";
 import type { HomeContent } from "@/types/home-content";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { CATEGORY_KASHMIRI_NAMES } from "@/lib/category-kashmiri-names";
+import { useScrollPositionRestore } from "@/hooks/useScrollPositionRestore";
 
 interface CategoryHighlightsProps {
   categories: Category[];
@@ -21,6 +22,8 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useScrollPositionRestore(scrollContainerRef, "categoryHighlightsScrollLeft");
   const isDragging = useRef(false);
   const dragStartX = useRef(0);
   const dragStartScrollLeft = useRef(0);
@@ -169,7 +172,7 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
   };
 
   return (
-    <section id="collections" className="relative z-[2] py-16 bg-[#1a130a]">
+    <section id="collections" className="relative z-[2] pt-[40px] lg:pt-[18px] pb-16 bg-[#1a130a]">
       {/* Header */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
