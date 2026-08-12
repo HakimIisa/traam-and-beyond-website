@@ -4008,3 +4008,131 @@ Client confirmed this should apply to **both** homepage horizontal carousels, no
 | `hooks/useScrollPositionRestore.ts` | **New file** — sessionStorage-backed horizontal scroll position save/restore hook |
 | `components/home/CategoryHighlights.tsx` | `useScrollPositionRestore` wired to the horizontal carousel (`categoryHighlightsScrollLeft`) |
 | `components/home/ResearchHighlights.tsx` | `useScrollPositionRestore` wired to the horizontal carousel (`researchHighlightsScrollLeft`) |
+
+---
+
+# Thirty-Third Build Session — Addendum
+
+**Date:** 2026-08-12
+**Scope:** New "Featured" homepage carousel — full admin-managed content type (data layer, API, admin CRUD + reorder UI, public 3D coverflow component) modeled on the existing Research Items pattern; an unrelated local-only admin login investigation; carousel visual fine-tuning
+
+---
+
+## 172. Featured Panel — Requirements & Template Adaptation
+
+The client provided a third-party component-library template (a 3D "coverflow" style image carousel — center slide large and sharp, adjacent slides smaller/faded/rotated in 3D perspective via CSS `perspective`/`rotateY`, auto-advancing every 4s) along with its own AI-generated integration instructions (shadcn setup steps, a `HeroSection` component, a `Button` copy-paste, npm install list). Requirements given: no title/subtitle text (image-only carousel), square 1:1 images instead of the template's portrait ones, and a new admin panel section for the client to manage the images themselves.
+
+### Setup findings (before writing any code)
+Investigated the template's stated prerequisites against the actual project and found **none of them were needed** — `components/ui/button.tsx`, `lib/utils.ts` (`cn`), `lucide-react`, `@radix-ui/react-slot`, and `class-variance-authority` were all already present (installed for existing shadcn components like `Dialog`).
+
+Two real problems were found and had to be designed around rather than copy-pasting the template as-is:
+1. **The template's nav buttons would have rendered invisible.** Its `<Button variant="outline">` and background styling rely on shadcn's semantic color tokens (`bg-background`, `border-input`, `bg-accent`, `ring-ring`, `border-foreground/10`). Checked `app/globals.css` and confirmed this project never defined those CSS variables — only the custom brand tokens (`--color-terracotta`, `--color-walnut`, etc.) exist in the `@theme` block. Those shadcn utility classes are no-ops here. Fixed by building custom nav buttons from scratch using the project's own established arrow-button visual language (already used on the Collections/Research horizontal carousels): `bg-black/40 hover:bg-black/60 text-cream hover:text-terracotta`.
+2. **Naming collision.** The template names its component `HeroSection` — this project already has a real, unrelated `components/home/HeroSection.tsx` (the scroll-jacking bowl-to-logo hero). The new component was named `FeaturedCarousel` instead.
+
+Also stripped the template's `min-h-screen` full-viewport hero sizing — this needed to be a compact panel slotted into an existing gap on the homepage, not a new full-screen section. Per explicit client clarification mid-discussion: *"this panel should not occupy all the vertical space on the screen, take as much vertical space as the images need to comfortably display with padding above and below for immersion."*
+
+### Design decisions confirmed before implementation
+- Auto-rotate every 4s: **kept** (matches template)
+- Admin reordering: **yes**, same drag-and-drop pattern as Research Items
+- Background glow blobs (template had generic purple/blue): **kept, restyled** in brand colors — initially terracotta/saffron, later changed to cream (see §176)
+
+---
+
+## 173. Featured Panel — Backend Investigation & Data Layer
+
+Before writing any new code, a background research pass (via a subagent) traced the *exact* existing Research Items admin CRUD + reorder implementation end to end — data layer, API routes, auth, image upload flow, admin UI, drag-and-drop library — so "Featured" could mirror it precisely rather than invent a parallel pattern. Findings confirmed:
+- **Firebase Admin SDK data layer split**: a public accessor (`lib/firebase/research.ts`, with a local-fallback path when Firebase env vars aren't configured) delegating to an Admin-SDK-only module (`lib/firebase/admin-research.ts`) for actual reads/writes — never the client SDK for writes.
+- **Auth**: every `/api/admin/*` route re-verifies a Firebase ID token per-request via `verifyAdminRequest()` (`lib/admin-auth.ts`), sent as `Authorization: Bearer <idToken>` from the client (no server session cookie for API calls — the `admin-session` cookie is only used by `middleware.ts` to gate page navigation to `/admin/*`).
+- **Image upload**: goes through a dedicated `/api/admin/upload` route (not direct client→Storage) — browser sends `FormData` with the file + a target path, the server reads the bytes and writes via `bucket.file(path).save()` with `predefinedAcl: "publicRead"`, returning a public `storage.googleapis.com` URL that gets stored as a plain string.
+- **Reorder**: `@dnd-kit/core` + `@dnd-kit/sortable` (not react-beautiful-dnd or native HTML5 DnD), with a "Save Order" button POSTing the full reordered `{id, order}[]` array to a dedicated `reorder` route, zod-validated server-side.
+
+Given Featured content is simpler than Research (no title, description, section, or slug — just one square image per entry), the content model was deliberately simplified rather than mirrored 1:1:
+
+```ts
+// types/index.ts
+export interface FeaturedItem {
+  id: string;
+  imageUrl: string;
+  order: number;
+  createdAt: string;
+}
+```
+Firestore collection: `featured_items`. `lib/firebase/admin-featured.ts` mirrors `admin-research.ts`'s CRUD/reorder/storage-cleanup-on-delete functions exactly, minus the section/slug-scoped queries Research needs. `lib/firebase/featured.ts` (public accessor) skips Research's hardcoded local-fallback dataset entirely — since there's no meaningful placeholder content for "Featured," it just returns `[]` when Firebase isn't configured.
+
+---
+
+## 174. Featured Panel — API Routes & Admin UI
+
+**API routes** (`app/api/admin/featured/`): `route.ts` (GET list / POST create), `[id]/route.ts` (DELETE only — no PUT, since there's nothing on an existing entry to edit besides the image itself), `reorder/route.ts` (POST, zod-validated) — same `verifyAdminRequest` guard pattern as Research on every route.
+
+**Admin UI — deliberately lighter than Research's pattern**, since a Featured entry has exactly one field (an image) and nothing else to fill in:
+- **No separate `/new` or `/[id]` edit pages.** Instead, `/admin/featured` (`FeaturedClient.tsx`) doubles as both the list *and* the add flow: an "Add Image" upload control sits directly on the list page (reusing the existing shared `ImageUploadField` component in `single` mode) and immediately creates a new Firestore entry on successful upload; each existing image renders as a thumbnail with a hover "Remove" button that calls delete directly. Storage path uses an incrementing `uploadKey` state (`featured/temp-${uploadKey}-${Date.now()}`) to force a fresh path/component instance after each successful create, avoiding path collisions across sequential uploads in one session.
+- `/admin/featured/reorder` (`ReorderFeaturedClient.tsx`) mirrors `ReorderResearchClient.tsx`'s dnd-kit drag list exactly, minus the section-tab filtering layer Research needs (Featured is a flat list) — each row shows just a thumbnail + "Image N" label (no title text exists to show).
+- Added to `components/layout/AdminSidebar.tsx` under "Home Page" (using the `Images` lucide icon), since it's homepage-related content.
+
+---
+
+## 175. FeaturedCarousel — Public Component
+
+`components/home/FeaturedCarousel.tsx` — the adapted 3D coverflow, preserving the template's core positioning math (`offset`/`pos`/`scale`/`rotateY`/`opacity`/`blur`/`zIndex` per slide) unchanged, since that's the visual mechanic the client specifically wanted, restyled around it:
+- No title/subtitle — props reduced to just `images: string[]`
+- Square slide boxes instead of portrait (`w-* h-*` matched pairs at every breakpoint, vs. the template's differing width/height)
+- Custom nav buttons (not shadcn `Button`) per §172's finding — hidden entirely via `images.length > 1` check rather than shown disabled when there's 0-1 images
+- Returns `null` when `images.length === 0`, so the whole panel stays invisible on the homepage until the client actually uploads something
+- Sized to content, not full-viewport: `py-16 md:py-20` padding, showcase height fixed per breakpoint rather than `min-h-screen`
+
+### Wiring into the homepage
+Placed inside `CategoryHighlights.tsx`, between the vessel image and the "Collections" title/subtitle — the exact gap identified in the "empty space above the image" investigation earlier in this session (§157-161). Data flows `app/(public)/page.tsx` (`getFeaturedItems()` → `.map(i => i.imageUrl)`) → `HomePageClient.tsx` (new `featuredImages` prop) → `CategoryHighlights.tsx` (new `featuredImages` prop, passed to `<FeaturedCarousel />`).
+
+---
+
+## 176. FeaturedCarousel — Visual Fine-Tuning Pass
+
+A rapid iteration pass once the feature was live end-to-end (upload → reorder → homepage display all verified working):
+
+1. **Background color**: added `bg-[#0a0a0a]` to the wrapper — matches the existing near-black tone already used elsewhere on this page (the Collections horizontal scroll track), rather than a generic `bg-black`, so the panel reads as a distinct section instead of blending into the surrounding `bg-[#1a130a]`.
+2. **Full-width background**: the panel was initially still nested inside `CategoryHighlights`' `max-w-6xl mx-auto px-4...` header container, so its black background was confined to that column width with the surrounding brown visible on both sides. Fixed by restructuring — split the single `max-w-6xl` + `ScrollReveal` block into three siblings: vessel image (own `max-w-6xl`/`ScrollReveal`), `FeaturedCarousel` (full-width, own `ScrollReveal`, no width constraint), title/subtitle/divider (own `max-w-6xl`/`ScrollReveal`). Matches the same "move it outside the padded wrapper" technique already used for Our Story's mobile image (§14) rather than a CSS negative-margin full-bleed hack.
+3. **Spacing below the panel**: `mb-10` added to the `ScrollReveal` wrapping `FeaturedCarousel`, separating the black panel from the "Collections" title below.
+4. **Desktop sizing** (`lg:` only, iterated twice on request): slide boxes `72`→`96`→`28rem` (288px → 384px → 448px); showcase container height `96`→`26rem`→`32rem` (384px → 416px → 512px). Side-slide spacing needed no separate adjustment since `translateX(45%)` is a percentage of the slide's own width, so it scales proportionally with the size increases automatically.
+5. **Mobile sizing** (base/unprefixed, affecting <640px): showcase height `h-64`→`h-72` (256px→288px, left unchanged in the final image-size-only pass per client request); slide boxes iterated `48`→`56`→`64`→`270px`→`300px` (192px → 224px → 256px → 270px → 300px). At each step, `sm:` was bumped to match the new base value to avoid the image visibly *shrinking* right at the 640px breakpoint boundary (a regression that would've been introduced if base grew past the old `sm:` value without updating it). Final 300px mobile image is 12px taller than the `h-72` (288px) showcase container itself — absorbed harmlessly by the wrapper's own `py-16` padding rather than clipping, since only the outer wrapper (not the inner showcase div) has `overflow-hidden`.
+6. **Glow color**: changed from the initial terracotta/saffron pair (`rgba(181,112,49)` / `rgba(212,160,23)`) to cream (`rgba(248,232,210)`) for both blobs, applied identically on mobile and desktop (the glow markup has no breakpoint-specific classes).
+
+---
+
+## 177. Admin Login Investigation (Local-Only, Unrelated to Featured Panel Code)
+
+Client reported being unable to log into `/admin` on `localhost` while login worked fine on the production domain (`traamandbeyond.com`), suspecting the Featured Panel changes (not yet pushed to GitHub) were the cause.
+
+### Investigation
+Systematically ruled out every file touched this session (`git status` confirmed only `types/index.ts`, `AdminSidebar.tsx`, `lib/admin-api.ts`, `app/(public)/page.tsx`, `CategoryHighlights.tsx`, `HomePageClient.tsx`, plus new files under `app/api/admin/featured/` and `app/(admin)/admin/featured/` — none in the auth path), then read through the actual login flow (`app/(admin)/login/page.tsx`, `context/AdminAuthContext.tsx`, `middleware.ts`, `next.config.ts`'s security headers) and confirmed none of it was modified, and no CSP or header configuration was blocking Firebase's network requests.
+
+The login page's `catch` block unconditionally showed a generic **"Invalid email or password."** message regardless of the actual error — masking the real cause. A temporary `console.error(err)` was added to `app/(admin)/login/page.tsx`'s catch block to surface it (removed again once diagnosed, per §178).
+
+Browser DevTools Network tab showed the real signal: a request to `identitytoolkit.googleapis.com/v1/accounts:signInWithPassword` (with a well-formed, present API key) returning **400 `INVALID_LOGIN_CREDENTIALS`** — a genuine rejection from Firebase's own servers, not a missing-config or blocked-request issue. `.env.local` was confirmed by the client to have all `NEXT_PUBLIC_FIREBASE_*` values filled in.
+
+### Root cause
+Not a code or config issue at all — both the email and password fields showed Chrome's blue autofill highlighting. **Chrome saves passwords per-origin**, and `localhost:3000` is a distinct origin from `traamandbeyond.com`. A different (stale/incorrect) password had been saved for the `localhost` origin at some point, and Chrome kept autofilling that one, while the production domain had its own separately-saved correct password. Manually typing the password instead of accepting the autofill resolved it immediately.
+
+---
+
+## 178. Key Files Modified (Thirty-Third Build)
+
+| File | Change type |
+|------|-------------|
+| `types/index.ts` | Added `FeaturedItem` interface |
+| `lib/firebase/admin-featured.ts` | **New file** — Admin SDK CRUD + reorder + storage cleanup, mirrors `admin-research.ts` |
+| `lib/firebase/featured.ts` | **New file** — public accessor, empty-array fallback when Firebase isn't configured |
+| `app/api/admin/featured/route.ts` | **New file** — GET (list) / POST (create) |
+| `app/api/admin/featured/[id]/route.ts` | **New file** — DELETE |
+| `app/api/admin/featured/reorder/route.ts` | **New file** — POST, zod-validated |
+| `lib/admin-api.ts` | Added `apiCreateFeaturedItem` / `apiDeleteFeaturedItem` client wrappers |
+| `app/(admin)/admin/featured/page.tsx` | **New file** — list page (server component) |
+| `app/(admin)/admin/featured/FeaturedClient.tsx` | **New file** — inline upload + thumbnail grid with delete, no separate add/edit pages |
+| `app/(admin)/admin/featured/reorder/page.tsx` | **New file** — reorder page (server component) |
+| `app/(admin)/admin/featured/reorder/ReorderFeaturedClient.tsx` | **New file** — dnd-kit drag-and-drop reorder, flat list (no section tabs) |
+| `components/layout/AdminSidebar.tsx` | Added "Featured" nav link (`Images` icon) |
+| `components/home/FeaturedCarousel.tsx` | **New file** — adapted 3D coverflow carousel; multiple fine-tuning passes on background color/width, spacing, responsive sizing, and glow color (see §176) |
+| `app/(public)/page.tsx` | `getFeaturedItems()` fetched, `featuredImages` prop passed down |
+| `components/home/HomePageClient.tsx` | `featuredImages` prop threaded through to `CategoryHighlights` |
+| `components/home/CategoryHighlights.tsx` | Header split into three siblings (image / carousel / title blocks) so the carousel can be full-width; `FeaturedCarousel` wired in with `mb-10` spacing |
+| `app/(admin)/login/page.tsx` | Temporary debug `console.error` added then removed during the login investigation (§177) — no net change |

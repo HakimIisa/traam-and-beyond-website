@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Tag, MessageSquare, LogOut, Home, Info, BookOpen } from "lucide-react";
+import { LayoutDashboard, Package, Tag, MessageSquare, LogOut, Home, Info, BookOpen, Images } from "lucide-react";
 import { useAdminAuth } from "@/context/AdminAuthContext";
 import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/home", label: "Home Page", icon: Home, exact: false },
+  { href: "/admin/featured", label: "Featured", icon: Images, exact: false },
   { href: "/admin/about", label: "About Page", icon: Info, exact: false },
   { href: "/admin/items", label: "Items", icon: Package, exact: false },
   { href: "/admin/categories", label: "Categories", icon: Tag, exact: false },

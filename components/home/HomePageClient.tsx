@@ -15,9 +15,10 @@ interface Props {
   categories: Category[];
   content: HomeContent;
   aboutContent: AboutContent;
+  featuredImages: string[];
 }
 
-export default function HomePageClient({ categories, content, aboutContent }: Props) {
+export default function HomePageClient({ categories, content, aboutContent, featuredImages }: Props) {
   const [showFeatured, setShowFeatured] = useState(false);
   const buttonStripRef = useRef<HTMLDivElement>(null);
 
@@ -84,7 +85,7 @@ export default function HomePageClient({ categories, content, aboutContent }: Pr
 
         {/* Our Collections — opaque */}
         <div className="pointer-events-auto">
-          <CategoryHighlights categories={categories} content={content.collections} />
+          <CategoryHighlights categories={categories} content={content.collections} featuredImages={featuredImages} />
         </div>
 
         {/* Transparent gap 2 — Featured visible beneath */}

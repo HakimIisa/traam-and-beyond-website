@@ -6,6 +6,7 @@ import HomePageClient from "@/components/home/HomePageClient";
 import { getAllCategories } from "@/lib/firebase/categories";
 import { getHomeContent } from "@/lib/firebase/site-content";
 import { getAboutContent } from "@/lib/firebase/about-content";
+import { getFeaturedItems } from "@/lib/firebase/featured";
 
 export const metadata: Metadata = {
   title: "Traam and Beyond — Silenced crafts, Speaking again",
@@ -14,10 +15,11 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [categories, content, aboutContent] = await Promise.all([
+  const [categories, content, aboutContent, featuredItems] = await Promise.all([
     getAllCategories(),
     getHomeContent(),
     getAboutContent(),
+    getFeaturedItems(),
   ]);
 
   return (
@@ -25,6 +27,7 @@ export default async function HomePage() {
       categories={categories}
       content={content}
       aboutContent={aboutContent}
+      featuredImages={featuredItems.map((item) => item.imageUrl)}
     />
   );
 }

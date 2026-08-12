@@ -49,6 +49,13 @@ export interface ResearchItem {
   createdAt: string;
 }
 
+export interface FeaturedItem {
+  id: string;
+  imageUrl: string;
+  order: number;
+  createdAt: string;
+}
+
 export interface EnquiryFormData {
   name: string;
   email: string;

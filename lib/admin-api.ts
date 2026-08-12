@@ -106,6 +106,21 @@ export async function apiUpdateAboutSection(section: string, data: object): Prom
   if (!res.ok) throw new Error("Failed to update about content");
 }
 
+// ── Featured ────────────────────────────────────────────────────────────────
+export async function apiCreateFeaturedItem(data: object): Promise<string> {
+  const headers = await getAuthHeader();
+  const res = await fetch("/api/admin/featured", { method: "POST", headers, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Failed to create featured item");
+  const { id } = await res.json();
+  return id;
+}
+
+export async function apiDeleteFeaturedItem(id: string): Promise<void> {
+  const headers = await getAuthHeader();
+  const res = await fetch(`/api/admin/featured/${id}`, { method: "DELETE", headers });
+  if (!res.ok) throw new Error("Failed to delete featured item");
+}
+
 // ── Research ─────────────────────────────────────────────────────────────────
 export async function apiCreateResearchItem(data: object): Promise<string> {
   const headers = await getAuthHeader();

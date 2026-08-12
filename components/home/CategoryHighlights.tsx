@@ -10,13 +10,15 @@ import type { HomeContent } from "@/types/home-content";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { CATEGORY_KASHMIRI_NAMES } from "@/lib/category-kashmiri-names";
 import { useScrollPositionRestore } from "@/hooks/useScrollPositionRestore";
+import FeaturedCarousel from "@/components/home/FeaturedCarousel";
 
 interface CategoryHighlightsProps {
   categories: Category[];
   content: HomeContent["collections"];
+  featuredImages: string[];
 }
 
-export default function CategoryHighlights({ categories, content }: CategoryHighlightsProps) {
+export default function CategoryHighlights({ categories, content, featuredImages }: CategoryHighlightsProps) {
   if (categories.length === 0) return null;
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -185,6 +187,15 @@ export default function CategoryHighlights({ categories, content }: CategoryHigh
               className="w-[420px] h-auto sm:w-[490px] lg:w-[560px]"
             />
           </div>
+        </ScrollReveal>
+      </div>
+
+      <ScrollReveal className="mb-10">
+        <FeaturedCarousel images={featuredImages} />
+      </ScrollReveal>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal>
           <Link href="/collections" className="group block">
             <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center group-active:scale-[0.85] lg:group-active:scale-100 transition-transform duration-150">
               <span className="underline decoration-cream lg:decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
