@@ -1,20 +1,15 @@
 import type { Metadata } from "next";
-import { ScrollReveal } from "@/components/ScrollReveal";
+import { getAllStories } from "@/lib/firebase/stories";
+import StoriesPageClient from "@/components/stories/StoriesPageClient";
 
 export const metadata: Metadata = {
   title: "Stories",
-  description: "Stories from the artisans of Kashmir.",
+  description: "Stories from the artisans and collectors of Kashmir.",
 };
 
-export default function StoriesPage() {
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-      <ScrollReveal>
-        <h1 className="font-display text-3xl sm:text-6xl text-cream mb-6">Stories</h1>
-      </ScrollReveal>
-      <ScrollReveal delay={0.1}>
-        <p className="text-stone text-lg leading-relaxed">Coming soon.</p>
-      </ScrollReveal>
-    </div>
-  );
+export const dynamic = "force-dynamic";
+
+export default async function StoriesPage() {
+  const stories = await getAllStories();
+  return <StoriesPageClient stories={stories} />;
 }

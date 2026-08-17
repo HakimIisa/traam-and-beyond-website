@@ -4195,3 +4195,234 @@ Removed the rounded corners, border, `overflow-hidden`, and drop shadow entirely
 | File | Change type |
 |------|-------------|
 | `components/home/FeaturedCarousel.tsx` | Background reverted to `#1a130a` (matches page); desktop (`lg:`) slide/showcase sizing increased across four rounds (448px → 608px slide, 512px → 672px showcase); card frame (rounded corners, border, shadow) removed and `object-cover` → `object-contain`, so transparent cutout PNGs float without an opaque frame |
+
+---
+
+# Thirty-Fifth Build Session — Addendum
+
+**Date:** 2026-08-12
+**Scope:** FeaturedCarousel auto-rotate interval tuning
+
+---
+
+## 183. FeaturedCarousel — Auto-Rotate Interval Tuned
+
+The `setInterval(handleNext, ...)` driving auto-rotation (originally 4000ms, the template's default kept as-is per §172's design decisions) was iterated down in a quick round of requests: 4000ms → 3000ms → 2000ms → settled at **2500ms**. Each change was a single-line edit to the interval constant in `components/home/FeaturedCarousel.tsx`; no other carousel behavior (transition duration, drag/swipe, reorder, etc.) was touched.
+
+---
+
+## 184. Key Files Modified (Thirty-Fifth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/FeaturedCarousel.tsx` | Auto-rotate interval changed from 4000ms to 2500ms |
+
+---
+
+# Thirty-Sixth Build Session — Addendum
+
+**Date:** 2026-08-16
+**Scope:** New `/stories` page — full admin-managed content type (data layer, API, admin CRUD + reorder UI) modeled on Research/Featured, plus a bespoke desktop 3-column reading layout (sticky no-scrollbar table of contents with hover spotlight preview, continuous reading column, sticky crossfading image panel) and a mobile stacked layout with a slide-out contents drawer. Extensive iterative tuning of the hover-preview interaction based on visual feedback.
+
+---
+
+## 185. Stories — Data Layer & Admin Backend
+
+New content type, `StoryItem`, added to `types/index.ts`:
+```ts
+export interface StoryItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  body: string;   // paragraphs separated by a blank line in the admin textarea
+  image: string;  // single image URL
+  order: number;
+  createdAt: string;
+}
+```
+
+Backend built by mirroring the Research/Featured pattern exactly (flat collection, no section/slug scoping since Stories — unlike Research — isn't grouped):
+- `lib/firebase/admin-stories.ts` (**new**) — Admin SDK CRUD against a new `stories` Firestore collection: `adminGetAllStories()` (orderBy `order` asc), `adminCreateStory()`, `adminUpdateStory()`, `adminReorderStories()` (batch write), `adminDeleteStory()` (delete doc + best-effort Storage cleanup at `stories/${id}/`).
+- `lib/firebase/stories.ts` (**new**) — public accessor; `getAllStories()` returns `[]` when Firebase isn't configured, otherwise dynamic-imports `admin-stories.ts` (server-components-only, same rationale as `featured.ts`).
+- `app/api/admin/stories/route.ts` (GET/POST), `app/api/admin/stories/[id]/route.ts` (PUT/DELETE), `app/api/admin/stories/reorder/route.ts` (POST, zod-validated) — all `verifyAdminRequest`-guarded, identical shape to the Research/Featured API routes.
+- `lib/admin-api.ts` — added `apiCreateStory`, `apiUpdateStory`, `apiDeleteStory` client wrappers (reorder POSTs directly from the reorder client component, matching the existing Featured/Research precedent rather than being wrapped here).
+
+---
+
+## 186. Stories — Admin UI
+
+Mirrors the Research admin section (list + dedicated new/edit form pages + reorder page), not the lighter inline-only Featured pattern, since a story has enough fields (heading, sub-heading, long body, image, order) to warrant a real form:
+
+- `components/layout/AdminSidebar.tsx` — "Stories" nav link added (between Research and Enquiries), `NotebookText` icon.
+- `app/(admin)/admin/stories/page.tsx` + `StoriesClient.tsx` — list page (`force-dynamic`) with a table (thumbnail / heading / sub-heading / Edit / Delete), "Reorder Stories" and "Add Story" buttons.
+- `app/(admin)/admin/stories/DeleteStoryButton.tsx` — confirm + delete, mirrors `DeleteResearchItemButton.tsx`.
+- `app/(admin)/admin/stories/new/page.tsx` and `[id]/page.tsx` — render `<StoryForm>` / `<StoryForm existing={...}>`.
+- `components/forms/StoryForm.tsx` (**new**) — react-hook-form + zod (same `as any` casts for Zod v4/hookform v5 as `ResearchItemForm.tsx`/`CategoryForm.tsx`): Heading `Input`, Sub-heading `Input`, Story Body `Textarea` (`rows={16}`, helper text "Separate paragraphs with a blank line."), Display Order `Input`, single-image `ImageUploadField` (`single` prop, same pattern as `FeaturedClient.tsx`).
+- `app/(admin)/admin/stories/reorder/page.tsx` + `ReorderStoriesClient.tsx` — dnd-kit flat drag list (thumbnail + title per row), mirrors `ReorderFeaturedClient.tsx` structurally but shows the story's actual title (Featured items have no title field to show).
+
+---
+
+## 187. Stories — Public Page Architecture
+
+`app/(public)/stories/page.tsx` converted from the "Coming soon." placeholder to an async server component: `getAllStories()` → passed into a new client orchestrator. `force-dynamic`, matching the other Firestore-backed public pages.
+
+New directory `components/stories/`:
+
+### `StoryBlock.tsx`
+Ports the About page's `TextBlock` scroll-linked mechanics (`components/about/OurStoryTimeline.tsx`) verbatim: a ref + two `useInView` calls — `isCentered` (`margin: "-45% 0px -45% 0px"`) drives the active index, `isNearTop` (`margin: "0px 0px -90% 0px"`) drives the image-swap index, with the same `scrollDirRef` up/down tracking so the image-swap trigger point is identical scrolling in either direction. Registers itself into a parent-held `blockRefs` array via a ref-registration callback (rather than DOM-id lookups) so the TOC and mobile drawer can `scrollIntoView()` directly. Content order: heading → subtitle → `lg:hidden` inline image → body paragraphs (`body.split(/\n{2,}/)`).
+
+Unlike the About page, **no sticky-background spacer-div choreography is needed** — because on desktop the image lives in its own real grid column rather than as a full-bleed layer behind the text, so `StoryBlock` is just a plain document-flow block. This also means **only one copy of `StoryBlock` is ever rendered** (not duplicated per breakpoint) — the surrounding container is a CSS Grid at `lg:` and plain block flow below it, so the same list of blocks naturally reads as "TOC | main | image panel" on desktop and a plain single column (image inline per story) on mobile. An earlier draft rendered two separate `StoryBlock` trees gated by `lg:hidden`/`hidden lg:grid` (matching the `HeroSection`/`CollectionItemCard` breakpoint-duplication convention used elsewhere in the codebase) — this was reworked before shipping once it became clear that pattern would double up every story's `useInView` hooks and, more importantly, silently break click-to-scroll on mobile (the always-mounted, always-`display:none`-at-mobile-width desktop copy would win the `blockRefs` registration race and leave the visible mobile blocks unreachable).
+
+### `StoriesTOC.tsx` (desktop only, `hidden lg:block`)
+Sticky (`top-24 h-[calc(100vh-7rem)]`), internally-scrolling (`overflow-y-auto`, scrollbar hidden via the site's established `[&::-webkit-scrollbar]:hidden` + `scrollbarWidth:"none"` convention), rows = organic dot (same SVG as the About page timeline) + heading, `onMouseEnter`/`onMouseLeave` driving a `hoveredIndex` lifted to the parent (`StoriesPageClient`) so it can also drive the page-wide blur scrim. Click → `scrollIntoView`.
+
+### `StoriesImagePanel.tsx` (desktop only, `hidden lg:block`, right column)
+Sticky column, `relative aspect-square` stack of `<Image fill>` per story crossfading via `opacity` + `transition-opacity duration-1000`, keyed off the shared `imageIndex` — same technique as the About page's sticky background stack, just confined to a real column instead of full-bleed.
+
+### `StoriesMobileDrawer.tsx` (mobile only, `lg:hidden`)
+Fixed top-right button opens a panel that scale-grows from the top-right corner (`transformOrigin: "top right"`, `scale: 0.3 → 1`) over a `backdrop-blur-md` scrim, heading-only rows staggering in (`staggerChildren: 0.04`) via Framer Motion `variants`. Tap a heading → `scrollIntoView` + close.
+
+### `StoriesPageClient.tsx` (top-level orchestrator)
+Owns `activeIndex`, `imageIndex`, `hoveredIndex`, `drawerOpen`, `scrollDirRef`, `blockRefs`. Desktop container is `lg:grid` (TOC | main | image panel, each its own explicit grid track); mobile is plain block flow with `StoriesMobileDrawer` + the single shared `StoryBlock` list.
+
+---
+
+## 188. Stories — Hover-Preview Interaction: Iterative Fixes
+
+The left TOC's hover behavior (title shifts right, subtitle reveals beneath it, a thumbnail appears, rest of the page blurs) went through several rounds of visual-feedback-driven fixes after initial implementation.
+
+### Bug 1 — floating thumbnail invisible (Tailwind/Framer Motion transform conflict)
+First implementation positioned the hover thumbnail as a `motion.div` combining a Tailwind transform utility class (`-translate-y-1/2`, for vertical centering) with Framer-Motion-animated `x`/`scale` props on the *same element*. Framer Motion writes its own inline `transform` style when animating `x`/`scale`, which completely overwrites whatever `transform` a CSS class had set — so the element lost its `translateY(-50%)` centering and rendered off-position (effectively invisible in the visible viewport area). **Fix:** split positioning from animation onto two nested elements — a static, non-animated outer wrapper carries the Tailwind positioning classes; an inner `motion.div` with no transform-utility classes handles the opacity/scale animation.
+
+### Bug 2 — `AnimatePresence` unmounted before it could play the exit animation
+While fixing Bug 1, the conditional (`hoveredStory?.image &&`) was briefly moved to wrap the *entire* positioning wrapper (including `<AnimatePresence>` itself), which meant `AnimatePresence` unmounted at the same instant as its child — it never got the chance to run the fade/scale-out. **Fix:** keep the wrapper (and `AnimatePresence`) permanently mounted; only the `motion.div` child inside it is conditional.
+
+### Redesign — floating overlay → inline slot between dot and heading
+After Bugs 1–2 were fixed, the thumbnail *did* appear, but positioned as a large panel floating well beyond the TOC column's right edge (per an earlier design-question answer that had been miscommunicated/misinterpreted). Client clarified the actual intent: the dot stays fixed in place, and the thumbnail should appear **in the space between the dot and the heading**, growing as the heading text itself shifts right — not off to the side over the middle column. Reworked into a `motion.div` "slot" living directly in the row's flex layout (between the dot and the text block), animating both `width` and `height` from `0` up to a target size, holding the `<Image>` inside via `AnimatePresence`. Iterated 56px → 104px → 128px → 220px in successive rounds as the surrounding column widths grew (see §190) and the previous size read as "too small to make out."
+
+### Bug 3 — permanent row-height bug ("headings far apart")
+The thumbnail slot's *height* was left as a static Tailwind class (`h-[104px]`) rather than being animated like its width, so every row — hovered or not — permanently reserved 104px of vertical space, spreading all headings apart even at rest. **Fix:** animate `height` alongside `width` (both `0 → target` via Framer Motion `animate`), so unhovered rows collapse back to their natural (text-only) height and only grow — smoothly pushing subsequent headings down via the existing `layout` props already on each row — when actually hovered.
+
+### Font-size on hover — added, then reverted, then re-added inverted
+1. First pass: static heading size unchanged, size *increases* on hover (`1rem → 1.375rem`, animated via Framer Motion `fontSize`, since mixing Tailwind's discrete `text-*` classes with a smooth transition isn't possible without animating the actual style property).
+2. Client asked to undo this entirely — reverted title/subtitle back to plain static Tailwind size classes (`text-sm lg:text-base` / `text-xs lg:text-sm`), no font-size animation at all.
+3. Final ask (this session's last change): invert it — headings are **larger at rest** and *shrink* on hover, ending at the size they'd been at previously. Re-implemented as `animate={{ fontSize: isHovered ? "1rem" : "1.25rem" }}` — static size (1.25rem/20px) is now the resting state, dropping to 1rem/16px (the pre-existing static size) on hover.
+
+---
+
+## 189. Stories — True Page-Centering of the Story Body
+
+### Problem
+Once the TOC and image-panel columns were widened (see §190), the reading column's own `max-w-2xl mx-auto` text block — centered *within `main`'s grid track* — visually drifted off the true center of the page, because the TOC and image-panel column widths are unequal. A block centered within an off-center track is itself off-center relative to the whole page.
+
+### First (rejected) approach — full-viewport-centering, independent of the grid
+Considered making the text block ignore its grid track entirely and center on the full page width via an absolutely/fixed-positioned overlay. Rejected before implementing: at the narrower end of the `lg:` breakpoint range (~1024–1150px), a text block centered on the *full* container width would mathematically overlap both side columns by 100px+ (the reserved TOC+image-panel+gaps width alone approaches the total viewport width at that size) — a real, not hypothetical, collision risk.
+
+### Shipped approach — precise, bounded compensating offset
+Derived algebraically that the exact horizontal offset needed to move a track-centered block to the *true page center* is `(imagePanelWidth − TOCWidth) / 2` — and, notably, this is independent of the grid gap size (the two gaps cancel out symmetrically in the derivation) and independent of the main track's own (viewport-dependent) width. Implemented in `StoryBlock.tsx`:
+```tsx
+<div className="lg:flex lg:justify-center">
+  <div className="max-w-2xl w-full mx-auto lg:mx-0 lg:ml-[30px] text-left space-y-6">
+```
+`justify-center` centers the block within `main`'s track first; the explicit `ml-[…]` then nudges it right by the derived offset. Because the block's own `max-w-2xl` cap already prevents it from ever exceeding the track's width, this stays bounded to a small, known worst-case (the offset amount itself, ~30–90px across the iterations below) rather than the 100px+ risk of the rejected full-viewport approach — a deliberate, explained trade-off, not an oversight.
+
+The literal pixel value had to be recalculated twice as the column widths themselves were tuned (§190): 70px (lg) / 90px (xl) at TOC=300/320·image=440/500, then 30px (both breakpoints, values happened to converge) once TOC was widened to 380/440.
+
+---
+
+## 190. Stories — Column Width Iterations
+
+Several rounds of width/spacing tuning on the desktop 3-column layout, driven by visual feedback:
+
+| Element | Iteration |
+|---------|-----------|
+| Outer container padding | `max-w-[1600px] mx-auto lg:px-8` (symmetric, large empty side margins on wide screens) → `max-w-[2400px] mx-auto lg:px-6` (effectively full-width on typical screens, `mx-auto` only engages on ultra-wide monitors) |
+| TOC ↔ main ↔ image-panel layout | Nested `grid[TOC, 1fr] > flex(main, imagePanel)` → restructured to a **true 3-column CSS grid** (`grid-cols-[TOC_1fr_imagePanel]`) once the flex-nesting was identified as the root cause of §189's centering drift — a flex-based `main`+`imagePanel` sub-layout meant widening the image panel silently ate into `main`'s flex-basis asymmetrically |
+| TOC column width | 288px (original, fixed) → 280px → **300px (lg) / 320px (xl)** → **380px (lg) / 440px (xl)** (final — client explicitly asked for more room so the hover thumbnail could grow larger) |
+| Image panel column width | 384px (`w-96`, original) → 460/560px → 440/500px (dialed back slightly when the wider version threw off body centering) → confirmed final at 440px (lg) / 500px (xl) |
+| Blur scrim spanning main+imagePanel | Implemented via CSS Grid's line-based placement on an absolutely-positioned grid item — `style={{ gridColumn: "2 / 4" }}` on the scrim `motion.div`, so it visually covers exactly the "main + image panel" area regardless of their individual widths, without needing a wrapping flex/relative container of its own |
+| Hover thumbnail size | 56px → 104px → 128px → **220px** (final, sized to use the TOC column's widened room) |
+
+---
+
+## 191. Key Files Modified (Thirty-Sixth Build)
+
+| File | Change type |
+|------|-------------|
+| `types/index.ts` | `StoryItem` interface added |
+| `lib/firebase/admin-stories.ts` | **New file** — Admin SDK CRUD + reorder + storage cleanup for the `stories` collection |
+| `lib/firebase/stories.ts` | **New file** — public accessor, `[]` fallback when Firebase isn't configured |
+| `app/api/admin/stories/route.ts` | **New file** — GET (list) / POST (create) |
+| `app/api/admin/stories/[id]/route.ts` | **New file** — PUT (update) / DELETE |
+| `app/api/admin/stories/reorder/route.ts` | **New file** — POST, zod-validated |
+| `lib/admin-api.ts` | Added `apiCreateStory`, `apiUpdateStory`, `apiDeleteStory` |
+| `components/layout/AdminSidebar.tsx` | "Stories" nav link added (`NotebookText` icon) |
+| `app/(admin)/admin/stories/page.tsx`, `StoriesClient.tsx`, `DeleteStoryButton.tsx`, `new/page.tsx`, `[id]/page.tsx`, `reorder/page.tsx`, `reorder/ReorderStoriesClient.tsx` | **New files** — admin list/table, create/edit, drag-and-drop reorder |
+| `components/forms/StoryForm.tsx` | **New file** — heading, sub-heading, body textarea, order, single-image upload |
+| `components/stories/StoryBlock.tsx` | **New file** — shared per-story block (scroll-linked active/image-index state, mobile-only inline image, page-centering offset) |
+| `components/stories/StoriesTOC.tsx` | **New file** — sticky no-scrollbar contents list; hover: inline-slot thumbnail (width+height animate together), subtitle reveal, inverted static/hover font-size, sibling dimming |
+| `components/stories/StoriesImagePanel.tsx` | **New file** — sticky crossfading image column |
+| `components/stories/StoriesMobileDrawer.tsx` | **New file** — top-right button, corner-grow contents drawer with staggered heading list |
+| `components/stories/StoriesPageClient.tsx` | **New file** — top-level orchestrator; desktop 3-column CSS grid, mobile block flow, grid-spanning blur scrim |
+| `app/(public)/stories/page.tsx` | Placeholder "Coming soon." page replaced with async `getAllStories()` fetch + `StoriesPageClient` |
+
+---
+
+# Thirty-Seventh Build Session — Addendum
+
+**Date:** 2026-08-17
+**Scope:** Two post-ship fixes on the `/stories` page from live visual review — the mobile contents drawer didn't match the intended desktop-style unboxed look, and TOC/drawer navigation left the wrong story partially visible depending on scroll direction
+
+---
+
+## 192. StoriesMobileDrawer — Removed Box/Card Chrome
+
+Live review flagged that the mobile "Contents" drawer had drifted from what was actually agreed for mobile (§ Thirty-Sixth Build, mobile spec): it had grown a background panel (`bg-[#1a130a] border border-white/10 rounded-sm shadow-2xl`) with its own header bar (a "Contents" title + separate close `X` button), making it read as a distinct modal card rather than the desktop `StoriesTOC.tsx` list (unboxed, dot + heading only, floating directly over the page) simply hidden until the button is pressed.
+
+### Fix (`components/stories/StoriesMobileDrawer.tsx`)
+- Removed all box styling — no background, border, shadow, or header bar/title.
+- Rows now use the identical `OrganicDot` + heading treatment as the desktop TOC (same SVG, same active/inactive color logic — terracotta for the current story, cream for the rest).
+- The trigger button itself now toggles between a `List` icon (closed) and an `X` icon (open) and handles both opening and closing — no separate close control needed inside the list.
+- Kept everything that was already correct: grows from the top-right corner (`transformOrigin: "top right"`, scale 0.3→1), headings stagger in one after another (`staggerChildren`), backdrop blur behind it, tap a heading to scroll to it and close.
+
+---
+
+## 193. Story Navigation — Direction-Aware Scroll Target (Navbar Hide-on-Scroll Interaction)
+
+### Symptom (reported via screenshots)
+Clicking a TOC/drawer heading to jump to an earlier story now scrolled correctly, but clicking one to jump to a *later* story left the tail end of the *previous* story's paragraph text visible in a sliver above the new story's heading.
+
+### Root cause
+`components/layout/Navbar.tsx` hides itself (`-translate-y-full`) while the page is scrolling down and reappears while scrolling up (`hooks in Navbar.tsx:38-52`). The two earlier navigation fixes in this session (see § Thirty-Sixth Build, §189/§193 — the `scroll-mt-24` CSS fix that made jumping to the *first* story work) assumed a constant navbar height needed clearing, via `scrollIntoView()` + a static `scroll-margin-top`. That's only correct for upward jumps, where the navbar reappears and genuinely needs ~96px of clearance. For downward jumps, the navbar ends up auto-hidden at the destination (0px needed) — so the static 96px clearance was reserving space for a navbar that wasn't actually there, stopping the scroll short and revealing the previous story's trailing text in that gap.
+
+### Fix (`components/stories/StoriesPageClient.tsx`)
+Replaced the `scrollIntoView()` + CSS `scroll-margin-top` approach (which can't be direction-aware) with a manually computed scroll target in `navigate()`:
+```ts
+const navigate = useCallback((index: number) => {
+  const el = blockRefs.current[index];
+  if (!el) return;
+
+  const currentY = window.scrollY;
+  const targetTop = el.getBoundingClientRect().top + currentY;
+  const scrollingUp = targetTop < currentY;
+  const NAVBAR_CLEARANCE = 96;
+
+  window.scrollTo({
+    top: Math.max(0, targetTop - (scrollingUp ? NAVBAR_CLEARANCE : 0)),
+    behavior: "smooth",
+  });
+}, []);
+```
+Direction is determined by comparing the target's document position to the current scroll position; the 96px navbar-clearance offset is only applied when scrolling upward (where the navbar will genuinely reappear), matching `Navbar.tsx`'s own hide/show logic. The now-unused `scroll-mt-24` class was removed from `components/stories/StoryBlock.tsx` (it only affected native `scrollIntoView()`, which is no longer called here).
+
+Same `navigate()` function is shared by both `StoriesTOC.tsx` (desktop) and `StoriesMobileDrawer.tsx` (mobile), so the fix covers both.
+
+---
+
+## 194. Key Files Modified (Thirty-Seventh Build)
+
+| File | Change type |
+|------|-------------|
+| `components/stories/StoriesMobileDrawer.tsx` | Box/card chrome (background, border, shadow, header bar, separate close button) removed; rows now match `StoriesTOC.tsx`'s unboxed dot+heading style; trigger button doubles as open/close toggle |
+| `components/stories/StoriesPageClient.tsx` | `navigate()` rewritten from `scrollIntoView()` to a manually computed, direction-aware `window.scrollTo()` — navbar clearance only applied when scrolling upward |
+| `components/stories/StoryBlock.tsx` | Removed now-unused `scroll-mt-24` class |

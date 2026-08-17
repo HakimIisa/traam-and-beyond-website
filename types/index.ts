@@ -56,6 +56,16 @@ export interface FeaturedItem {
   createdAt: string;
 }
 
+export interface StoryItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  image: string;
+  order: number;
+  createdAt: string;
+}
+
 export interface EnquiryFormData {
   name: string;
   email: string;

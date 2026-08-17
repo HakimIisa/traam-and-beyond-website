@@ -1,0 +1,99 @@
+"use client";
+
+import Image from "next/image";
+import { useRef, useEffect } from "react";
+import { useInView } from "framer-motion";
+import type { StoryItem } from "@/types";
+
+interface StoryBlockProps {
+  story: StoryItem;
+  index: number;
+  setActiveIndex: (i: number) => void;
+  setImageIndex: (i: number) => void;
+  scrollDirRef: React.RefObject<"up" | "down">;
+  registerRef: (index: number, el: HTMLDivElement | null) => void;
+}
+
+export default function StoryBlock({
+  story,
+  index,
+  setActiveIndex,
+  setImageIndex,
+  scrollDirRef,
+  registerRef,
+}: StoryBlockProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Timeline / TOC active state: fires when panel is at viewport center
+  const isCentered = useInView(ref, { margin: "-45% 0px -45% 0px" });
+  // Image swap: fires when panel is in upper portion — symmetric via scrollDirRef
+  const isNearTop = useInView(ref, { margin: "0px 0px -90% 0px" });
+
+  useEffect(() => {
+    if (isCentered) setActiveIndex(index);
+  }, [isCentered, index, setActiveIndex]);
+
+  useEffect(() => {
+    if (isNearTop) {
+      setImageIndex(index);
+    } else if (index > 0 && scrollDirRef.current === "up") {
+      setImageIndex(index - 1);
+    }
+  }, [isNearTop, index, setImageIndex, scrollDirRef]);
+
+  useEffect(() => {
+    registerRef(index, ref.current);
+    return () => registerRef(index, null);
+  }, [index, registerRef]);
+
+  const paragraphs = story.body
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  return (
+    <div
+      ref={ref}
+      className={`w-full px-6 lg:px-0 ${index === 0 ? "pt-8 lg:pt-4" : "pt-16 lg:pt-20"} pb-16 lg:pb-20 ${
+        index > 0 ? "border-t border-white/10" : ""
+      }`}
+    >
+      {/*
+        lg:+: the outer flex+justify-center centers this block within `main`'s own
+        grid track, then the extra ml-[…] nudges it further right by exactly half the
+        width difference between the TOC (380/440px) and image panel (440/500px)
+        columns — compensating for those two side columns being unequal widths so the
+        text ends up centered on the *page*, not just on the (off-center) middle track.
+      */}
+      <div className="lg:flex lg:justify-center">
+        <div className="max-w-2xl w-full mx-auto lg:mx-0 lg:ml-[30px] text-left space-y-6">
+          <div>
+            <h3 className="font-display text-3xl lg:text-4xl text-cream mb-2">{story.title}</h3>
+            <p className="text-terracotta text-base lg:text-lg font-semibold">{story.subtitle}</p>
+          </div>
+
+          {story.image && (
+            <div className="lg:hidden relative w-full aspect-square rounded-sm overflow-hidden">
+              <Image
+                src={story.image}
+                alt={story.title}
+                fill
+                sizes="100vw"
+                className="object-cover"
+                priority={index === 0}
+              />
+            </div>
+          )}
+
+          <div className="space-y-6">
+            {paragraphs.map((paragraph, i) => (
+              <p key={i} className="text-[#DAC4A1] text-base lg:text-lg leading-relaxed text-justify">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

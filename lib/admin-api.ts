@@ -149,6 +149,27 @@ export async function apiSeedResearch(): Promise<{ created: string[]; skipped: s
   return res.json();
 }
 
+// ── Stories ──────────────────────────────────────────────────────────────────
+export async function apiCreateStory(data: object): Promise<string> {
+  const headers = await getAuthHeader();
+  const res = await fetch("/api/admin/stories", { method: "POST", headers, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Failed to create story");
+  const { id } = await res.json();
+  return id;
+}
+
+export async function apiUpdateStory(id: string, data: object): Promise<void> {
+  const headers = await getAuthHeader();
+  const res = await fetch(`/api/admin/stories/${id}`, { method: "PUT", headers, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Failed to update story");
+}
+
+export async function apiDeleteStory(id: string): Promise<void> {
+  const headers = await getAuthHeader();
+  const res = await fetch(`/api/admin/stories/${id}`, { method: "DELETE", headers });
+  if (!res.ok) throw new Error("Failed to delete story");
+}
+
 // ── Seed ────────────────────────────────────────────────────────────────────
 export async function apiSeedCategories(): Promise<{ renamed: string[]; created: string[]; skipped: string[] }> {
   const headers = await getAuthHeader();
