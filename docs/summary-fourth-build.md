@@ -4455,3 +4455,127 @@ Also discussed and clarified (no implementation): lossy WebP at ~quality 80–85
 **Deferred at the client's explicit request** ("I don't want to do anything right now, I only want to explore options, don't change anything"). Recommended next step when ready: option 1 (server-side compression on new uploads via `sharp`) as the initial low-risk change, with option 2 (backfill) as a deliberate, separately-scoped follow-up once option 1 is proven out.
 
 No files were modified this session.
+
+---
+
+# Thirty-Ninth Build Session — Addendum
+
+**Date:** 2026-08-19
+**Scope:** Follow-through on the Thirty-Eighth Build's deferred WebP plan — server-side upload compression, a full backfill + cleanup of the existing 200-image catalogue, a client-side pre-compression fix for a live Vercel upload bug the client had been hitting, and a new drag-to-reorder-images feature inside the Items/Research admin forms
+
+---
+
+## 196. WebP Compression at Upload Time (`app/api/admin/upload/route.ts`)
+
+Implemented option 1 from §195's plan. Added `sharp` as a dependency. Every upload — regardless of admin form, since all of them share this one endpoint via `ImageUploadField.tsx` → `uploadFile()` — is now resized and re-encoded before it's written to Storage:
+
+```ts
+const MAX_DIMENSION = 2000;
+const WEBP_QUALITY = 82;
+
+buffer = await sharp(originalBuffer)
+  .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
+  .webp({ quality: WEBP_QUALITY })
+  .toBuffer();
+```
+
+The stored path always ends in `.webp` regardless of the uploaded file's original extension (`path.replace(/\.[^./]+$/, "") + ".webp"`) — no caller assumes a particular extension, they just use whatever URL the route returns, so this is a safe, silent change from the admin's perspective. Non-image files and corrupt images now fail with a clean 400 instead of being blindly accepted or crashing.
+
+**Verified against real files before shipping:** a 2.5MB JPEG → 0.29MB (88% smaller), a 3.97MB PNG → 0.35MB (91% smaller), both correctly resized/re-encoded. Confirmed the route's production bundle stayed tiny (195B), meaning `sharp`'s native binary was correctly treated as an external server package by Next's bundler rather than broken by it.
+
+---
+
+## 197. Backfill Script for the Existing Catalogue (`scripts/backfill-images.ts`)
+
+New CLI script (`npm run backfill-images -- [--dry-run] [--limit=N]`), following the same `tsx` + `dotenv` convention as the existing `scripts/seed.ts`. Re-encodes every pre-existing image (items, categories, research_items, featured_items, stories) to WebP and repoints the relevant Firestore field — without ever touching or deleting the original, which is uploaded to a new `-optimized.webp` path alongside it. Resumable: progress is persisted to `scripts/backfill-images-log.json` (gitignored) after every image, so a crash or interruption can just be re-run.
+
+### A real bug caught during dry-run testing
+The first dry-run persisted fake `"done"` log entries to disk. Had that gone unnoticed, a subsequent *real* run would have trusted the log, skipped the actual upload, and still repointed Firestore at a file that was never written — silent broken images. Fixed by making dry runs fully side-effect-free (the in-memory log is still used so the dry run's own Firestore-preview step reports correctly, but it's never written to disk):
+```ts
+if (!DRY_RUN) saveLog(log);
+```
+Verified the fix by re-running the dry run and confirming no log file was written, then proved the real path end-to-end on a single image (uploaded, confirmed live via direct HTTP request, confirmed the original was untouched) before scaling up.
+
+### Full run results
+Run in batches (`--limit=50` a few times, plus one larger batch that ran long enough to continue in the background) against the live production Firestore/Storage: **200 of 200 images migrated, 0 failures.** Confirmed complete with a final `--dry-run` pass showing "0 to process, 200 already WebP."
+
+---
+
+## 198. Original Image Cleanup Script (`scripts/cleanup-original-images.ts`)
+
+New CLI script (`npm run cleanup-original-images -- [--dry-run] [--limit=N]`) — the deliberately separate, genuinely irreversible step deferred from §195's original plan. Deletes the pre-WebP originals the backfill left behind, but only ever considers files recorded in the backfill's own log, and re-verifies against a **fresh** live Firestore read before deleting anything:
+- only deletes if the original URL is confirmed **not** referenced anywhere anymore, **and**
+- the WebP replacement is confirmed referenced somewhere (proves the repoint actually took effect) —
+
+if either check fails (e.g. an item was edited or deleted after the backfill ran), the original is left alone rather than guessed at.
+
+### Staged rollout, at the client's request
+Rather than running the full deletion in one shot, this was done in two steps per the client's ask: first `--limit=2` for real, with the exact old/new URLs reported back so the client could verify directly (confirmed via direct HTTP requests that the two originals now 404/403 while their WebP replacements still serve 200, then confirmed the corresponding live page still rendered correctly with the original genuinely gone, not just unused). Only after that explicit confirmation was the remaining 198 run.
+
+**Final result:** 200 of 200 originals deleted, 0 failures, **~383.6MB freed** from Storage.
+
+---
+
+## 199. `.next` Build Cache Corruption — Twice (Lesson Learned)
+
+Running a full `npm run build` (production build) while a `npm run dev` server was still active in the background corrupted the dev server's client bundle **twice** in this session — both times manifesting as "no images are loading" on `localhost:3000` even though the server-rendered HTML had correct `<img src>` tags and the image URLs themselves were independently confirmed reachable. Root cause: `next dev` and `next build` both write to the same `.next/` directory; running them concurrently is a known way to corrupt whichever one is mid-flight, and since several image components on this site (`ImageCarousel`, galleries) rely on client-side React/Framer Motion state to actually reveal/position each image, a broken client bundle leaves the *data* correct but the *rendering* broken — a confusing failure mode since it looks like a data or network issue rather than a stale-cache one.
+
+**Fix, both times:** kill the process on port 3000, `rm -rf .next`, restart `npm run dev` clean.
+
+**Going forward:** check `netstat` for a listener on port 3000 before running `npm run build` as a verification step during a session where a dev server might already be running, and prefer letting an already-running dev server's Fast Refresh pick up a change rather than running a separate production build alongside it when the change doesn't specifically need build-time verification (e.g. confirming a native-module bundle size, which was the actual reason `npm run build` was used at all).
+
+---
+
+## 200. Upload Payload Size Bug — Vercel's 4.5MB Serverless Function Limit
+
+### Symptom
+Client reported "some images are unable to be uploaded" — reproduced with a specific 4.48MB JPEG (`Catalogue/Shawls/New Items/Shawl2A.jpg.jpeg`) that uploaded fine locally but failed on `https://traamandbeyond.com/admin/items/...` with `FUNCTION_PAYLOAD_TOO_LARGE` visible in the Network tab's response body.
+
+### Root cause
+Vercel Serverless Functions enforce a hard **4.5MB limit on the incoming request body**, at the platform level, before any application code runs. The file is 4.48MB raw, but the browser sends it as `multipart/form-data` (file + the `path` field + boundaries/headers), which pushes the actual request body just over that line. `next dev`'s local server has no such cap, which is exactly why it worked locally and failed only in production, and why it only affected some images (roughly those over ~4.3MB raw) rather than all of them. The server-side `sharp` compression added in §196 doesn't help here — it runs *after* the file reaches the server, and this file never got that far; Vercel rejects the request before the route handler executes.
+
+### Fix — client-side pre-compression (`lib/image-compress.ts`, new file)
+A browser-side compression pass was added, using `createImageBitmap` (with `imageOrientation: "from-image"` explicitly set, to guarantee correct EXIF-based rotation regardless of browser default behavior) + `<canvas>`, wired into `uploadFile()` in `lib/admin-api.ts` so every admin upload goes through it before the network request:
+
+```ts
+const MAX_DIMENSION = 3000;
+const JPEG_QUALITY = 0.9;
+const SKIP_BELOW_BYTES = 1.5 * 1024 * 1024;
+```
+
+Deliberately conservative settings (larger max dimension and higher quality than the server's own 2000px/WebP-82 pass) — its only job is reliably clearing Vercel's limit, not doing the "real" compression, which the unchanged server-side `sharp` pipeline still owns. Runs on *every* upload rather than only as a fail-safe for oversized files (a deliberate choice, confirmed with the client): keeps one consistent code path instead of two, and speeds up every upload's transfer time, not just the ones that would otherwise hard-fail. Never throws — falls back silently to the original file if compression fails for any reason, so it can't itself become a new point of failure. Files already under 1.5MB skip the pass entirely as needless work.
+
+Also improved: `uploadFile()` now surfaces a specific message for a still-oversized file (HTTP 413) instead of a generic string, and `ImageUploadField.tsx`'s catch block now displays the actual thrown error message instead of a hardcoded "Upload failed. Please try again."
+
+**Verified:** ran the exact failing file through a `sharp`-based simulation of the two-stage pipeline (not identical to the browser's canvas encoder, but the same ballpark) — 4.48MB original → 1.46MB after the simulated client pass (well clear of the 4.5MB limit) → 0.72MB after the unchanged server WebP pass. Client then confirmed the actual fix end-to-end through the real admin UI with the real file, both locally and, after deploying, on the live site.
+
+---
+
+## 201. Drag-to-Reorder Images Within an Item (`components/forms/ImageUploadField.tsx`)
+
+New client request: in the Items admin form, be able to reorder an item's multiple images so the order determines display order (first image = cover/primary image shown first in carousels and grids) — previously `ImageUploadField` only ever appended new uploads to the end of the array with no way to reorder, only remove.
+
+### Implementation
+Added `@dnd-kit` drag-and-drop (same library/pattern as every other reorder feature on this site — Items list, Research list, Featured, Stories) to the component's multi-image mode:
+- Each thumbnail gets a dedicated grip handle (top-left, visible on hover) carrying the `{...attributes} {...listeners}` — kept deliberately separate from the existing remove (×) button so dragging and removing can't conflict, matching the same "dedicated handle, not the whole row" pattern used in `ReorderFeaturedClient.tsx`/`ReorderResearchClient.tsx`/etc.
+- `rectSortingStrategy` (not `verticalListSortingStrategy`, which every *other* reorder UI on this site uses) — this grid wraps across multiple rows via `flex-wrap`, not a single vertical column, so the rect-based strategy is the correct one here specifically.
+- The first thumbnail gets a small terracotta "Cover" badge so it's visually unambiguous which image is primary.
+- Reordering only updates the form's local `images` state (same as adding/removing already did) — persisted to Firestore on save, same as before.
+
+### Scope decision (not explicitly asked, low-risk)
+Applied to the shared `ImageUploadField` component's multi-image mode generally, rather than special-casing it to only the Items form — Research items also support multiple images and benefit identically. Single-image fields (Categories, Featured, Stories) are unaffected since there's nothing to reorder with 0–1 images.
+
+---
+
+## 202. Key Files Modified (Thirty-Ninth Build)
+
+| File | Change type |
+|------|-------------|
+| `app/api/admin/upload/route.ts` | Every upload now resized (max 2000px) and re-encoded to WebP (quality 82) via `sharp` before being written to Storage; non-image/corrupt files now rejected with a clean 400 |
+| `package.json` | `sharp` dependency added; `backfill-images` and `cleanup-original-images` npm scripts added |
+| `scripts/backfill-images.ts` | **New file** — resumable migration script, converts existing catalogue images to WebP and repoints Firestore, originals left untouched |
+| `scripts/cleanup-original-images.ts` | **New file** — deletes originals only after re-verifying against a fresh Firestore read that the WebP replacement is live and the original is unreferenced |
+| `.gitignore` | `scripts/backfill-images-log.json` (run-specific, not meant to be committed) added |
+| `lib/image-compress.ts` | **New file** — browser-side pre-upload resize/compress (max 3000px, JPEG quality 0.9) to keep every admin upload under Vercel's 4.5MB serverless function payload limit |
+| `lib/admin-api.ts` | `uploadFile()` now runs every file through `compressImageForUpload()` before sending; clearer error message on a still-oversized (413) upload |
+| `components/forms/ImageUploadField.tsx` | Real error messages surfaced instead of a hardcoded string; multi-image mode now supports drag-to-reorder via `@dnd-kit` with a dedicated grip handle per thumbnail and a "Cover" badge on the first image |
