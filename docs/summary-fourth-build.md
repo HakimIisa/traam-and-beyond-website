@@ -4579,3 +4579,63 @@ Applied to the shared `ImageUploadField` component's multi-image mode generally,
 | `lib/image-compress.ts` | **New file** — browser-side pre-upload resize/compress (max 3000px, JPEG quality 0.9) to keep every admin upload under Vercel's 4.5MB serverless function payload limit |
 | `lib/admin-api.ts` | `uploadFile()` now runs every file through `compressImageForUpload()` before sending; clearer error message on a still-oversized (413) upload |
 | `components/forms/ImageUploadField.tsx` | Real error messages surfaced instead of a hardcoded string; multi-image mode now supports drag-to-reorder via `@dnd-kit` with a dedicated grip handle per thumbnail and a "Cover" badge on the first image |
+
+---
+
+# Fortieth Build Session — Addendum
+
+**Date:** 2026-08-19
+**Scope:** Mobile-only expandable "Read full story" pattern for the `/stories` page body text, plus a scroll-position bug found and fixed during that work
+
+---
+
+## 203. Stories — Mobile "Read Full Story" Expand/Collapse (`components/stories/StoryBlock.tsx`)
+
+New client request: on mobile only (desktop untouched), each story's body should default to a short preview instead of the full ~800-1000 words, with a way to expand and re-collapse it — no new boxes/cards, purely expandable text matching the page's existing unboxed look. `/ui-ux-pro-max` was invoked per instruction; its CLI search tool hit the same broken-symlink issue documented repeatedly earlier in this project (§155, §162, §167) — the loaded Quick Reference guidance was used directly instead, specifically `truncation-strategy` (ellipsis + expand, not just clipping), `touch-target-size`, `duration-timing`/`exit-faster-than-enter`, and `aria-expanded` for the disclosure-widget pattern.
+
+### Implementation
+- Desktop (`hidden lg:block`): body renders exactly as before, byte-for-byte unchanged — a second, parallel rendering of the same `paragraphs` data (cheap, text-only duplication — no hooks or refs are duplicated, following the same `lg:hidden`/`hidden lg:block` split already used for the mobile-only inline image in this component).
+- Mobile (`lg:hidden`): defaults to the first 14 words of the first paragraph + "…" + an inline underlined **"Read full story →"** trigger. Tapping it plays a Framer Motion height/opacity expand (`height: 0 → "auto"`, 300ms) to the full body. Collapsing back works two ways — a **"See less"** link at the end of the full text, or a subtle **"×"** button that appears top-right only once expanded (kept as a sibling of the height-animating container, not a descendant of it, specifically so it isn't clipped by that container's `overflow-hidden` while its height is still small early in the expand animation) — both call the same collapse handler.
+- `AnimatePresence` is kept permanently mounted with only its direct children swapped — the same lesson already learned once this session with the TOC hover-preview image (§ Thirty-Sixth Build, §188): conditionally mounting `AnimatePresence` itself alongside its child silently breaks exit animations.
+
+---
+
+## 204. Scroll-Position Bug on Collapse — Root Cause & Fix
+
+### Symptom
+Collapsing an expanded story (via "See less") left the page scrolled to roughly the bottom of the site (near the footer) instead of back at that story.
+
+### First attempt (insufficient)
+Reused the direction-aware scroll helper already built for TOC navigation (§ Thirty-Seventh Build, §193) — extracted it into a shared `components/stories/scrollToElement.ts` (previously duplicated inline in `StoriesPageClient.tsx`'s `navigate()`) and called it synchronously inside the collapse click handler, right after `setExpanded(false)`. This did not fix it.
+
+### Root cause
+The scroll target was computed correctly (the block's own top edge doesn't move when its content collapses, only what's below it shifts up) — but the *scroll animation* and the *collapse's exit animation* then ran concurrently, racing each other: `window.scrollTo({ behavior: "smooth" })` animates toward a fixed absolute document coordinate over several hundred milliseconds, while at the same time Framer Motion's `AnimatePresence` exit animation is shrinking the document's total scrollable height. A smooth-scroll target computed against the pre-collapse (taller) document can overshoot once the actual scrollable range shrinks out from under it mid-animation — landing the page near whatever is now at the bottom of the newly-short document instead of at the intended story.
+
+### Fix
+Deferred the scroll correction to `AnimatePresence`'s `onExitComplete` callback — which fires only once the collapsing content's exit animation has actually finished and the DOM is stable at its final (short) height — instead of running it synchronously in the click handler:
+```tsx
+const pendingCollapseScrollRef = useRef(false);
+
+function handleCollapse() {
+  pendingCollapseScrollRef.current = true;
+  setExpanded(false);
+}
+
+function handleCollapseExitComplete() {
+  if (pendingCollapseScrollRef.current) {
+    pendingCollapseScrollRef.current = false;
+    if (ref.current) scrollToElement(ref.current);
+  }
+}
+```
+`onExitComplete` is attached to the `AnimatePresence` wrapping the preview/full-body swap; since both collapse triggers ("See less" and "×") go through the same `handleCollapse` → state change → exit animation → `onExitComplete` path, the fix covers both uniformly. No animation is racing another anymore — the scroll only ever starts once the layout it's targeting is already final.
+
+---
+
+## 205. Key Files Modified (Fortieth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/stories/StoryBlock.tsx` | Mobile-only expandable story body (14-word preview + "Read full story →" / "See less" / "×"); desktop rendering unchanged; scroll-position-on-collapse bug fixed via `onExitComplete` |
+| `components/stories/scrollToElement.ts` | **New file** — direction-aware, navbar-clearance-aware scroll helper extracted from `StoriesPageClient.tsx`'s `navigate()` so both TOC navigation and story-collapse re-anchoring share one implementation |
+| `components/stories/StoriesPageClient.tsx` | `navigate()` simplified to call the extracted `scrollToElement()` helper |

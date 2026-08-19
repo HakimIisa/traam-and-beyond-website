@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { scrollToElement } from "./scrollToElement";
 import StoryBlock from "./StoryBlock";
 import StoriesTOC from "./StoriesTOC";
 import StoriesImagePanel from "./StoriesImagePanel";
@@ -37,23 +38,7 @@ export default function StoriesPageClient({ stories }: StoriesPageClientProps) {
 
   const navigate = useCallback((index: number) => {
     const el = blockRefs.current[index];
-    if (!el) return;
-
-    // The site navbar (components/layout/Navbar.tsx) hides itself while scrolling
-    // down and reappears while scrolling up, so the clearance needed at the
-    // destination isn't constant: jumping to a later story ends with the navbar
-    // hidden (0px to clear), jumping to an earlier one ends with it visible again
-    // (~navbar height to clear). A plain scrollIntoView()/scroll-margin-top can't
-    // be direction-aware, so the target position is computed manually here.
-    const currentY = window.scrollY;
-    const targetTop = el.getBoundingClientRect().top + currentY;
-    const scrollingUp = targetTop < currentY;
-    const NAVBAR_CLEARANCE = 96;
-
-    window.scrollTo({
-      top: Math.max(0, targetTop - (scrollingUp ? NAVBAR_CLEARANCE : 0)),
-      behavior: "smooth",
-    });
+    if (el) scrollToElement(el);
   }, []);
 
   if (stories.length === 0) {
