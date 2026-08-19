@@ -4426,3 +4426,32 @@ Same `navigate()` function is shared by both `StoriesTOC.tsx` (desktop) and `Sto
 | `components/stories/StoriesMobileDrawer.tsx` | Box/card chrome (background, border, shadow, header bar, separate close button) removed; rows now match `StoriesTOC.tsx`'s unboxed dot+heading style; trigger button doubles as open/close toggle |
 | `components/stories/StoriesPageClient.tsx` | `navigate()` rewritten from `scrollIntoView()` to a manually computed, direction-aware `window.scrollTo()` — navbar clearance only applied when scrolling upward |
 | `components/stories/StoryBlock.tsx` | Removed now-unused `scroll-mt-24` class |
+
+---
+
+# Thirty-Eighth Build Session — Addendum
+
+**Date:** 2026-08-18
+**Scope:** Image-loading-performance investigation only — root cause identified, options discussed and evaluated, no code changed. Client explicitly asked to explore rather than implement.
+
+---
+
+## 195. Image Load Performance — Root Cause & Options (No Changes Made)
+
+### Root cause
+`next.config.ts`'s `images.unoptimized: true` (set in the Twenty-Third Build, §125, to avoid Vercel's Image Optimization API usage quota) means every `<Image>` on the site — hero, carousels, catalogue, research, stories — serves the original uploaded file as-is: no automatic resizing, no format conversion (WebP/AVIF), no responsive `srcset` shrinking for mobile viewports. Since the site's Storage now holds substantially more images than at the time that flag was set (the Stories feature alone added a new image-per-item content type, on top of the pre-existing Items/Research/Featured catalogues), the client confirmed re-enabling Vercel's optimizer would likely blow the free-tier quota again — ruling out the simplest fix.
+
+### Options discussed, ranked by effort
+1. **Compress at upload time, server-side** (`app/api/admin/upload/route.ts`, using `sharp` to resize + convert to WebP once per upload) — cheapest to run (happens once, not per page-view), keeps `unoptimized: true`, avoids Vercel cost entirely. Since `/api/admin/upload` is the single shared endpoint behind every admin form's `ImageUploadField`, one change would cover Items, Categories, Research, Featured, and Stories at once. Only affects images uploaded *after* the change, unless paired with a backfill.
+2. **Backfill existing images** — a one-time migration script walking every image URL referenced across Firestore, downloading, compressing, and re-uploading in place. Fixes the current backlog immediately but is riskier (touches live production URLs) and more work than option 1 alone.
+3. **Client-side compression before upload** (in the browser, before the file is sent) — same end result as option 1, additionally saves upload bandwidth, but is less predictable than doing it server-side (depends on the admin's browser).
+4. **Move image hosting off raw Firebase Storage** to a service with its own free-tier on-the-fly optimizer (e.g. Cloudinary, ImageKit) — sidesteps Vercel's quota entirely, but is a materially bigger architectural change (new dependency, new account, migration of existing URLs).
+5. **Re-enable Vercel's optimizer selectively** (only for the highest-traffic images, e.g. hero/catalogue thumbnails, leaving lower-traffic galleries like research detail pages served raw) — reduces quota exposure without eliminating it, and is fiddly to keep consistent long-term.
+
+### JPEG/PNG → WebP visual-quality question
+Also discussed and clarified (no implementation): lossy WebP at ~quality 80–85 is visually indistinguishable from source JPEGs at the same or smaller file size (WebP's compression is more efficient than JPEG's at equivalent quality) — a concern only if quality were pushed much lower or an image were re-compressed lossy multiple times. PNGs need a content-based split: photographic PNGs (product/craft photos) can go lossy WebP same as JPEGs, but any PNGs actually relying on transparency (a handful of logo/UI assets, not catalogue photography) should use WebP's *lossless* mode instead to avoid visibly damaging edges — smaller gains than lossy, but zero quality loss.
+
+### Decision / status
+**Deferred at the client's explicit request** ("I don't want to do anything right now, I only want to explore options, don't change anything"). Recommended next step when ready: option 1 (server-side compression on new uploads via `sharp`) as the initial low-risk change, with option 2 (backfill) as a deliberate, separately-scoped follow-up once option 1 is proven out.
+
+No files were modified this session.

@@ -38,6 +38,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# image backfill script progress log (run-specific, not meant to be committed)
+scripts/backfill-images-log.json
 next-env.d.ts
 
 # Claude Code conversation history
