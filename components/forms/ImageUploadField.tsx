@@ -48,8 +48,8 @@ export default function ImageUploadField({
         })
       );
       onChange(single ? urls : [...images, ...urls]);
-    } catch {
-      setError("Upload failed. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { auth } from "@/lib/firebase/client";
+import { compressImageForUpload } from "@/lib/image-compress";
 
 async function getAuthHeader(): Promise<HeadersInit> {
   const user = auth.currentUser;
@@ -19,11 +20,18 @@ async function getAuthHeaderFormData(): Promise<HeadersInit> {
 // ── Upload ──────────────────────────────────────────────────────────────────
 export async function uploadFile(file: File, path: string): Promise<string> {
   const headers = await getAuthHeaderFormData();
+  const toUpload = await compressImageForUpload(file);
+
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", toUpload);
   formData.append("path", path);
   const res = await fetch("/api/admin/upload", { method: "POST", headers, body: formData });
-  if (!res.ok) throw new Error("Upload failed");
+  if (!res.ok) {
+    if (res.status === 413) {
+      throw new Error("This image is too large to upload, even after compression. Try a smaller file.");
+    }
+    throw new Error("Upload failed");
+  }
   const { url } = await res.json();
   return url;
 }
