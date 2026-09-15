@@ -32,7 +32,7 @@ export default async function ItemDetailPage({ params }: Props) {
   if (!item || item.categorySlug !== slug) notFound();
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-sm text-stone mb-8">
         <Link href="/" className="hover:text-terracotta transition-colors">Home</Link>

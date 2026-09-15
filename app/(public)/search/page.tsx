@@ -19,7 +19,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const items = query ? await searchItems(query) : [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
       <div className="mb-10">
         <h1 className="text-4xl font-semibold text-walnut mb-2">
           {query ? `Results for "${query}"` : "Search"}

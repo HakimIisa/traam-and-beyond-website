@@ -29,7 +29,7 @@ export default async function AdaptiveReuseItemPage({ params }: Props) {
   if (!item) notFound();
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
       <nav className="flex items-center gap-1 text-sm text-stone mb-8 flex-wrap">
         <Link href="/" className="hover:text-terracotta transition-colors">Home</Link>
         <ChevronRight size={14} />

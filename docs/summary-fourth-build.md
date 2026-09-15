@@ -4639,3 +4639,48 @@ function handleCollapseExitComplete() {
 | `components/stories/StoryBlock.tsx` | Mobile-only expandable story body (14-word preview + "Read full story →" / "See less" / "×"); desktop rendering unchanged; scroll-position-on-collapse bug fixed via `onExitComplete` |
 | `components/stories/scrollToElement.ts` | **New file** — direction-aware, navbar-clearance-aware scroll helper extracted from `StoriesPageClient.tsx`'s `navigate()` so both TOC navigation and story-collapse re-anchoring share one implementation |
 | `components/stories/StoriesPageClient.tsx` | `navigate()` simplified to call the extracted `scrollToElement()` helper |
+
+---
+
+# Forty-First Build Session — Addendum
+
+**Date:** 2026-09-15
+**Scope:** Diagnosed and fixed a breadcrumb-links-unclickable bug on the item detail page (and three others sharing the same layout pattern) — the breadcrumb "Home"/category links were real, correctly-coded `<Link>`s the whole time; the bug was a fixed navbar with insufficient top clearance
+
+---
+
+## 206. Breadcrumb "Home"/Category Links Unclickable — Root Cause & Fix
+
+### Initial report
+Client wanted the "Home > Copperware > Teapot" breadcrumb on the item detail page to be clickable. Reading `app/(public)/category/[slug]/[itemId]/page.tsx` showed "Home" and the category name were **already** real `next/link` `<Link>` elements with correct `href`s — not the missing feature it first appeared to be. Confirmed via the live server's actual rendered HTML too (correct `<a href="/">Home</a>` markup, nothing wrapping it).
+
+### Symptom, once actually tested live
+Clicking either link did precisely nothing — no console error, no network activity, no URL change — and the failure persisted in an incognito window (ruling out an extension/Shields interference). Systematically ruled out, by reading each file fresh: `NavigationLoadingOverlay.tsx` (its capture-phase click listener never calls `preventDefault()`), the item gallery's `Dialog`/lightbox (Radix-based, not mounted at all while closed), `middleware.ts` (only matches `/admin/*`), and `globals.css` (no stray `pointer-events-none` rule).
+
+### The clue that cracked it
+Asked the client to double-click "Home" — the resulting browser text-selection highlighted **both** the breadcrumb "Home" text *and* the separate navbar logo simultaneously, two elements nowhere near each other on the page. That's the signature of two different clicks (of the double-click) landing on two different *stacked* elements occupying the same screen position — not a code logic bug at all, a **z-index/layout overlap**.
+
+### Root cause
+`components/layout/Navbar.tsx`'s `<header>` is `fixed top-0`, `h-16` (64px tall), `z-50` — and **transparent** (`bg-transparent`) until the page is scrolled past 20px (`scrolled ? "bg-walnut/95..." : "bg-transparent"`). Transparent background does not mean the element is gone or unclickable — it's still a real, full-width, `z-50` box sitting on top of everything in that 64px band regardless of what's visually painted there. The item detail page's outer container used only `py-12` (48px top padding) before its breadcrumb `<nav>` — meaning the top portion of the breadcrumb's own clickable line-box fell *inside* the navbar's invisible 64px hit-zone, so clicks there were captured by the (inert, transparent) navbar instead of ever reaching the link beneath it.
+
+This wasn't a one-off mistake: the category *listing* page (`category/[slug]/page.tsx`) already reserves `pt-24` (96px) specifically to clear the navbar (§45, Ninth Build — "prevents title hugging the navbar"). The item *detail* page, and the three research item detail pages that mirror its structure, simply never got the same treatment.
+
+### Fix
+Changed `py-12` → `pt-24 pb-12` (matching the already-correct site convention) on every page found to have the same insufficient clearance:
+- `app/(public)/category/[slug]/[itemId]/page.tsx` (the one actually reported broken)
+- `app/(public)/research/adaptive-reuse/[slug]/page.tsx`, `reinterpretation/[slug]/page.tsx`, `graphic-design/[slug]/page.tsx` (identical breadcrumb pattern, same latent bug, not yet reported)
+- `app/(public)/search/page.tsx` (same insufficient clearance, but nothing clickable sits there — a minor visual inconsistency rather than a broken interaction, fixed anyway for consistency)
+
+Found by a site-wide grep for the exact `max-w-* px-4 sm:px-6 lg:px-8 py-12` container-opening pattern rather than fixing only the one reported file, per the instruction to check related files and not break anything elsewhere.
+
+---
+
+## 207. Key Files Modified (Forty-First Build)
+
+| File | Change type |
+|------|-------------|
+| `app/(public)/category/[slug]/[itemId]/page.tsx` | Outer container `py-12` → `pt-24 pb-12` — clears the fixed navbar's clickable zone so the breadcrumb links are reachable |
+| `app/(public)/research/adaptive-reuse/[slug]/page.tsx` | Same `pt-24 pb-12` fix (latent, not-yet-reported instance of the same bug) |
+| `app/(public)/research/reinterpretation/[slug]/page.tsx` | Same `pt-24 pb-12` fix |
+| `app/(public)/research/graphic-design/[slug]/page.tsx` | Same `pt-24 pb-12` fix |
+| `app/(public)/search/page.tsx` | Same `pt-24 pb-12` fix, for consistency (nothing clickable was actually affected here) |
