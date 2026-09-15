@@ -15,18 +15,20 @@ A modern, visually rich showcase website for a curated collection of authentic K
 3. [Navigation Menu](#3-navigation-menu)
 4. [Home Page — Our Story](#4-home-page--our-story)
 5. [Home Page — Featured Panel](#5-home-page--featured-panel)
-6. [Home Page — Our Collections](#6-home-page--our-collections)
-7. [Home Page — Research](#7-home-page--research)
-8. [About Page — Our Story Timeline](#8-about-page--our-story-timeline)
-9. [About Page — Craft Heritage of Kashmir](#9-about-page--craft-heritage-of-kashmir)
-10. [Category Catalogue](#10-category-catalogue)
-11. [Item Detail Page](#11-item-detail-page)
-12. [Contact & Enquiry](#12-contact--enquiry)
-13. [Admin Panel](#13-admin-panel)
-14. [Tech Stack](#14-tech-stack)
-15. [Project Structure](#15-project-structure)
-16. [License](#16-license)
-17. [Author](#17-author)
+6. [Home Page — Featured Items Carousel](#6-home-page--featured-items-carousel)
+7. [Home Page — Our Collections](#7-home-page--our-collections)
+8. [Home Page — Research](#8-home-page--research)
+9. [About Page — Our Story Timeline](#9-about-page--our-story-timeline)
+10. [About Page — Craft Heritage of Kashmir](#10-about-page--craft-heritage-of-kashmir)
+11. [Stories Page](#11-stories-page)
+12. [Category Catalogue](#12-category-catalogue)
+13. [Item Detail Page](#13-item-detail-page)
+14. [Contact & Enquiry](#14-contact--enquiry)
+15. [Admin Panel](#15-admin-panel)
+16. [Tech Stack](#16-tech-stack)
+17. [Project Structure](#17-project-structure)
+18. [License](#18-license)
+19. [Author](#19-author)
 
 ---
 
@@ -68,7 +70,15 @@ A second fixed-background panel that crossfades into view as the user scrolls pa
 
 ---
 
-## 6. Home Page — Our Collections
+## 6. Home Page — Featured Items Carousel
+
+A 3D coverflow carousel highlighting hand-picked pieces from the collection — the centered image sits large and sharp while neighbouring slides shrink, rotate, and fade into the background using CSS perspective, auto-advancing every few seconds. Fully admin-managed: images are uploaded, reordered, and removed from the dashboard with no code changes, and render with no card frame or background, so background-removed photography floats naturally against the panel.
+
+![](<Screenshots for github/HomeFeaturedItems.jpeg>)
+
+---
+
+## 7. Home Page — Our Collections
 
 The collections section introduces each craft category with a full-bleed image and description. On desktop, categories alternate in a 35/65 image-text split. On mobile, each category stacks vertically as a full-width card. Images fade in with a staggered Framer Motion animation as each card enters the viewport.
 
@@ -78,7 +88,7 @@ The collections section introduces each craft category with a full-bleed image a
 
 ---
 
-## 7. Home Page — Research
+## 8. Home Page — Research
 
 A horizontally scrollable section showcasing the three research areas of the project — Adaptive Reuse, Reinterpretation, and Graphic Design. Cards scale and dim on hover (desktop) or on scroll-center detection (mobile), using the same two-layer Framer Motion animation pattern as the collections section.
 
@@ -86,7 +96,7 @@ A horizontally scrollable section showcasing the three research areas of the pro
 
 ---
 
-## 8. About Page — Our Story Timeline
+## 9. About Page — Our Story Timeline
 
 A scroll-driven timeline of personal stories behind the collection — from a 300-rupee copper bowl in 2004 to pieces brought back from Europe. Each story has its own full-screen sticky background image that cross-fades as you scroll. A floating right-side indicator tracks which era you are reading. The image swap is bidirectional: it works identically scrolling up and down.
 
@@ -96,7 +106,7 @@ A scroll-driven timeline of personal stories behind the collection — from a 30
 
 ---
 
-## 9. About Page — Craft Heritage of Kashmir
+## 10. About Page — Craft Heritage of Kashmir
 
 An illustrated academic history of Kashmiri arts and crafts — from prehistoric Burzahom settlements (3000 BCE) through to the modern revival. Eleven illustrated panels span the full history, each with its own sticky background image. A separate timeline indicator replaces the Our Story indicator as you scroll into this section, showing the period label for each chapter (3000–1500 BCE → 2nd BCE → 1–5 CE → … → 20th c.). A references panel closes the section.
 
@@ -106,7 +116,15 @@ An illustrated academic history of Kashmiri arts and crafts — from prehistoric
 
 ---
 
-## 10. Category Catalogue
+## 11. Stories Page
+
+Long-form craft stories presented in a book-like reading layout. On desktop, a sticky contents list sits to the left — hovering a title shifts it aside, reveals a thumbnail and sub-heading, and blurs the rest of the page — while a sticky image on the right cross-fades to match whichever story is currently centered in the reading column. On mobile, each story opens as a short preview with a "Read full story" toggle, and a slide-out contents drawer gives quick access to every story. Fully admin-managed, including drag-to-reorder.
+
+![](<Screenshots for github/StoriesPage.jpeg>)
+
+---
+
+## 12. Category Catalogue
 
 Each craft category has its own page listing all items in a responsive grid (2 columns mobile → 4 columns desktop). Items display their cover image with a hover-reveal **Enquire** button on desktop and an always-visible button on mobile. Items can carry a price or be marked "Not for Sale".
 
@@ -114,7 +132,7 @@ Each craft category has its own page listing all items in a responsive grid (2 c
 
 ---
 
-## 11. Item Detail Page
+## 13. Item Detail Page
 
 A full detail view for each item: cover image, title, description, price or "Not for Sale" badge, dimensions, and an inline enquiry form. Breadcrumb navigation links back to the category. All text is legible on the dark background with a carefully chosen color hierarchy (cream titles, warm body text, terracotta accents).
 
@@ -122,7 +140,7 @@ A full detail view for each item: cover image, title, description, price or "Not
 
 ---
 
-## 12. Contact & Enquiry
+## 14. Contact & Enquiry
 
 A general enquiry form available site-wide and on the Contact page. Item-specific enquiries open in a dialog from the item detail page. All submissions are stored in Firestore and trigger an email notification to the owner via Resend. The form handles both general and item-specific enquiry types.
 
@@ -130,12 +148,14 @@ A general enquiry form available site-wide and on the Contact page. Item-specifi
 
 ---
 
-## 13. Admin Panel
+## 15. Admin Panel
 
 A password-protected admin dashboard for managing the entire site's content:
 
 - **Categories** — create, edit, reorder, and delete craft categories with cover images
 - **Items** — add and manage items within each category; upload images to Firebase Storage
+- **Featured** — upload, reorder, and remove images shown in the home page's featured items carousel
+- **Stories** — write, edit, and drag-to-reorder the long-form craft stories on the Stories page
 - **Enquiries** — view all incoming enquiries with item context and contact details
 - **Site Content** — edit home page hero text, collections subtitle, and about page content directly from the dashboard
 
@@ -143,7 +163,7 @@ A password-protected admin dashboard for managing the entire site's content:
 
 ---
 
-## 14. Tech Stack
+## 16. Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -159,7 +179,7 @@ A password-protected admin dashboard for managing the entire site's content:
 
 ---
 
-## 15. Project Structure
+## 17. Project Structure
 
 ```
 traam-and-beyond/
@@ -171,7 +191,8 @@ traam-and-beyond/
 │   │   ├── collections/page.tsx      ← All collections
 │   │   ├── category/[slug]/          ← Category listing
 │   │   │   └── [itemId]/page.tsx     ← Item detail
-│   │   └── research/                 ← Research section
+│   │   ├── research/                 ← Research section
+│   │   └── stories/page.tsx          ← Stories page
 │   ├── (admin)/                      ← Auth-gated admin panel
 │   └── api/enquiry/                  ← Enquiry POST handler
 ├── components/
@@ -179,12 +200,19 @@ traam-and-beyond/
 │   │   ├── HeroSection.tsx           ← Scroll-animated hero
 │   │   ├── OurStorySection.tsx       ← Fixed background panel
 │   │   ├── FeaturedSection.tsx       ← Featured panel (Sanskrit verse)
+│   │   ├── FeaturedCarousel.tsx      ← 3D coverflow featured items carousel
 │   │   ├── CategoryHighlights.tsx    ← Collections grid
 │   │   └── ResearchHighlights.tsx    ← Research section
 │   ├── about/
 │   │   ├── OurStoryTimeline.tsx      ← Scroll timeline — personal stories
 │   │   ├── CraftHeritageTimeline.tsx ← Scroll timeline — history
 │   │   └── AboutPageClient.tsx       ← Visibility coordinator
+│   ├── stories/
+│   │   ├── StoriesPageClient.tsx     ← Layout orchestrator
+│   │   ├── StoryBlock.tsx            ← Per-story heading/body/image
+│   │   ├── StoriesTOC.tsx            ← Desktop sticky contents list
+│   │   ├── StoriesImagePanel.tsx     ← Desktop sticky cross-fading image
+│   │   └── StoriesMobileDrawer.tsx   ← Mobile contents drawer
 │   ├── layout/
 │   │   ├── Navbar.tsx
 │   │   └── Footer.tsx
@@ -216,7 +244,7 @@ traam-and-beyond/
 
 ---
 
-## 16. License
+## 18. License
 
 © 2026 Traam and Beyond. All rights reserved.
 
@@ -224,7 +252,7 @@ This project and all its contents — including code, images, text, and design �
 
 ---
 
-## 17. Author
+## 19. Author
 
 **Hakim Mohammad Iisa**
 Architect & Developer
