@@ -8,7 +8,11 @@
 // Shared by StoriesPageClient.tsx (TOC/drawer navigation) and StoryBlock.tsx
 // (re-anchoring scroll when a story collapses back down, so the page doesn't
 // end up pointing at whatever used to be far below the now-shorter content).
-export function scrollToElement(el: HTMLElement) {
+//
+// `behavior: "instant"` is used for deep links from the home page's Stories
+// carousel (/stories?story=<id>), where the page should open already positioned
+// on the clicked story rather than visibly scrolling down to it.
+export function scrollToElement(el: HTMLElement, behavior: "smooth" | "instant" = "smooth") {
   const currentY = window.scrollY;
   const targetTop = el.getBoundingClientRect().top + currentY;
   const scrollingUp = targetTop < currentY;
@@ -16,6 +20,6 @@ export function scrollToElement(el: HTMLElement) {
 
   window.scrollTo({
     top: Math.max(0, targetTop - (scrollingUp ? NAVBAR_CLEARANCE : 0)),
-    behavior: "smooth",
+    behavior,
   });
 }

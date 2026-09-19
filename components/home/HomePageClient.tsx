@@ -4,8 +4,10 @@ import { useRef, useState, useEffect } from "react";
 import HeroSection from "@/components/home/HeroSection";
 import OurStorySection from "@/components/home/OurStorySection";
 import FeaturedSection from "@/components/home/FeaturedSection";
+import ThirdFeaturedSection from "@/components/home/ThirdFeaturedSection";
 import CategoryHighlights from "@/components/home/CategoryHighlights";
 import ResearchHighlights from "@/components/home/ResearchHighlights";
+import StoriesHighlights, { type StoryCard } from "@/components/home/StoriesHighlights";
 import EnquiryForm from "@/components/forms/EnquiryForm";
 import type { HomeContent } from "@/types/home-content";
 import type { AboutContent } from "@/types/about-content";
@@ -16,23 +18,37 @@ interface Props {
   content: HomeContent;
   aboutContent: AboutContent;
   featuredImages: string[];
+  stories: StoryCard[];
 }
 
-export default function HomePageClient({ categories, content, aboutContent, featuredImages }: Props) {
-  const [showFeatured, setShowFeatured] = useState(false);
+// Which background panel is currently showing through the transparent gaps
+// 0 = Our Story, 1 = Featured, 2 = Third Featured
+type Panel = 0 | 1 | 2;
+
+export default function HomePageClient({ categories, content, aboutContent, featuredImages, stories }: Props) {
+  const [panel, setPanel] = useState<Panel>(0);
   const buttonStripRef = useRef<HTMLDivElement>(null);
+  const researchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const trigger = buttonStripRef.current;
-    if (!trigger) return;
+    const featuredTrigger = buttonStripRef.current;
+    const thirdTrigger = researchRef.current;
+    if (!featuredTrigger || !thirdTrigger) return;
 
-    let current = false;
+    let current: Panel = 0;
 
+    // Each trigger is an opaque block that fully covers the sticky background once its
+    // top edge reaches the viewport top — that's the moment it's safe to swap panels.
     const check = () => {
-      const show = trigger.getBoundingClientRect().top <= 0;
-      if (show === current) return;
-      current = show;
-      setShowFeatured(show);
+      const next: Panel =
+        thirdTrigger.getBoundingClientRect().top <= 0
+          ? 2
+          : featuredTrigger.getBoundingClientRect().top <= 0
+            ? 1
+            : 0;
+      if (next === current) return;
+      current = next;
+      setPanel(next);
     };
 
     window.addEventListener("scroll", check, { passive: true });
@@ -47,21 +63,28 @@ export default function HomePageClient({ categories, content, aboutContent, feat
 
   return (
     <div className="relative w-full bg-[#1a130a]">
-      {/* Sticky background — OurStory and Featured panels crossfade based on scroll */}
+      {/* Sticky background — OurStory, Featured and Third Featured panels crossfade based on scroll */}
       <div className="sticky top-0 h-screen z-[1] overflow-hidden">
         <div
           className={`absolute inset-0 transition-opacity duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            showFeatured ? "opacity-0 pointer-events-none" : "opacity-100"
+            panel === 0 ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
           <OurStorySection content={aboutContent.introduction} />
         </div>
         <div
           className={`absolute inset-0 transition-opacity duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-            showFeatured ? "opacity-100" : "opacity-0 pointer-events-none"
+            panel === 1 ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
           <FeaturedSection />
+        </div>
+        <div
+          className={`absolute inset-0 transition-opacity duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            panel === 2 ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <ThirdFeaturedSection />
         </div>
       </div>
 
@@ -91,10 +114,20 @@ export default function HomePageClient({ categories, content, aboutContent, feat
         {/* Transparent gap 2 — Featured visible beneath */}
         <div className="aspect-square lg:h-[85vh] w-full" />
 
-        {/* Research — opaque */}
-        <div className="pointer-events-auto">
+        {/* Research — opaque; ref fires the Featured → Third Featured switch */}
+        <div ref={researchRef} className="pointer-events-auto">
           <ResearchHighlights />
         </div>
+
+        {/* Transparent gap 3 — Third Featured visible beneath */}
+        <div className="aspect-square lg:h-[85vh] w-full" />
+
+        {/* Stories — opaque; omitted until at least one story exists */}
+        {stories.length > 0 && (
+          <div className="pointer-events-auto">
+            <StoriesHighlights stories={stories} />
+          </div>
+        )}
 
         {/* General Enquiry — opaque */}
         <section className="bg-cream-dark py-16 pointer-events-auto">

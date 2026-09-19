@@ -9,7 +9,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function StoriesPage() {
-  const stories = await getAllStories();
-  return <StoriesPageClient stories={stories} />;
+export default async function StoriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ story?: string }>;
+}) {
+  const [stories, { story }] = await Promise.all([getAllStories(), searchParams]);
+  return <StoriesPageClient stories={stories} initialStoryId={story} />;
 }

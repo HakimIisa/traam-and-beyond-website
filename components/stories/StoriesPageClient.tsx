@@ -11,9 +11,11 @@ import type { StoryItem } from "@/types";
 
 interface StoriesPageClientProps {
   stories: StoryItem[];
+  /** Story to jump to on load — set when arriving from the home page's Stories carousel. */
+  initialStoryId?: string;
 }
 
-export default function StoriesPageClient({ stories }: StoriesPageClientProps) {
+export default function StoriesPageClient({ stories, initialStoryId }: StoriesPageClientProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -40,6 +42,26 @@ export default function StoriesPageClient({ stories }: StoriesPageClientProps) {
     const el = blockRefs.current[index];
     if (el) scrollToElement(el);
   }, []);
+
+  // Deep link: land directly on the requested story. Waits two frames so it runs after
+  // Next's own scroll-to-top on route change, and after StoryBlock has registered its ref.
+  useEffect(() => {
+    if (!initialStoryId) return;
+    const index = stories.findIndex((s) => s.id === initialStoryId);
+    if (index < 0) return;
+
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => {
+        const el = blockRefs.current[index];
+        if (el) scrollToElement(el, "instant");
+      });
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [initialStoryId, stories]);
 
   if (stories.length === 0) {
     return (

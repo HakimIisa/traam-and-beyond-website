@@ -4684,3 +4684,169 @@ Found by a site-wide grep for the exact `max-w-* px-4 sm:px-6 lg:px-8 py-12` con
 | `app/(public)/research/reinterpretation/[slug]/page.tsx` | Same `pt-24 pb-12` fix |
 | `app/(public)/research/graphic-design/[slug]/page.tsx` | Same `pt-24 pb-12` fix |
 | `app/(public)/search/page.tsx` | Same `pt-24 pb-12` fix, for consistency (nothing clickable was actually affected here) |
+
+---
+
+# Forty-Second Build Session — Addendum
+
+**Date:** 2026-09-19
+**Scope:** Third home-page background panel ("ThirdFeaturedSection") revealed under the Research carousel, new "Stories" carousel section on the home page (admin-driven, same look and behaviour as Collections/Research), and deep-linking from a story card to that story on `/stories`
+
+---
+
+## 208. Home Page Layout — Before and After
+
+```
+Before:                                    After:
+Hero                                       Hero
+gap 1  (Our Story visible)                 gap 1  (Our Story visible)
+trigger strip                              trigger strip
+Collections                                Collections
+gap 2  (Featured visible)                  gap 2  (Featured visible)
+Research                                   Research               ← ref fires Featured → Third switch
+Enquiry                                    gap 3  (Third Featured visible)   NEW
+                                           Stories                NEW
+                                           Enquiry
+```
+
+Design questions asked before building, and the client's answers:
+
+| Question | Answer |
+|----------|--------|
+| How to centre/size the shrine image | **Centre the shrine itself** (ignore the PNG's transparent padding), sized to sit fully inside the peek window |
+| What surrounds the "Stories" title | **Title only** — no image above, no description or divider below (unlike Collections/Research) |
+| Text under each story card image | **Heading + "Read →"** (mirrors "Explore →" on the other carousels) |
+
+---
+
+## 209. ThirdFeaturedSection — New Background Panel (`components/home/ThirdFeaturedSection.tsx`)
+
+Third layer inside the existing sticky background container in `HomePageClient.tsx`. Same `bg-[#AD6F3B]` as the other two panels, same `transition-opacity duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]` crossfade, same peek-through-window mechanism. The image is `public/FeaturedBackground3.png` (2480×2480, transparent background, engraved silver shrine niche with a seated Buddha).
+
+### Centring the shrine, not the file
+The PNG has a lot of transparent padding, and the shrine is not centred inside it. Rather than eyeballing this from a render, the bounds were **measured** with `sharp`'s `trim()`:
+
+| Measurement | Value |
+|-------------|-------|
+| Canvas | 2480×2480 |
+| Shrine bounding box | **1056×1874**, top-left at **(702, 370)** |
+| Shrine centre vs canvas centre | ~10px left, ~67px **below** (≈3% of canvas height) |
+| Shrine share of the file | ~43% of the width, ~76% of the height |
+
+(An earlier eyeball estimate from the rendered image said the shrine sat ~7% *above* centre. That was wrong — measuring it caught this before any code was written.)
+
+The panel wraps the image in a box cut to exactly the shrine's bounding box (`aspectRatio: 1056 / 1874`, `overflow-hidden`) and positions the full canvas inside it with percentage offsets, so the visible shrine — not the padded file — is what gets flex-centred. The PNG itself is untouched:
+
+```tsx
+const CANVAS = 2480;
+const SHRINE = { left: 702, top: 370, width: 1056, height: 1874 };
+
+<div className="relative h-[min(80vw,70vh)] lg:h-[70vh] overflow-hidden"
+     style={{ aspectRatio: `${SHRINE.width} / ${SHRINE.height}` }}>
+  <Image src="/FeaturedBackground3.png" width={CANVAS} height={CANVAS}
+    className="absolute max-w-none"
+    style={{
+      width:  `${(CANVAS / SHRINE.width)  * 100}%`,
+      height: `${(CANVAS / SHRINE.height) * 100}%`,
+      left:   `${(-SHRINE.left / SHRINE.width)  * 100}%`,
+      top:    `${(-SHRINE.top  / SHRINE.height) * 100}%`,
+    }} />
+</div>
+```
+
+`max-w-none` overrides Tailwind preflight's `img { max-width: 100% }`, which would otherwise squash the oversized canvas back into the box.
+
+### Sizing
+Sized to fit **inside** the peek window rather than fill it: the window is `85vh` on desktop and a square (`aspect-square`, ≈390px on a phone) on mobile, so the shrine is `70vh` tall on desktop and `min(80vw, 70vh)` on mobile. Verified in a headless browser: on desktop the window spans y=67–832 (centre 449.5) and the shrine y=135–765 (centre 450); on a 390px-wide phone the window spans y=227–617 and the shrine y=267–577, both centred with a margin on every side.
+
+---
+
+## 210. HomePageClient — Three-Panel State Machine (`components/home/HomePageClient.tsx`)
+
+`showFeatured: boolean` was replaced with `panel: 0 | 1 | 2` (0 = Our Story, 1 = Featured, 2 = Third Featured). A single scroll `check()` now watches two triggers, both using the established `getBoundingClientRect().top <= 0` rule — the switch is only safe once an opaque block fully covers the sticky background:
+
+```ts
+const next: Panel =
+  thirdTrigger.getBoundingClientRect().top <= 0 ? 2
+  : featuredTrigger.getBoundingClientRect().top <= 0 ? 1
+  : 0;
+```
+
+| Trigger | Element | Fires |
+|---------|---------|-------|
+| Featured | existing `buttonStripRef` strip (unchanged) | Our Story → Featured |
+| Third Featured | new `researchRef` on a wrapper div around `<ResearchHighlights />` | Featured → Third Featured |
+
+The third trigger is checked first, so once Research has scrolled past, `panel` stays `2` even though the first trigger is still ≤ 0 (its `top` stays negative for the rest of the page). Scrolling back up reverses each step at the same trigger point, matching how the first crossfade already behaved.
+
+The new gap 3 (`<div className="aspect-square lg:h-[85vh] w-full" />`) sits between Research and Stories. Like the other gaps it needs no `pointer-events` class — it inherits `pointer-events-none` from the foreground wrapper (§154).
+
+---
+
+## 211. StoriesHighlights — New Home Page Section (`components/home/StoriesHighlights.tsx`)
+
+A copy of `ResearchHighlights.tsx` (scroll track, drag thumb, Netflix-style hover arrows, mobile active-card detection, hover dimming, two-layer `motion.div` scale/opacity, `useScrollPositionRestore` with its own key `storiesHighlightsScrollLeft`), following the codebase's established convention of duplicating these carousels verbatim rather than extracting a shared one (§130). Differences from Research:
+
+- **Data-driven**, not a hardcoded constant: takes a `stories: StoryCard[]` prop, where `StoryCard = Pick<StoryItem, "id" | "title" | "image">` (exported from the component). Stories added, edited, reordered or removed in the admin panel show up here automatically, in the same `order` as `/stories`.
+- **Header is title only**: the same clickable `<Link href="/stories">` title as Collections/Research (same `text-5xl lg:text-6xl`, same terracotta hover, same mobile always-on underline + `→` arrow + `group-active:scale-[0.85]` press feedback). No image above, no description or divider below — per the client's answer. Since there's no header image to supply top spacing, the section uses `pt-16` (Research uses `pt-0`) and the title has `mb-8`.
+- **Card text**: story title (`font-display text-3xl lg:text-4xl`, `text-stone/70` → terracotta on hover, transparent underline that reveals on hover) plus a **"Read →"** line in place of "Explore →" (always visible on mobile, fades in on desktop hover).
+- **Image**: `story.image` inside an `aspect-square` card with a `bg-walnut` fallback, so a story with no image still renders a card. Card width `w-[70vw] lg:w-[30vw]`, same as Research.
+- **Link target**: `/stories?story=<id>` (see §212), not a bare `/stories`.
+- Section `id="stories"`, `bg-[#1a130a]`, scroll track `bg-[#0a0a0a]`.
+
+### Data flow
+`app/(public)/page.tsx` now also calls `getAllStories()` in the existing `Promise.all`, and passes `stories.map(({ id, title, image }) => ({ id, title, image }))` into `HomePageClient`. Only those three fields cross the server→client boundary — story bodies (~800–1000 words each) are deliberately not shipped in the home page payload.
+
+`HomePageClient` renders the section only when `stories.length > 0`; with no stories the third panel still shows and the page continues straight into the Enquiry section.
+
+---
+
+## 212. Deep-Linking a Story Card to the Stories Page
+
+Clicking a story card opens the stories page already scrolled to that story.
+
+- **`app/(public)/stories/page.tsx`**: now accepts `searchParams: Promise<{ story?: string }>` (Next 16 async `searchParams`), awaited alongside `getAllStories()`, and passes `initialStoryId={story}` to the client.
+- **`components/stories/StoriesPageClient.tsx`**: new optional `initialStoryId` prop and an effect (placed above the `stories.length === 0` early return so hook order stays stable) that finds the story's index and calls `scrollToElement(el, "instant")` inside two nested `requestAnimationFrame`s. The double frame is so it runs after Next's own scroll-to-top on route change and after each `StoryBlock` has registered its ref via its own effect. An unknown/missing id is silently ignored (page opens at the top as normal).
+- **`components/stories/scrollToElement.ts`**: gained an optional `behavior: "smooth" | "instant" = "smooth"` parameter. TOC/drawer navigation and the collapse re-anchoring (§193, §204) keep the default smooth behaviour; only the deep link passes `"instant"`, so the page opens on the story instead of visibly scrolling down to it.
+
+The existing direction-aware navbar clearance still applies unchanged: an instant jump downward from `scrollY = 0` counts as "scrolling down", so no 96px clearance is reserved — which matches `Navbar.tsx`'s own logic (it hides on any downward scroll past 60px, including an instant jump).
+
+The `?story=` parameter is left in the URL after landing (not stripped with `history.replaceState`) — a refresh re-jumps to the same story, which is harmless.
+
+---
+
+## 213. Verification
+
+Run against the live dev server with `playwright-core` driving the installed Edge (installed into the session scratchpad, not the project), at 1440×900 and 390×844:
+
+| Check | Result |
+|-------|--------|
+| Background panel opacities `[ourStory, featured, third]` before Research | `[0, 1, 0]` |
+| Inside Research | `[0, 0, 1]` |
+| Gap 3, and scrolling back up into Research | `[0, 0, 1]` |
+| Stories section rendered with the real admin stories | 2 cards, both linking to `/stories?story=<id>` |
+| Click the last card → stories page | Lands with that story's heading at 223px (desktop) / 65px (mobile) from the top; the story above it is far off-screen |
+| Console / network errors | One unidentified 404 on the first run (not reproduced on a second full run — no failing responses); nothing from the new code |
+| `npx tsc --noEmit` | Clean |
+
+The Stories card images looked blank in the first desktop screenshot — this was just `loading="lazy"` plus 2000px-wide WebP files being served unoptimized (§125); a follow-up check confirmed both `<img>` elements report `complete: true` with `naturalWidth: 2000` within ~2.5s, and the next screenshot rendered them.
+
+Type checking was done with `tsc`, not `npm run build`, since a dev server was already running on port 3000 (see §199).
+
+### Notes
+- On mobile, when the linked story is the last one and its content is shorter than the viewport, the page can't scroll far enough to put it at the very top (65px vs. 0) — the document's bottom limits the scroll. Expected, not a bug.
+- The Stories carousel inherits the same known limitation as Collections/Research: the card titles' underline/"Read →" reveal is hover-driven on desktop, with "Read →" always visible on mobile (§155).
+
+---
+
+## 214. Key Files Modified (Forty-Second Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/ThirdFeaturedSection.tsx` | **New file** — `#AD6F3B` background panel with `FeaturedBackground3.png` cropped to the shrine's measured bounding box and flex-centred, sized to fit the peek window |
+| `components/home/StoriesHighlights.tsx` | **New file** — Stories carousel (Research-style behaviour, data-driven from `StoryCard[]`, title-only header linking to `/stories`, "Read →" cards linking to `/stories?story=<id>`) |
+| `components/home/HomePageClient.tsx` | `showFeatured` boolean → 3-value `panel` state; third crossfade layer added; `researchRef` trigger on Research; gap 3 + `StoriesHighlights` added (rendered only when stories exist); new `stories` prop |
+| `app/(public)/page.tsx` | `getAllStories()` fetched; slimmed `{ id, title, image }` list passed to `HomePageClient` |
+| `app/(public)/stories/page.tsx` | Reads async `searchParams.story`; passes `initialStoryId` to the client |
+| `components/stories/StoriesPageClient.tsx` | `initialStoryId` prop; deep-link effect (two `requestAnimationFrame`s → instant `scrollToElement`) |
+| `components/stories/scrollToElement.ts` | Optional `behavior: "smooth" \| "instant"` parameter (default unchanged) |
