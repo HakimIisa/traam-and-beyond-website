@@ -1,10 +1,12 @@
 import { adminDb, adminStorage } from "./admin";
 import { Timestamp } from "firebase-admin/firestore";
-import type { FeaturedItem } from "@/types";
+import type { FeaturedItem, FeaturedPanelNumber } from "@/types";
+import { parseFeaturedPanel } from "@/lib/featured-panels";
 
 export interface FeaturedItemWriteData {
   imageUrl: string;
   order: number;
+  panel: FeaturedPanelNumber;
 }
 
 function serializeItem(d: FirebaseFirestore.QueryDocumentSnapshot): FeaturedItem {
@@ -13,6 +15,8 @@ function serializeItem(d: FirebaseFirestore.QueryDocumentSnapshot): FeaturedItem
     id: d.id,
     imageUrl: data.imageUrl,
     order: data.order ?? 0,
+    // Images uploaded before panels existed have no `panel` field — they are Featured 1
+    panel: parseFeaturedPanel(data.panel),
     createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
   };
 }
@@ -23,6 +27,13 @@ export async function adminGetAllFeaturedItems(): Promise<FeaturedItem[]> {
     .orderBy("order", "asc")
     .get();
   return snapshot.docs.map(serializeItem);
+}
+
+// Filtered in memory rather than with .where("panel", "==", n): legacy docs have no
+// `panel` field so a Firestore filter would miss them, and the collection is tiny.
+export async function adminGetFeaturedItemsByPanel(panel: FeaturedPanelNumber): Promise<FeaturedItem[]> {
+  const items = await adminGetAllFeaturedItems();
+  return items.filter((item) => item.panel === panel);
 }
 
 export async function adminCreateFeaturedItem(data: FeaturedItemWriteData): Promise<string> {

@@ -49,10 +49,15 @@ export interface ResearchItem {
   createdAt: string;
 }
 
+// Which home-page featured carousel an image belongs to:
+// 1 = above Collections, 2 = above Research, 3 = above Stories
+export type FeaturedPanelNumber = 1 | 2 | 3;
+
 export interface FeaturedItem {
   id: string;
   imageUrl: string;
   order: number;
+  panel: FeaturedPanelNumber;
   createdAt: string;
 }
 

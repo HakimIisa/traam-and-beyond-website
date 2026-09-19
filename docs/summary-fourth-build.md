@@ -4850,3 +4850,197 @@ Type checking was done with `tsc`, not `npm run build`, since a dev server was a
 | `app/(public)/stories/page.tsx` | Reads async `searchParams.story`; passes `initialStoryId` to the client |
 | `components/stories/StoriesPageClient.tsx` | `initialStoryId` prop; deep-link effect (two `requestAnimationFrame`s → instant `scrollToElement`) |
 | `components/stories/scrollToElement.ts` | Optional `behavior: "smooth" \| "instant"` parameter (default unchanged) |
+
+---
+
+# Forty-Third Build Session — Addendum
+
+**Date:** 2026-09-19
+**Scope:** Two new home-page Featured carousels ("Featured 2" above the Research title, replacing the kettle image; "Featured 3" above the Stories title), and a Featured 1 / 2 / 3 switcher in the admin Featured tab for adding, removing and reordering each panel's images
+
+---
+
+## 215. Featured Panels — What "Featured 1 / 2 / 3" Now Means
+
+The existing homepage carousel (§172–§183, sitting between the Collections vessel image and the Collections title) is now called **Featured 1**. Two more instances of the exact same `FeaturedCarousel` component were added; nothing about the carousel itself changed (3D coverflow, 2.5s auto-rotate, square 1:1 images, transparent-PNG friendly, `bg-[#1a130a]`, same desktop/mobile sizing).
+
+| Panel | Location on the home page | Admin label |
+|-------|---------------------------|-------------|
+| Featured 1 | Above the **Collections** title (unchanged position) | Featured 1 |
+| Featured 2 | Above the **Research** title — **replaces** the kettle image (`/ResearchWelcomeImage.png`) | Featured 2 |
+| Featured 3 | Above the **Stories** title (top of the Stories section from §211) | Featured 3 |
+
+No clarifying questions were needed — the request was explicit and every point had a conventional default already established in the codebase.
+
+---
+
+## 216. Data Model — One Collection, a `panel` Field (no migration)
+
+All three panels share the existing Firestore collection `featured_items`; each doc gains a `panel` field (`1 | 2 | 3`) instead of introducing two more collections.
+
+- `types/index.ts`: new `FeaturedPanelNumber = 1 | 2 | 3`; `FeaturedItem` gained `panel: FeaturedPanelNumber`.
+- `lib/featured-panels.ts` (**new**): `FEATURED_PANELS` (panel number, label, "location" text used in admin copy) and `parseFeaturedPanel(value)` — anything that isn't `2` or `3` (missing, garbage, `?panel=9`) resolves to **1**.
+- **Legacy images need no migration.** Every image uploaded before this session has no `panel` field; `serializeItem()` in `lib/firebase/admin-featured.ts` maps a missing field to panel 1, so all existing images stay in Featured 1 automatically.
+- `adminGetFeaturedItemsByPanel()` filters **in memory** rather than with `.where("panel", "==", n)` — a Firestore filter would miss the legacy docs that lack the field, and the collection is tiny. This also avoids a composite-index requirement (the same trap hit in §143).
+- `orderBy("order")` across the whole collection is kept; each panel's images are numbered `0..n-1` independently (`order: items.length` on create is computed from that panel's own list), and filtering preserves relative order.
+
+### Public accessor
+`lib/firebase/featured.ts`: `getFeaturedItems()` was replaced by `getFeaturedImagesByPanel(): Promise<Record<1|2|3, string[]>>` (returns three empty arrays when Firebase isn't configured, matching the previous empty-array fallback).
+
+### API
+`app/api/admin/featured/route.ts` POST now validates its body with zod — `{ imageUrl: string, order: number, panel: 1|2|3 (default 1) }` — instead of spreading the raw request body into Firestore as before. The `[id]` DELETE and `reorder` POST routes needed no change (both operate on document ids, which are unique across panels). Unauthenticated POST confirmed to still return `401`.
+
+---
+
+## 217. Admin — Featured Tab With a 1 / 2 / 3 Switcher
+
+The panel selection lives in the URL (`?panel=1|2|3`), not in client state, so the server page fetches the right images, `router.refresh()` after an upload/delete keeps the selected tab, and each panel is bookmarkable.
+
+- `app/(admin)/admin/featured/FeaturedPanelTabs.tsx` (**new**, server-safe, `Link`-based): three pills styled exactly like the Research tab's section filter (`bg-walnut text-cream` active / `bg-white text-stone` inactive), each showing that panel's image count.
+- `app/(admin)/admin/featured/page.tsx`: reads async `searchParams.panel`, fetches all items once (for the counts), filters to the selected panel; subtitle reads e.g. *"Featured 2 · 0 images · shown in the homepage carousel above the Research title"*; the "Reorder Images" button links to `/admin/featured/reorder?panel=N`; `FeaturedClient` is rendered with `key={panel}` so switching tabs resets the upload field.
+- `FeaturedClient.tsx`: new `panel` + `panelLabel` props; new images are created with `{ imageUrl, order: items.length, panel }`; confirm/empty-state copy names the panel ("Remove this image from Featured 2?", "No images in Featured 2 yet. Add one above.").
+- `app/(admin)/admin/featured/reorder/page.tsx`: same `?panel=` filtering, the same tabs (`basePath="/admin/featured/reorder"`), a "Back to Featured" link that keeps the panel, and `ReorderFeaturedClient` rendered with `key={panel}` (it seeds its drag list from props once in `useState`, so it must remount when the panel changes). `ReorderFeaturedClient.tsx` itself is unchanged — it already reorders whatever list it is given.
+
+---
+
+## 218. Public Pages — Placement
+
+`app/(public)/page.tsx` → `HomePageClient` now takes a single `featuredPanels: Record<1|2|3, string[]>` prop (replacing `featuredImages`) and routes each list to where it belongs: `[1]` → `CategoryHighlights` (unchanged), `[2]` → `ResearchHighlights`, `[3]` → `StoriesHighlights`.
+
+Both new placements copy the Collections structure exactly — a full-width `<ScrollReveal className="mb-10"><FeaturedCarousel … /></ScrollReveal>` *outside* the `max-w-6xl` header container (so the panel's own background runs edge to edge), followed by the title block:
+
+- **`ResearchHighlights.tsx`**: the kettle `<Image>` block was removed and the carousel put in its place. The `<Image>` import stays (the cards use it); `/public/ResearchWelcomeImage.png` is now unreferenced but was left on disk.
+- **`StoriesHighlights.tsx`**: the carousel sits at the top of the section, above the "Stories" title.
+- **Empty state**: `FeaturedCarousel` returns `null` when it has no images (unchanged behaviour). Because the carousel normally supplies the section's top spacing, each section now uses `pt-0` when its panel has images and **`pt-16`** when it doesn't — so an unpopulated Featured 2 / 3 leaves the title with normal breathing room instead of butting against the section edge. Until images are uploaded, Research therefore shows just its title/description (no kettle, no carousel).
+- The Featured 3 carousel lives inside the Stories section, which is only rendered when at least one story exists (§211) — with zero stories, Featured 3 is hidden along with it.
+
+---
+
+## 219. Verification
+
+| Check | Result |
+|-------|--------|
+| `npx tsc --noEmit` | Clean |
+| Home page HTML | Kettle image reference gone; the 12 existing images render in the first carousel only — none leaked into panels 2/3 |
+| Panels 2 & 3 populated (temporary local test route feeding fake data — **no writes to the live Firestore**; route deleted afterwards) | Both render at desktop 1440×900 and mobile 390×844 with no console errors, coverflow + arrows identical to Featured 1 |
+| Layout parity | Untransformed layout measured with `offsetTop`/`offsetHeight`: carousel height 832px desktop / 416px mobile and a 40px gap to the title in **all three** sections |
+| Admin Featured page (real page components rendered in a temporary public route to bypass the auth wrapper; also deleted afterwards) | `?panel=1` → "12 images … above the Collections title" (all legacy images landed in Featured 1); `?panel=2` / `?panel=3` → "0 images", correct location text, "No images in Featured N yet"; `?panel=9` → falls back to Featured 1; tab links and the Reorder link carry the panel |
+| Unauthenticated `POST /api/admin/featured` | `401` |
+
+### Not verified (needs a real admin login)
+The admin panel sits behind a client-side Firebase login and no credentials were available in this session, so the **actual upload → create → delete → reorder round trip for panels 2 and 3 was not exercised end to end**. What was verified is everything up to that point (server rendering, filtering, tab/link wiring, API validation and auth). Worth one manual pass: upload an image on Featured 2, confirm it appears above Research, then reorder and remove it.
+
+### Notes
+- **Measurement trap:** `ScrollReveal` (§ existing component) animates `scale: 0.8 → 1` with `once: false`, so `getBoundingClientRect()` on anything inside it changes depending on whether it's currently in view. An early comparison using bounding rects showed a phantom 13–29px spacing difference for Stories; comparing `offsetTop`/`offsetHeight` (which ignore transforms) showed the layouts are identical. Use offsets, not bounding rects, when comparing spacing inside `ScrollReveal`.
+- **Pre-existing, not touched:** the admin middleware's login redirect keeps only the path (`/login?from=%2Fadmin%2Ffeatured`), so a logged-out visit to `/admin/featured?panel=2` lands on Featured 1 after signing in.
+- Two zero-byte stray files (`(null)`, `%{http_code}`) appeared in the repo root during testing and were deleted before finishing. Their origin was **not established** — see §224, which collects every such file from this and the following session and what is (and isn't) known about them.
+
+---
+
+## 220. Key Files Modified (Forty-Third Build)
+
+| File | Change type |
+|------|-------------|
+| `types/index.ts` | `FeaturedPanelNumber` type added; `FeaturedItem.panel` added |
+| `lib/featured-panels.ts` | **New file** — `FEATURED_PANELS` metadata + `parseFeaturedPanel()` |
+| `lib/firebase/admin-featured.ts` | `panel` in write data + `serializeItem()` (missing → 1); `adminGetFeaturedItemsByPanel()` added |
+| `lib/firebase/featured.ts` | `getFeaturedItems()` → `getFeaturedImagesByPanel()` returning per-panel image URL lists |
+| `app/api/admin/featured/route.ts` | POST body validated with zod, includes `panel` (default 1) |
+| `app/(admin)/admin/featured/FeaturedPanelTabs.tsx` | **New file** — Link-based Featured 1/2/3 tabs with counts |
+| `app/(admin)/admin/featured/page.tsx` | `?panel=` filtering, tabs, per-panel subtitle, panel-aware Reorder link |
+| `app/(admin)/admin/featured/FeaturedClient.tsx` | `panel`/`panelLabel` props; creates images with the selected `panel`; panel-named copy |
+| `app/(admin)/admin/featured/reorder/page.tsx` | `?panel=` filtering, tabs, "Back to Featured" link, remount key |
+| `app/(public)/page.tsx` | Fetches `getFeaturedImagesByPanel()`; passes `featuredPanels` |
+| `components/home/HomePageClient.tsx` | `featuredImages` prop → `featuredPanels`; images routed to Collections / Research / Stories |
+| `components/home/ResearchHighlights.tsx` | Kettle image replaced by `FeaturedCarousel` (Featured 2); conditional top padding |
+| `components/home/StoriesHighlights.tsx` | `FeaturedCarousel` (Featured 3) added above the title; conditional top padding |
+
+---
+
+# Forty-Fourth Build Session — Addendum
+
+**Date:** 2026-09-19
+**Scope:** Bug fix — transparent (background-removed) PNGs uploaded through the admin panel were coming out with a solid black background. Root cause was the client-side pre-upload compression from §200; found while checking Featured 1 / 2 / 3.
+
+---
+
+## 221. Symptom and Diagnosis
+
+Cut-out PNGs uploaded to Featured 2 and Featured 3 rendered on the home page as black squares, while the older Featured 1 images floated cleanly on the page background.
+
+The stored files were downloaded and inspected with `sharp` (alpha channel + corner pixels + % of fully transparent pixels):
+
+| Panel | Files | Format | Alpha channel | Corner pixels | Transparent pixels |
+|-------|-------|--------|---------------|---------------|--------------------|
+| Featured 1 | 12 | WebP (`…-optimized.webp`, from the §197 backfill) | **yes** | transparent (α = 0) | 66–92% |
+| Featured 2 | 3 | WebP | **no** | solid `0,0,0` | 0% |
+| Featured 3 | 1 | WebP | **no** | solid `0,0,0` | 0% |
+
+The black was baked into the stored files — not a CSS/layout problem, and not something the carousel (`object-contain`, no frame, §181) could fix. The featured carousel component was never involved.
+
+### Root cause
+`lib/image-compress.ts` (added in §200 to stay under Vercel's 4.5MB request limit) re-encoded every upload larger than 1.5MB through a `<canvas>` with `canvas.toBlob(…, "image/jpeg", 0.9)`. **JPEG has no alpha channel**, so every transparent pixel was flattened to opaque black *before* the file ever reached the server. The server pipeline (`app/api/admin/upload/route.ts`, `sharp` → WebP q82) preserves alpha fine — the Featured 1 backfill proves it — but it can't restore transparency that's already gone.
+
+Why only the new panels: Featured 1's images were uploaded (14 Aug) before the client-side step existed (19 Aug), and later went through the alpha-safe server-only backfill. Transparent PNGs also tend to be large, so nearly all of them crossed the 1.5MB threshold that triggers the JPEG re-encode; small transparent PNGs (under 1.5MB) skip the step entirely and were never affected.
+
+---
+
+## 222. Fix — `lib/image-compress.ts`
+
+Transparency-safe output format:
+
+```ts
+const outputType = file.type === "image/jpeg" ? "image/jpeg" : "image/webp";
+```
+
+- **Already-JPEG input** → JPEG output, as before (a JPEG can't carry transparency, so nothing can be lost).
+- **Everything else (PNG, WebP, …)** → **WebP** output, which keeps alpha. Constants renamed `JPEG_QUALITY` → `QUALITY` (0.9), max dimension (3000px) and the 1.5MB skip threshold unchanged.
+- **Safari fallback:** Safari can't encode WebP via `canvas.toBlob`; it silently returns a PNG instead. That's also alpha-safe, and the existing `blob.size >= file.size → keep the original` guard still applies. The output file is now named from `blob.type` (`.jpg` / `.webp` / `.png`) rather than assuming what was requested. Caveat: a large transparent PNG on Safari that doesn't shrink below its original size uploads untouched and could still hit Vercel's 4.5MB limit (the pre-§200 behaviour for such files).
+
+No server change was needed.
+
+### Verification
+The real, edited function was exercised in headless Edge through a temporary page (deleted afterwards) with a synthetic 3200×3200 PNG (4.94MB, fully transparent border around an opaque noisy square), and the result pushed through the server's exact `sharp` settings:
+
+| Stage | Result |
+|-------|--------|
+| Old behaviour (reproduced) | JPEG, 1.02MB, corner pixel `0,0,0,255` — **opaque black** (the bug) |
+| New `compressImageForUpload` | WebP, 0.85MB, corner pixel `0,0,0,0` — **still transparent** |
+| Then server `sharp` (resize 2000, WebP q82) | WebP 2000×2000, `hasAlpha = true`, corner `0,0,0,0`, 0.24MB |
+
+Size stays well under the 4.5MB Vercel limit, so the original reason for the compression step is still met. `tsc --noEmit` clean.
+
+---
+
+## 223. Already-Affected Images — Must Be Re-Uploaded
+
+The fix only affects uploads made **after** it; the four already-flattened Featured images can't be recovered (the transparency is gone from the stored file):
+
+- Featured 2 — 3 images, Featured 3 — 1 image → delete and re-upload the original transparent PNGs in `/admin/featured` (panel tabs).
+
+### Scope beyond Featured (read-only audit of all 244 image URLs in Firestore)
+Every image in items, categories, research_items, featured_items and stories was checked for "opaque + solid-black corners". Result: 25 images have real transparency, 208 are opaque with black corners — but **that pattern alone can't identify damage**, because most of the catalogue is legitimately photographed on black backgrounds. Narrowing to files whose path timestamp is on/after the 19 Aug deploy leaves **41 candidates** (the 4 Featured images above are the only *confirmed* cases):
+
+| Collection | Candidates (uploaded 19 Aug – 18 Sep) |
+|------------|----------------------------------------|
+| items | Shawl (3 images), Hookah Base, Tea Cups, Samavar (2 items), Ewer (2), Trough (2), Oil Lamp (3), Water Flask, Ritual Vessel from a Watuk Assemblage (2), Serving Tray (3 items / 4 images), Vase, Bowl (2 items / 4 images), Cup, Tea Service (4) |
+| stories | The Gulab Pash of Kashmir, The Dying Serpent |
+| research_items | Pinjrakari Cabinet (2) |
+
+Only images that were *supposed* to be transparent cut-outs and were over 1.5MB are truly damaged; anything shot on black is fine. Which is which needs the client's eye (or their original files) — left as a manual check. No data was modified by the audit.
+
+---
+
+## 224. Notes
+
+- **Stray zero-byte files in the repo root (cause not confirmed):** across builds 43–44 six empty, untracked files appeared in the repo root and were deleted: `(null)`, `%{http_code}`, `a`, `file.size`, `m+'const`, `r.uploaded`. Three of the names are fragments of code text from this session's own tool inputs (`blob.size >= file.size` in a doc edit, `m=>m+'const …` in a shell one-liner, `r.uploaded …` in a script) — i.e. the text right after a `>`/`=>`/`>=`, which is how a `cmd`-style redirect would name a file. `.claude/settings.json` does run every hook through `cmd /c node …\hook-handler.cjs …`, and the hook output shown each turn is a `cmd` banner echoing the hook payload, so a hook-layer side effect is the leading suspect. It was **not reproduced**: a harmless Bash `echo 'x -> marker'` and a Write of a file containing `>= marker` both created nothing. Treat as unexplained; if new zero-byte files with odd names appear in the repo root, they are safe to delete, and `.claude/helpers/hook-handler.cjs` is the first place to look.
+- Temporary test pages (`tmp-compress-test`) and their stale `.next/types` stubs were removed; no test data was written to Firestore or Storage.
+- This bug is a good example of why the §200 fix needed a format-aware output type: an image pipeline that flattens alpha fails silently — the upload succeeds and only the rendering is wrong.
+
+---
+
+## 225. Key Files Modified (Forty-Fourth Build)
+
+| File | Change type |
+|------|-------------|
+| `lib/image-compress.ts` | Output type now `image/jpeg` only for JPEG input, `image/webp` otherwise (alpha-preserving); output file named from `blob.type`; `JPEG_QUALITY` → `QUALITY`; comments explain the alpha rationale |

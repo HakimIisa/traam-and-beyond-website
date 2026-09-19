@@ -11,13 +11,14 @@ import StoriesHighlights, { type StoryCard } from "@/components/home/StoriesHigh
 import EnquiryForm from "@/components/forms/EnquiryForm";
 import type { HomeContent } from "@/types/home-content";
 import type { AboutContent } from "@/types/about-content";
-import type { Category } from "@/types";
+import type { Category, FeaturedPanelNumber } from "@/types";
 
 interface Props {
   categories: Category[];
   content: HomeContent;
   aboutContent: AboutContent;
-  featuredImages: string[];
+  /** Featured carousel images per panel: 1 = above Collections, 2 = above Research, 3 = above Stories */
+  featuredPanels: Record<FeaturedPanelNumber, string[]>;
   stories: StoryCard[];
 }
 
@@ -25,7 +26,7 @@ interface Props {
 // 0 = Our Story, 1 = Featured, 2 = Third Featured
 type Panel = 0 | 1 | 2;
 
-export default function HomePageClient({ categories, content, aboutContent, featuredImages, stories }: Props) {
+export default function HomePageClient({ categories, content, aboutContent, featuredPanels, stories }: Props) {
   const [panel, setPanel] = useState<Panel>(0);
   const buttonStripRef = useRef<HTMLDivElement>(null);
   const researchRef = useRef<HTMLDivElement>(null);
@@ -108,7 +109,7 @@ export default function HomePageClient({ categories, content, aboutContent, feat
 
         {/* Our Collections — opaque */}
         <div className="pointer-events-auto">
-          <CategoryHighlights categories={categories} content={content.collections} featuredImages={featuredImages} />
+          <CategoryHighlights categories={categories} content={content.collections} featuredImages={featuredPanels[1]} />
         </div>
 
         {/* Transparent gap 2 — Featured visible beneath */}
@@ -116,7 +117,7 @@ export default function HomePageClient({ categories, content, aboutContent, feat
 
         {/* Research — opaque; ref fires the Featured → Third Featured switch */}
         <div ref={researchRef} className="pointer-events-auto">
-          <ResearchHighlights />
+          <ResearchHighlights featuredImages={featuredPanels[2]} />
         </div>
 
         {/* Transparent gap 3 — Third Featured visible beneath */}
@@ -125,7 +126,7 @@ export default function HomePageClient({ categories, content, aboutContent, feat
         {/* Stories — opaque; omitted until at least one story exists */}
         {stories.length > 0 && (
           <div className="pointer-events-auto">
-            <StoriesHighlights stories={stories} />
+            <StoriesHighlights stories={stories} featuredImages={featuredPanels[3]} />
           </div>
         )}
 

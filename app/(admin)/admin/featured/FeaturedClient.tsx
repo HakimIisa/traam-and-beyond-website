@@ -5,9 +5,15 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ImageUploadField from "@/components/forms/ImageUploadField";
 import { apiCreateFeaturedItem, apiDeleteFeaturedItem } from "@/lib/admin-api";
-import type { FeaturedItem } from "@/types";
+import type { FeaturedItem, FeaturedPanelNumber } from "@/types";
 
-export default function FeaturedClient({ items }: { items: FeaturedItem[] }) {
+interface FeaturedClientProps {
+  items: FeaturedItem[];
+  panel: FeaturedPanelNumber;
+  panelLabel: string;
+}
+
+export default function FeaturedClient({ items, panel, panelLabel }: FeaturedClientProps) {
   const router = useRouter();
   const [uploadKey, setUploadKey] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -20,7 +26,7 @@ export default function FeaturedClient({ items }: { items: FeaturedItem[] }) {
     setSaving(true);
     setError(null);
     try {
-      await apiCreateFeaturedItem({ imageUrl: url, order: items.length });
+      await apiCreateFeaturedItem({ imageUrl: url, order: items.length, panel });
       setUploadKey((k) => k + 1);
       router.refresh();
     } catch {
@@ -31,7 +37,7 @@ export default function FeaturedClient({ items }: { items: FeaturedItem[] }) {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Remove this image from the featured carousel?")) return;
+    if (!confirm(`Remove this image from ${panelLabel}?`)) return;
     setDeletingId(id);
     try {
       await apiDeleteFeaturedItem(id);
@@ -60,7 +66,7 @@ export default function FeaturedClient({ items }: { items: FeaturedItem[] }) {
 
       {items.length === 0 ? (
         <p className="text-stone text-sm p-8 text-center bg-white border border-cream-dark rounded-sm">
-          No featured images yet. Add one above.
+          No images in {panelLabel} yet. Add one above.
         </p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

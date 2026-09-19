@@ -7,6 +7,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useScrollPositionRestore } from "@/hooks/useScrollPositionRestore";
+import FeaturedCarousel from "@/components/home/FeaturedCarousel";
+
+interface ResearchHighlightsProps {
+  featuredImages: string[];
+}
 
 const RESEARCH_ITEMS = [
   {
@@ -29,7 +34,7 @@ const RESEARCH_ITEMS = [
   },
 ];
 
-export default function ResearchHighlights() {
+export default function ResearchHighlights({ featuredImages }: ResearchHighlightsProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -180,19 +185,20 @@ export default function ResearchHighlights() {
   };
 
   return (
-    <section id="research" className="relative z-[2] pt-0 pb-16 bg-[#1a130a]">
+    // The carousel brings its own vertical padding; without images (Featured 2 not yet
+    // populated) the header needs its own top spacing instead.
+    <section
+      id="research"
+      className={`relative z-[2] ${featuredImages.length > 0 ? "pt-0" : "pt-16"} pb-16 bg-[#1a130a]`}
+    >
+      {/* Featured 2 carousel — renders nothing while it has no images */}
+      <ScrollReveal className="mb-10">
+        <FeaturedCarousel images={featuredImages} />
+      </ScrollReveal>
+
       {/* Header */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <div className="flex justify-center mb-8">
-            <Image
-              src="/ResearchWelcomeImage.png"
-              alt="Research"
-              width={1254}
-              height={1254}
-              className="w-[420px] h-auto sm:w-[490px] lg:w-[560px]"
-            />
-          </div>
           <Link href="/research" className="group block">
             <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center group-active:scale-[0.85] lg:group-active:scale-100 transition-transform duration-150">
               <span className="underline decoration-cream lg:decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">

@@ -6,7 +6,7 @@ import HomePageClient from "@/components/home/HomePageClient";
 import { getAllCategories } from "@/lib/firebase/categories";
 import { getHomeContent } from "@/lib/firebase/site-content";
 import { getAboutContent } from "@/lib/firebase/about-content";
-import { getFeaturedItems } from "@/lib/firebase/featured";
+import { getFeaturedImagesByPanel } from "@/lib/firebase/featured";
 import { getAllStories } from "@/lib/firebase/stories";
 
 export const metadata: Metadata = {
@@ -16,11 +16,11 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [categories, content, aboutContent, featuredItems, stories] = await Promise.all([
+  const [categories, content, aboutContent, featuredPanels, stories] = await Promise.all([
     getAllCategories(),
     getHomeContent(),
     getAboutContent(),
-    getFeaturedItems(),
+    getFeaturedImagesByPanel(),
     getAllStories(),
   ]);
 
@@ -29,7 +29,7 @@ export default async function HomePage() {
       categories={categories}
       content={content}
       aboutContent={aboutContent}
-      featuredImages={featuredItems.map((item) => item.imageUrl)}
+      featuredPanels={featuredPanels}
       stories={stories.map(({ id, title, image }) => ({ id, title, image }))}
     />
   );

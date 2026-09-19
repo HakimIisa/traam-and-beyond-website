@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useScrollPositionRestore } from "@/hooks/useScrollPositionRestore";
+import FeaturedCarousel from "@/components/home/FeaturedCarousel";
 import type { StoryItem } from "@/types";
 
 // Only what a card needs — the full story body is deliberately not sent to the home page.
@@ -14,9 +15,10 @@ export type StoryCard = Pick<StoryItem, "id" | "title" | "image">;
 
 interface Props {
   stories: StoryCard[];
+  featuredImages: string[];
 }
 
-export default function StoriesHighlights({ stories }: Props) {
+export default function StoriesHighlights({ stories, featuredImages }: Props) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -167,7 +169,17 @@ export default function StoriesHighlights({ stories }: Props) {
   };
 
   return (
-    <section id="stories" className="relative z-[2] pt-16 pb-16 bg-[#1a130a]">
+    // The carousel brings its own vertical padding; without images (Featured 3 not yet
+    // populated) the header needs its own top spacing instead.
+    <section
+      id="stories"
+      className={`relative z-[2] ${featuredImages.length > 0 ? "pt-0" : "pt-16"} pb-16 bg-[#1a130a]`}
+    >
+      {/* Featured 3 carousel — renders nothing while it has no images */}
+      <ScrollReveal className="mb-10">
+        <FeaturedCarousel images={featuredImages} />
+      </ScrollReveal>
+
       {/* Header */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
