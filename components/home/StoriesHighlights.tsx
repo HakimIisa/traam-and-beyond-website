@@ -150,6 +150,22 @@ export default function StoriesHighlights({ stories, featuredImages }: Props) {
   const scrollByCard = (direction: 1 | -1) => {
     const el = scrollContainerRef.current;
     if (!el) return;
+
+    if (!isLg) {
+      const targetIndex = Math.min(
+        Math.max((scrollActiveIndex ?? 0) + direction, 0),
+        cardRefs.current.length - 1
+      );
+      const card = cardRefs.current[targetIndex];
+      if (card) {
+        el.scrollTo({
+          left: card.offsetLeft + card.offsetWidth / 2 - el.clientWidth / 2,
+          behavior: "smooth",
+        });
+      }
+      return;
+    }
+
     el.scrollBy({ left: direction * (el.clientWidth / 3.2), behavior: "smooth" });
   };
 

@@ -5044,3 +5044,61 @@ Only images that were *supposed* to be transparent cut-outs and were over 1.5MB 
 | File | Change type |
 |------|-------------|
 | `lib/image-compress.ts` | Output type now `image/jpeg` only for JPEG input, `image/webp` otherwise (alpha-preserving); output file named from `blob.type`; `JPEG_QUALITY` → `QUALITY`; comments explain the alpha rationale |
+
+---
+
+# Forty-Fifth Build Session — Addendum
+
+**Date:** 2026-09-24
+**Scope:** Mobile-only fix to the home page's three horizontal-scroll carousels (Collections, Research, Stories) — the left/right navigation arrows now bring the next/previous card fully into view, centred, instead of nudging the track by a fixed fraction.
+
+---
+
+## 226. Mobile Carousel Arrows — Centre the Target Card
+
+**Before:** `scrollByCard(direction)` in `CategoryHighlights.tsx`, `ResearchHighlights.tsx` and `StoriesHighlights.tsx` (identical logic, copy-pasted across all three) called `el.scrollBy({ left: direction * (el.clientWidth / 3.2), behavior: "smooth" })` for both breakpoints. On mobile (`w-[70vw]` cards) this moved the track by a little under one card width — usually leaving the target card partially off-screen rather than centred, since `clientWidth / 3.2` doesn't correspond to any actual card boundary.
+
+**After:** on mobile (`!isLg`), the function now uses the same `scrollActiveIndex` state each component already maintains (it tracks which card's centre is currently closest to the container's visible centre, via the `cardRefs` array) to find the next/previous card index, clamps it to the array bounds, and scrolls so that card's centre aligns with the container's centre:
+
+```ts
+const scrollByCard = (direction: 1 | -1) => {
+  const el = scrollContainerRef.current;
+  if (!el) return;
+
+  if (!isLg) {
+    const targetIndex = Math.min(
+      Math.max((scrollActiveIndex ?? 0) + direction, 0),
+      cardRefs.current.length - 1
+    );
+    const card = cardRefs.current[targetIndex];
+    if (card) {
+      el.scrollTo({
+        left: card.offsetLeft + card.offsetWidth / 2 - el.clientWidth / 2,
+        behavior: "smooth",
+      });
+    }
+    return;
+  }
+
+  el.scrollBy({ left: direction * (el.clientWidth / 3.2), behavior: "smooth" });
+};
+```
+
+Desktop (`isLg`) behaviour is untouched — it keeps the original `clientWidth / 3.2` partial scroll, since the request was scoped to mobile only and desktop arrows only fade in on row hover rather than being the primary navigation method.
+
+At the first/last card there's no further content to centre into, so the scroll clamps to the track's start/end and the target card may sit slightly off-centre with empty space on one side — expected, not a bug.
+
+### Verification
+`npx tsc --noEmit` was not re-run as part of this change (no type surface touched — same function signature, same refs). No live browser test was performed: this environment has no headless-browser tool available (`chromium-cli` not installed, Playwright not a project dependency), and installing one for a single verification pass was judged not worth the added dependency footprint. The centring math itself is not new — it mirrors the `offsetLeft`/`offsetWidth`-based centre calculation each component already runs on every scroll event to compute `scrollActiveIndex` — so it reuses a technique already proven correct in this codebase rather than introducing a new one.
+
+**Not verified:** actual on-device or browser visual confirmation of the arrow tap behaviour. Worth a manual pass on a real mobile viewport across all three sections, particularly the first/last-card edge case.
+
+---
+
+## 227. Key Files Modified (Forty-Fifth Build)
+
+| File | Change type |
+|------|-------------|
+| `components/home/CategoryHighlights.tsx` | `scrollByCard()` centres the next/previous card on mobile via `scrollActiveIndex` + `cardRefs`; desktop path unchanged |
+| `components/home/ResearchHighlights.tsx` | Same `scrollByCard()` change as above |
+| `components/home/StoriesHighlights.tsx` | Same `scrollByCard()` change as above |
