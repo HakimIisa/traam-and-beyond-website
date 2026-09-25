@@ -3,11 +3,14 @@ import { Timestamp } from "firebase-admin/firestore";
 import type { EnquiryFormData, Enquiry } from "@/types";
 
 export async function createEnquiry(data: EnquiryFormData): Promise<string> {
+  const { consent: _consent, ...rest } = data;
+  const now = Timestamp.now();
   const ref = adminDb.collection("enquiries").doc();
   await ref.set({
-    ...data,
+    ...rest,
     read: false,
-    createdAt: Timestamp.now(),
+    consentAt: now,
+    createdAt: now,
   });
   return ref.id;
 }
@@ -28,6 +31,7 @@ export async function getAllEnquiries(): Promise<Enquiry[]> {
       itemTitle: data.itemTitle ?? null,
       type: data.type,
       read: data.read ?? false,
+      consentAt: data.consentAt?.toDate?.()?.toISOString() ?? null,
       createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
     } as Enquiry;
   });

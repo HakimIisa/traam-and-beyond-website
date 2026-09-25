@@ -7,6 +7,9 @@ export const enquirySchema = z.object({
   itemId: z.string().optional(),
   itemTitle: z.string().optional(),
   type: z.enum(["general", "item-specific"]),
+  consent: z.boolean().refine((v) => v === true, {
+    message: "Please agree before sending your enquiry.",
+  }),
 });
 
 export type EnquirySchema = z.infer<typeof enquirySchema>;

@@ -127,6 +127,16 @@ function EnquiryList({
                   minute: "2-digit",
                 })}
               </p>
+              {e.consentAt && (
+                <p className="text-xs text-stone/60">
+                  Consent recorded:{" "}
+                  {new Date(e.consentAt).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </p>
+              )}
             </div>
 
             <button

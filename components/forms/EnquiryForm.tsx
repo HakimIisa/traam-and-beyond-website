@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { enquirySchema, type EnquirySchema } from "@/lib/validations";
@@ -44,6 +45,7 @@ export default function EnquiryForm({
       type,
       itemId: itemId ?? "",
       itemTitle: itemTitle ?? "",
+      consent: false,
     },
   });
 
@@ -133,6 +135,34 @@ export default function EnquiryForm({
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="consent"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-start gap-2">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      checked={field.value}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-terracotta"
+                    />
+                  </FormControl>
+                  <label className="text-sm text-stone leading-relaxed">
+                    I agree that my name, email and message will be stored to
+                    reply to my enquiry. See our{" "}
+                    <Link href="/legal#privacy" className="text-terracotta hover:underline">
+                      Privacy notice
+                    </Link>
+                    .
+                  </label>
+                </div>
                 <FormMessage />
               </FormItem>
             )}

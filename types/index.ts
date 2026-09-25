@@ -35,6 +35,7 @@ export interface Enquiry {
   itemTitle: string | null;
   type: "general" | "item-specific";
   read: boolean;
+  consentAt: string | null;
   createdAt: string;
 }
 
@@ -78,4 +79,5 @@ export interface EnquiryFormData {
   itemId?: string;
   itemTitle?: string;
   type: "general" | "item-specific";
+  consent: boolean;
 }
