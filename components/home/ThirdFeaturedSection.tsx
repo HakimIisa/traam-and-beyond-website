@@ -20,8 +20,9 @@ export default function ThirdFeaturedSection() {
           Guó zhì yuē: guó dì běn lóng chí yě.
         </p>
         <p className="text-[#FAF6F0] text-base mt-2 leading-relaxed max-w-xl">
-          &ldquo;The history of the country (Kashmir) says: This country was once a
-          dragon lake.&rdquo;
+          &ldquo;The history of the country (Kashmir) says:
+          <br />
+          This country was once a dragon lake.&rdquo;
         </p>
         <p className="text-[#FAF6F0] text-xs lg:text-sm mt-1">
           Xuanzang, The Great Tang Records on the Western Regions, Book III, 7th century.

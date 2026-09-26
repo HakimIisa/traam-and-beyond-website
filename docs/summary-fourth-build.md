@@ -5401,3 +5401,26 @@ Four small, developer-requested fixes after the page was live:
 | `components/bazar-jajeer/FeaturedCrafts.tsx` | **New file** — ported from Bazar Jajeer's `FeaturedCrafts.tsx`; colors hardcoded, categories sourced statically instead of via Firestore |
 | `components/bazar-jajeer/craftData.ts` | **New file** — 13 categories' copy + image data, ported from Bazar Jajeer's `craftImages.ts` + `CRAFT_COPY` |
 | `public/BazarJajeer/` | **New folder** — hero videos + posters, 13 category `.webp` images, 2 screenshots (`HomeShopByCategory`, `MobileHome`); the initially-added `HomeFeaturedCrafts.jpg` was later deleted as redundant |
+
+---
+
+# Forty-Ninth Build Session — Addendum
+
+**Date:** 2026-09-26
+**Scope:** One-line text-wrap fix on the home page's third background panel (`ThirdFeaturedSection.tsx`, the Xuanzang quote added in the Forty-Seventh session, §236).
+
+---
+
+## 247. Forced Line Break in the Xuanzang Quote
+
+At the viewport width shown in the developer's screenshot, the quote paragraph's natural word-wrap (governed by `max-w-xl`) broke after "...dragon", leaving "lake." stranded alone on its own line — visually awkward. The developer asked for a specific, deliberate two-line split instead: "The history of the country (Kashmir) says:" / "This country was once a dragon lake." A plain `<br />` was inserted between "says:" and "This country" so the break is fixed regardless of viewport width, rather than left to the browser's natural wrapping (unlike `FeaturedSection.tsx`'s own `<br className="sm:hidden" />`, which is breakpoint-conditional — this one was asked to be unconditional).
+
+`npx tsc --noEmit` clean.
+
+---
+
+## 248. Key Files Modified (Forty-Ninth Build)
+
+| File | Change type |
+|---|---|
+| `components/home/ThirdFeaturedSection.tsx` | Added an unconditional `<br />` inside the quote paragraph to force a specific two-line split |
