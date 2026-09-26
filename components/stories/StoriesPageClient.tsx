@@ -66,9 +66,9 @@ export default function StoriesPageClient({ stories, initialStoryId }: StoriesPa
   if (stories.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <h1 className="font-display text-3xl sm:text-6xl text-cream mb-6 text-center">Stories</h1>
+        <h1 className="font-display text-3xl sm:text-6xl text-cream mb-6 text-center">Narratives</h1>
         <p className="text-stone text-lg leading-relaxed text-center">
-          Stories are being written. Check back soon.
+          Narratives are being written. Check back soon.
         </p>
       </div>
     );
@@ -77,7 +77,7 @@ export default function StoriesPageClient({ stories, initialStoryId }: StoriesPa
   return (
     <div className="relative w-full bg-[#1a130a] min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-10 lg:pb-16">
-        <h1 className="font-display text-3xl sm:text-6xl text-cream text-center">Stories</h1>
+        <h1 className="font-display text-3xl sm:text-6xl text-cream text-center">Narratives</h1>
       </div>
 
       <StoriesMobileDrawer

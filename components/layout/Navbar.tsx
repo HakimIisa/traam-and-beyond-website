@@ -316,7 +316,7 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* 5. Stories */}
+                {/* 5. Narratives */}
                 <div>
                   <Link
                     href="/stories"
@@ -326,7 +326,7 @@ export default function Navbar() {
                       pathname === "/stories" ? "text-terracotta" : "text-cream"
                     )}
                   >
-                    Stories
+                    Narratives
                   </Link>
                 </div>
 

@@ -5102,3 +5102,219 @@ At the first/last card there's no further content to centre into, so the scroll 
 | `components/home/CategoryHighlights.tsx` | `scrollByCard()` centres the next/previous card on mobile via `scrollActiveIndex` + `cardRefs`; desktop path unchanged |
 | `components/home/ResearchHighlights.tsx` | Same `scrollByCard()` change as above |
 | `components/home/StoriesHighlights.tsx` | Same `scrollByCard()` change as above |
+
+---
+
+# Forty-Sixth Build Session — Addendum
+
+**Date:** 2026-09-26
+**Scope:** New `/legal` page (Terms, Collection notice, Privacy, IP, Contact) ahead of the client showcasing the site on 27 September 2026; required consent checkbox + `consentAt` on the enquiry form; Firestore TTL retention policy set up for the `enquiries` collection; two rounds of legal-copy corrections after implementation.
+
+---
+
+## 228. Why This Session Happened — Brief and Scope
+
+The developer supplied a prepared brief (`traam-legal-page-brief.md`, not committed to the repo) written from a planning conversation between the developer and Claude about the legal exposure of showing a private collection of 100+-year-old Kashmiri antiquities (owned by the client, Hakim Ali Reza) on a public site with a global audience. The core risk: India's Antiquities and Art Treasures Act, 1972 restricts selling/exporting antiquities without an ASI licence, and the site's enquiry form could be read as facilitating unlicensed sales if worded carelessly.
+
+Before implementing, the brief was checked against the actual codebase rather than taken at face value, since several of its assumptions turned out to be wrong or incomplete:
+
+- **The brief assumed no prices were shown anywhere.** In fact `formatPrice(item.price, item.notForSale)` (`lib/utils.ts`) is called from both `ItemCard.tsx` and the item detail page (`app/(public)/category/[slug]/[itemId]/page.tsx`), rendering a real ₹-formatted price unless `notForSale` is true. This was raised with the developer directly rather than silently "fixed," since removing a live pricing feature is a business decision, not a copy edit.
+- **The brief assumed no light/dark mode existed to account for.** Confirmed correct on inspection — the public site is a single fixed dark palette (`app/globals.css`); `.light-theme` is admin-only.
+- **The brief said `buy-from-artisans` "wasn't built yet."** It exists as a literal `"Coming soon."` stub with no logic — left untouched, per the developer's explicit choice, after being flagged.
+- **Analytics/cookies:** grepped `app/` and `lib/` for GA/Firebase Analytics/Vercel Analytics/cookie usage — none found. The only cookie in the codebase is the admin's own `admin-session` (`middleware.ts`), irrelevant to public visitors. The Privacy section states plainly that no tracking cookies are used.
+- **Nav placement:** every other top-level page (About, Collections, Research, Stories, Buy from Artisans, Contact) is linked from both the Footer and the Navbar hamburger menu; the brief only specified the Footer for Legal. Raised as a choice rather than assumed — developer chose **Footer only**, matching the brief.
+
+### The price-display question, resolved by conversation not code
+Rather than removing price display (a real functional change), the developer confirmed in conversation that **every item currently on the site is marked `notForSale: true`**, and `formatPrice()` returns the literal string `"Not for Sale"` whenever that flag is true, regardless of the `price` field's value — so no numeric price is rendered publicly today, without any code change. The deeper point pushed back on: a "Not for Sale" label only reduces legal exposure if it's *true in practice* (no antiquities sales actually completing via enquiries), since the Antiquities Act problem is triggered by actual conduct, not page wording. The developer confirmed: **nothing is for sale currently; that may change if the client obtains an ASI licence in the future.** The Legal page's "About the Collection" section states this in the present tense, with a line noting the status may change if a licence is obtained — so the page won't need rewriting the moment that happens.
+
+No code changes were made to `ItemCard.tsx`, the item detail page, or `formatPrice()` as a result of this session.
+
+---
+
+## 229. New Page — `app/(public)/legal/page.tsx`
+
+Plain server component, no client JS (anchor links are native `<a href="#...">`, no `"use client"` needed). Typography deliberately matches the existing plain-info-page precedent (`/developer`, `/buy-from-artisans`) rather than the larger gallery-section headings, per explicit developer instruction to keep font sizes/families consistent with the rest of the site:
+
+| Element | Classes used | Precedent copied from |
+|---|---|---|
+| H1 | `font-display text-3xl sm:text-5xl text-cream` | `/developer` page H1 |
+| Subtitle / meta lines | `text-stone text-sm` | `/developer`'s "Director — SEER" line |
+| H2 (section headings) | `font-display text-2xl sm:text-3xl text-cream mt-12 mb-4` | Stepped down from H1, same family |
+| Body paragraphs | `text-stone leading-relaxed` | Item description sizing (desktop) |
+| TOC / inline links | `text-sm text-stone hover:text-cream transition-colors` | Existing Footer nav-link style |
+| Section dividers | `border-t border-white/10` | `/developer` |
+
+`h1`/`h2`/`h3` already resolve to the display font (Cormorant Garamond) globally via `globals.css`'s base layer, so no new font-family rules were needed anywhere.
+
+Structure: one `<h1>` "Legal", a plain-text in-page table of contents (5 anchor links — the animated `StoriesTOC` component was deliberately not reused, too heavy for a legal page), then five `<h2>` sections with `scroll-mt-24` (clearing the fixed `h-16` Navbar on anchor-jump): `#terms`, `#collection`, `#privacy`, `#ip`, `#contact`. Metadata is `{ title: "Legal" }` — the root layout's `template: "%s | Traam and Beyond"` appends the suffix automatically, same pattern as `/about` and `/contact`.
+
+### Placeholders resolved (no invented values — all confirmed with the developer)
+| Placeholder | Value |
+|---|---|
+| `{{CONTACT_EMAIL}}` | hakimalirezah@hotmail.com (client's personal email — no business contact email existed anywhere on the public site before this) |
+| `{{CITY}}` (jurisdiction) | Srinagar |
+| `{{RETENTION_PERIOD}}` | 24 months |
+| `{{LAST_UPDATED}}` | 25 September 2026 |
+
+Added to `app/sitemap.ts` (`priority: 0.3`, `changeFrequency: "yearly"`).
+
+---
+
+## 230. Enquiry Form — Required Consent + `consentAt`
+
+Per developer's choice (required checkbox over static notice text, for stronger DPDP-alignment despite the added friction two days before the client's demo):
+
+- `lib/validations.ts`: `enquirySchema` gained `consent: z.boolean().refine((v) => v === true, { message: "Please agree before sending your enquiry." })`.
+- `types/index.ts`: `EnquiryFormData.consent: boolean` (request payload); `Enquiry.consentAt: string | null` (server-read type, nullable so enquiries that pre-date this change don't break admin rendering).
+- `components/forms/EnquiryForm.tsx`: new `FormField` rendering a native checkbox (no `@radix-ui/react-checkbox` dependency exists in the project — deliberately not added for one checkbox) bound via `checked`/`onChange` rather than the default `{...field}` spread (which assumes a text value), with label text linking to `/legal#privacy`. `defaultValues.consent: false` added.
+- `lib/firebase/enquiries.ts`: `createEnquiry` strips the `consent` boolean before writing (destructured as `_consent`, unused) and stamps `consentAt: Timestamp.now()` directly — mirroring the existing "missing field → safe default" pattern already used for `FeaturedItem.panel` (§216). `getAllEnquiries` serializes `consentAt` defensively (`?? null`).
+- `app/(admin)/admin/enquiries/EnquiriesClient.tsx`: shows a "Consent recorded: [date]" line per enquiry when `consentAt` is present, using the same `toLocaleDateString("en-IN", …)` pattern already used for `createdAt`.
+
+No wording changes were needed elsewhere in `EnquiryForm`/`EnquiryDialog` — checked for "interested in buying" or similar purchase-inviting language per the brief's §5.3 instruction; none existed.
+
+### A dead-end and a correction, on the way to the TTL policy
+An `expiresAt` field (`createdAt` + 24 calendar months, computed client-side in `createEnquiry` via `Date.setMonth()`) was added first, on the reasoning that Firestore TTL deletes documents once *the field's own value* is in the past — so pointing TTL directly at `createdAt` (already in the past the instant a document is written) would make every enquiry eligible for deletion within ~72 hours of submission, not after 24 months. This was caught and flagged before the developer acted on it in the console.
+
+That `expiresAt` field was then **reverted** after checking Firebase's official TTL documentation (`firebase.google.com/docs/firestore/ttl`) directly rather than relying on prior assumptions, which surfaced a built-in **"Expiration offset"** option: a TTL policy can point at `createdAt` directly and add a configurable duration (days/hours/minutes/seconds), with Firestore computing `deletion time = field value + offset` internally. This is strictly better than the custom field — it needs no code, and it retroactively covers every enquiry already in Firestore (the custom `expiresAt` field would only ever have applied to enquiries submitted after the code shipped). `lib/firebase/enquiries.ts` was reverted to only write `consentAt` and `createdAt`.
+
+**Final config, set up by the developer in the Google Cloud Console** (not the Firebase console — TTL policies are a Cloud Firestore feature surfaced there, not in Firebase's own product search, which was tried first and returned nothing):
+- Firestore → Databases → `(default)` → **Time-to-live** → Create Policy
+- Collection group: `enquiries`
+- Timestamp field: `createdAt`
+- Expiration offset: `730` days
+
+Deletion lags the computed expiration by up to ~72 hours once due; the policy itself can take 10+ minutes to activate after creation. No code enforces or depends on this — it is entirely a Firestore-side configuration.
+
+### Test data cleanup
+Six pre-existing documents in `enquiries` (leftover test/demo submissions, including one reading *"Party to banti hai!!!!!"*) were manually deleted by the developer via the Firestore console Data tab before the client demo — not something this session's code touched or could touch (no Firestore write access from this environment for destructive operations of that kind).
+
+---
+
+## 231. Legal Copy Corrections (two rounds, post-implementation)
+
+After initial publication, the developer requested two copy fixes, and a related issue was found and fixed while addressing the second:
+
+**Round 1:**
+1. **Trademark status.** "Traam and Beyond™ is a trademark of Hakim Ali Reza (application pending)." was inaccurate — the application has already been *filed*; only *registration* is pending. Changed to: *"Traam and Beyond™ is a trademark of Hakim Ali Reza. The trademark application has been filed and is currently pending registration."*
+2. **Collection ownership carve-out.** Some images on the About page are sourced from third parties, not owned by the client, so the blanket line "All objects shown on this site belong to the private collection of Hakim Ali Reza..." needed a qualifier. Rather than inserting "(unless mentioned otherwise)" mid-sentence as literally requested, it was moved to a leading qualifier for cleaner phrasing: *"Unless otherwise noted, all objects shown on this site belong to the private collection of Hakim Ali Reza and are displayed for heritage, educational and research purposes."*
+
+**Round 2 — a related gap, confirmed before fixing rather than assumed:**
+The developer's stated reason for fix #2 (some About-page images are third-party) also applies to the Intellectual Property section's separate claim that "All photographs, text, research and stories on this site are created by Hakim Ali Reza and family and are protected by copyright" — with no carve-out. This was flagged rather than silently changed, and the underlying fact was verified against `components/about/CraftHeritageTimeline.tsx` before acting: all 11 `HERITAGE_PANELS` entries carry a `caption` (rendered under the image on the page) crediting a source — 10 to museums/archives/auction houses (V&A, Ashmolean, Asia Society, Christie's, Wikipedia, Search Kashmir Archive, Invaluable, Mpositive), 1 (Chapter 11) explicitly to "Traam and Beyond Private Collection." Confirmed, the IP section was updated to match: *"Unless a different source is credited beneath an image — as with several images in the Craft Heritage of Kashmir section, reproduced from museum and archive collections for educational purposes — all photographs, text, research and stories on this site are created by Hakim Ali Reza and family and are protected by copyright. © 2026 Traam and Beyond. All rights reserved as to our original content; third-party images remain the property of their respective sources. ..."*
+
+`OurStoryTimeline.tsx` (the other About-page section) was checked for the same pattern and found clean — no captions/source credits exist there because it's the client's own personal narrative with no third-party images.
+
+---
+
+## 232. Context Noted, Not Actioned: Buy from Artisans → bazarjajeer.com
+
+The developer mentioned that `buy-from-artisans` (currently a `"Coming soon."` stub, untouched this session) is eventually meant to connect to **bazarjajeer.com**, a separate marketplace site the client built for selling Kashmiri handicrafts. Recorded here for future context: keeping the actual commerce transaction on a separate site is favourable to the antiquities-risk framing in §228 (this site stays enquiry-only for the private collection; the marketplace site is where any real transaction would happen). When that page is eventually built, brief §3.7's disclaimer applies — artisans are independent, purchases are directly between buyer and artisan, Traam and Beyond is not a party to those sales, and only new/contemporary work should appear there, never antiquities. No code was written for this; it is out of scope until the developer asks for it.
+
+---
+
+## 233. Verification
+
+| Check | Result |
+|---|---|
+| `npx tsc --noEmit` | Clean, re-run after every edit round (initial implementation, the `expiresAt` revert, and both rounds of copy fixes) |
+| `npm run build` | Clean; `/legal` pre-renders as a static (`○`) route |
+| `npx eslint` | Fails project-wide with "couldn't find eslint.config.js" — **pre-existing repo issue**, no ESLint config exists in this repo at all; not caused by or fixed in this session |
+| Live enquiry submission through `/contact` | Developer tested manually end-to-end; confirmed working (consent checkbox blocks submit until checked, enquiry appears in `/admin/enquiries` with a "Consent recorded" line) |
+| Firestore query to verify `notForSale: true` on every item, before relying on the developer's claim | **Attempted, blocked** — this sandbox denies script/Bash access to `.env.local` (needed for `FIREBASE_SERVICE_ACCOUNT_JSON`), so the claim could not be independently verified and was taken on the developer's word instead |
+| Committed and pushed | `ae774b6`, pushed to `main` on developer's request (`dcc0471..ae774b6`) |
+
+### Not verified
+No headless-browser tooling is available in this environment (`chromium-cli` not installed, Playwright not a project dependency, and installing one for a single verification pass was judged not worth the added footprint two days before a client demo) — so none of the visual/typography work in this session (the `/legal` page layout, the consent checkbox styling) was confirmed by an actual screenshot, only by `tsc`/`build` passing and by copying class names verbatim from already-shipped pages. This was disclosed to the developer at the time rather than claimed as tested.
+
+---
+
+## 234. Key Files Modified (Forty-Sixth Build)
+
+| File | Change type |
+|---|---|
+| `app/(public)/legal/page.tsx` | **New file** — Terms/Collection/Privacy/IP/Contact sections, anchor TOC, placeholders resolved |
+| `app/sitemap.ts` | `/legal` entry added |
+| `components/layout/Footer.tsx` | "Legal" link added (footer only, per developer's choice) |
+| `components/forms/EnquiryForm.tsx` | Required consent checkbox, linked to `/legal#privacy`; `defaultValues.consent` |
+| `lib/validations.ts` | `enquirySchema.consent` (must be `true`) |
+| `types/index.ts` | `EnquiryFormData.consent`; `Enquiry.consentAt` |
+| `lib/firebase/enquiries.ts` | `createEnquiry` strips `consent`, stamps `consentAt`; `getAllEnquiries` serializes it defensively. (A since-reverted `expiresAt` field was added and removed within this session — see §230.) |
+| `app/(admin)/admin/enquiries/EnquiriesClient.tsx` | Shows "Consent recorded: [date]" per enquiry when present |
+
+No Firestore/Firebase console configuration (the TTL policy) is reflected in this table since it is infrastructure, not application code.
+
+---
+
+# Forty-Seventh Build Session — Addendum
+
+**Date:** 2026-09-26
+**Scope:** Home page — descriptive text added under the Stories section (matching Collections/Research), the Collections↔Research↔Stories background panel's image and quote replaced, and "Stories" renamed to "Narratives" across all public-facing text.
+
+---
+
+## 235. Stories Section — Descriptive Text Added
+
+`components/home/StoriesHighlights.tsx`'s header previously had only the "Stories" `<h2>` — unlike `CategoryHighlights.tsx` and `ResearchHighlights.tsx`, which both follow title → description paragraph(s) → `border-t border-white/5 mb-12` divider before the horizontal card track. Brought into line with that exact pattern: heading margin changed `mb-8` → `mb-2` (matching the other two sections, since the description paragraph now supplies the spacing instead), followed by the developer-supplied text as two `<p className="text-stone ... text-justify lg:text-center">` paragraphs (`mb-4` then `mb-6`, since the source text was naturally two paragraphs rather than the single block `ResearchHighlights` uses), then the same divider.
+
+---
+
+## 236. Background Panel — Image and Quote Replaced (`ThirdFeaturedSection.tsx`)
+
+The panel between Research and Stories (a full-bleed `absolute inset-0` background panel rendered by `HomePageClient.tsx` alongside its sibling `FeaturedSection.tsx`, the Collections↔Research panel) previously showed only the shrine image with no text. Two changes requested: swap `FeaturedBackground3.png` → `StoriesCovermain2.png`, and add a quote above the image matching `FeaturedSection.tsx`'s exact text formatting.
+
+### The crop math doesn't transfer between images
+`ThirdFeaturedSection.tsx` positions its image via a hand-measured crop box (`SHRINE = { left, top, width, height }`) cut out of a 2480×2480 transparent-padded canvas, so that the visible shrine — not the padding — ends up centered in the panel. The existing box (`left: 702, top: 370, width: 1056, height: 1874`) was measured for `FeaturedBackground3.png` specifically. Rather than assume the new image shared the same padding (both files happen to depict a similar silver shrine-niche subject, which made this an easy mistake to nearly make), the actual bounding box of non-transparent pixels was computed programmatically with a small `sharp` script (`sharp` is already a project dependency), written temporarily to the repo root and deleted after running — same throwaway-script pattern used for prior audits (§219, §223):
+
+```js
+// read raw RGBA, scan for alpha > threshold, track min/max x/y
+```
+
+Result: `StoriesCovermain2.png`'s shrine occupies `left: 749, top: 535, width: 967, height: 1714` — a meaningfully different box (particularly the height: 1714 vs 1874) from the old image's. Using the old numbers would have visibly mis-cropped the new image. `SHRINE` and the code comment explaining the measurement were both updated to match.
+
+### Quote added
+Matches `FeaturedSection.tsx`'s four-line treatment exactly (bold dark text for the original-language line, non-bold same color for the transliteration, cream `text-base` for the English translation, cream `text-xs lg:text-sm` for the attribution), reusing the identical class names rather than approximating them:
+
+> 國志曰：國地本龍池也。
+> Guó zhì yuē: guó dì běn lóng chí yě.
+> "The history of the country (Kashmir) says: This country was once a dragon lake."
+> Xuanzang, The Great Tang Records on the Western Regions, Book III, 7th century.
+
+The panel's layout changed from `items-center justify-center` (image alone, centered) to `flex-col items-center justify-center` (text block above the image, the pair centered together) — confirmed safe since both this panel and its sibling are rendered as `absolute inset-0` full-height panels by the parent (`HomePageClient.tsx`), so `h-full` centering behaves the same way it did before.
+
+---
+
+## 237. "Stories" → "Narratives" — Scope Decided Before Touching Anything
+
+Before changing any text, every occurrence of "Stories"/"stories" across the codebase was catalogued rather than doing a blind find-replace — the feature turned out to touch far more than the home page: the public route (`/stories`), admin routes (`/admin/stories`, `/admin/stories/reorder`), API routes (`/api/admin/stories`), the Firestore collection, and roughly a dozen component/file names (`StoriesHighlights`, `StoriesPageClient`, `StoriesTOC`, `StoryBlock`, `StoriesClient`, `ReorderStoriesClient`, `StoriesMobileDrawer`, `StoriesImagePanel`, the `StoryItem` type, etc.). Renaming the URL or the Firestore collection carries real, avoidable risk (broken links, a data migration) for a request that only asked about visible text, so this was raised as two explicit choices rather than assumed:
+
+- **URL stays `/stories`** — no route change, no redirect needed, nothing breaks.
+- **Admin panel and internal names stay "Stories"** — the admin sidebar, "Reorder Stories" heading, the Firestore collection, and every internal component/file name are untouched. Purely internal, never seen by a site visitor.
+
+**Changed (public-facing text only):**
+- `components/home/StoriesHighlights.tsx` — home page section heading
+- `components/layout/Navbar.tsx` — hamburger menu link (label + adjacent comment)
+- `components/layout/Footer.tsx` — footer link
+- `components/stories/StoriesPageClient.tsx` — both H1 states (populated and empty-collection) and the empty-state body copy ("Narratives are being written...")
+- `app/(public)/stories/page.tsx` — `metadata.title` and `metadata.description`
+
+The route (`href="/stories"`) in every one of those links was deliberately left unchanged.
+
+---
+
+## 238. Verification
+
+`npx tsc --noEmit` and `npm run build` both clean. Unlike prior sessions' "not verified — no browser available" caveat, the developer tested this round directly in their own running dev server (`localhost:3000`) and confirmed all three changes render correctly, including the re-cropped panel image — the one piece of this change that depended on the `sharp`-measured numbers being right rather than just type-checking.
+
+---
+
+## 239. Key Files Modified (Forty-Seventh Build)
+
+| File | Change type |
+|---|---|
+| `components/home/StoriesHighlights.tsx` | Descriptive text + divider added under heading (matches Collections/Research pattern); "Stories" → "Narratives" in the heading |
+| `components/home/ThirdFeaturedSection.tsx` | Image swapped to `StoriesCovermain2.png` with a newly-measured crop box; Xuanzang quote added above the image |
+| `components/layout/Navbar.tsx` | Hamburger menu label "Stories" → "Narratives" |
+| `components/layout/Footer.tsx` | Footer link label "Stories" → "Narratives" |
+| `components/stories/StoriesPageClient.tsx` | Both H1 states and empty-state copy: "Stories" → "Narratives" |
+| `app/(public)/stories/page.tsx` | `metadata.title`/`metadata.description`: "Stories" → "Narratives" |
+
+No route, admin-panel, Firestore-collection, or internal component/file-name changes were made — see §237 for why.

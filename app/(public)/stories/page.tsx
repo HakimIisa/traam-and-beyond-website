@@ -3,8 +3,8 @@ import { getAllStories } from "@/lib/firebase/stories";
 import StoriesPageClient from "@/components/stories/StoriesPageClient";
 
 export const metadata: Metadata = {
-  title: "Stories",
-  description: "Stories from the artisans and collectors of Kashmir.",
+  title: "Narratives",
+  description: "Narratives from the artisans and collectors of Kashmir.",
 };
 
 export const dynamic = "force-dynamic";

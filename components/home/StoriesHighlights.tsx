@@ -200,12 +200,19 @@ export default function StoriesHighlights({ stories, featuredImages }: Props) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <Link href="/stories" className="group block">
-            <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-8 text-center group-active:scale-[0.85] lg:group-active:scale-100 transition-transform duration-150">
+            <h2 className="font-display text-5xl lg:text-6xl text-cream font-semibold mb-2 text-center group-active:scale-[0.85] lg:group-active:scale-100 transition-transform duration-150">
               <span className="underline decoration-cream lg:decoration-transparent decoration-1 underline-offset-8 group-hover:text-terracotta transition-colors duration-300 group-hover:decoration-terracotta transition-[text-decoration-color] duration-300">
-                Stories
+                Narratives
               </span><span className="lg:hidden text-2xl align-middle ml-1">→</span>
             </h2>
           </Link>
+          <p className="text-stone mb-4 text-justify lg:text-center">
+            Long before Kashmir was written into histories, its landscape was remembered through stories of lakes and mountains, Nāgas and sages, kings and monks. Here, history and legend have travelled together for centuries, flowing through many voices and taking shape in chronicles, sacred places, manuscripts, journeys, and memory, passed from one generation to the next. Each generation has added another wave to the river of its remembrance.
+          </p>
+          <p className="text-stone mb-6 text-justify lg:text-center">
+            Traam and Beyond explores and documents these stories through research into Kashmir&apos;s histories, traditions, objects, places, and cultural memory. The stories gathered here are part of an ongoing attempt to trace the many narratives that have shaped the valley and to bring them into conversation with the present.
+          </p>
+          <div className="border-t border-white/5 mb-12" />
         </ScrollReveal>
       </div>
 

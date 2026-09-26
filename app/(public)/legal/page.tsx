@@ -51,8 +51,9 @@ export default function LegalPage() {
       <section id="collection" className="scroll-mt-24 mb-12">
         <h2 className="font-display text-2xl sm:text-3xl text-cream mb-4">About the Collection</h2>
         <p className="text-stone leading-relaxed mb-4">
-          All objects shown on this site belong to the private collection of Hakim Ali
-          Reza and are displayed for heritage, educational and research purposes.
+          Unless otherwise noted, all objects shown on this site belong to the private
+          collection of Hakim Ali Reza and are displayed for heritage, educational and
+          research purposes.
         </p>
         <p className="text-stone leading-relaxed mb-4">
           Many objects in the collection are antiquities within the meaning of India&apos;s
@@ -108,14 +109,19 @@ export default function LegalPage() {
       <section id="ip" className="scroll-mt-24 mb-12">
         <h2 className="font-display text-2xl sm:text-3xl text-cream mb-4">Intellectual Property</h2>
         <p className="text-stone leading-relaxed mb-4">
-          All photographs, text, research and stories on this site are created by Hakim
-          Ali Reza and family and are protected by copyright. © 2026 Traam and Beyond.
-          All rights reserved. You may view and share links to this site for personal,
+          Unless a different source is credited beneath an image — as with several
+          images in the Craft Heritage of Kashmir section, reproduced from museum and
+          archive collections for educational purposes — all photographs, text,
+          research and stories on this site are created by Hakim Ali Reza and family
+          and are protected by copyright. © 2026 Traam and Beyond. All rights reserved
+          as to our original content; third-party images remain the property of their
+          respective sources. You may view and share links to this site for personal,
           non-commercial purposes and quote short passages with credit. Any other
           reproduction requires written permission.
         </p>
         <p className="text-stone leading-relaxed">
-          Traam and Beyond&trade; is a trademark of Hakim Ali Reza (application pending).
+          Traam and Beyond&trade; is a trademark of Hakim Ali Reza. The trademark
+          application has been filed and is currently pending registration.
         </p>
       </section>
 
