@@ -20,7 +20,7 @@ export default function BuyFromArtisansPage() {
           </h1>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
-          <p className="text-stone text-lg leading-relaxed text-center mb-4">
+          <p className="text-stone leading-relaxed text-center mb-4">
             A dedicated marketplace for Kashmiri crafts —{" "}
             <span className="text-cream">Bazar Jajeer</span> — connects artisans
             directly with buyers.
@@ -37,8 +37,8 @@ export default function BuyFromArtisansPage() {
         </ScrollReveal>
       </div>
 
-      {/* Small side margins mark this as a separate site embedded here, not native content */}
-      <div className="px-4 sm:px-6 lg:px-8">
+      {/* Side margins (desktop only) mark this as a separate site embedded here, not native content */}
+      <div className="px-0 lg:px-[120px]">
         <BazarJajeerHero />
         <BazarJajeerFeaturedCrafts />
       </div>
@@ -51,7 +51,7 @@ export default function BuyFromArtisansPage() {
           </h3>
           <p className="text-stone leading-relaxed text-center max-w-xl mx-auto mb-10">
             Copper, papier-mâché, silverware, enamelware and more — each craft
-            has its own shelf on Bazar Jajeer, labelled in Kashmiri script.
+            has its own shelf on Bazar Jajeer.
           </p>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
@@ -117,7 +117,7 @@ export default function BuyFromArtisansPage() {
           <div className="border-t border-white/10 pt-8 text-center">
             <Link
               href="/developer"
-              className="text-sm text-stone hover:text-cream transition-colors"
+              className="text-xs text-stone hover:text-cream transition-colors"
             >
               Bazar Jajeer is being built by{" "}
               <span className="font-display text-base text-cream">Hakim Iisa</span>{" "}

@@ -5318,3 +5318,86 @@ The route (`href="/stories"`) in every one of those links was deliberately left 
 | `app/(public)/stories/page.tsx` | `metadata.title`/`metadata.description`: "Stories" → "Narratives" |
 
 No route, admin-panel, Firestore-collection, or internal component/file-name changes were made — see §237 for why.
+
+---
+
+# Forty-Eighth Build Session — Addendum
+
+**Date:** 2026-09-26
+**Scope:** Rebuilt `/buy-from-artisans` from a placeholder "Coming soon." stub into a real teaser page for **Bazar Jajeer** — a separate marketplace site the developer built for selling Kashmiri handicrafts. Went through two full iterations before landing on the final structure, plus a round of post-launch polish.
+
+---
+
+## 240. Context and a Finding Flagged Before Building Anything
+
+The developer's brief: this page should read as an advertisement for bazarjajeer.com — screenshots/video from that site, credit to the developer as its creator, a clickable link to `/developer`.
+
+Before writing any code, the 28 screenshots the developer pointed to (`C:\Users\lenovo\AntiGravity Projects\bazar-jajeer\bazar-jajeer\ScreenShots for GitHub`) were reviewed to decide what belonged on a public teaser (customer-facing home/category/product/shop screens) versus what didn't (vendor dashboards, admin panels, account settings — internal tooling, not marketing material).
+
+**A finding surfaced during that review, not asked for:** `ShopDirectory.jpg` and `ProductDetail.jpg` showed a live "Traam And Beyond" shop on Bazar Jajeer — reusing the site's real tagline copy, not placeholder text like the other two test shops — selling a real-looking item ("Ewer and Basin," ₹1,50,000, working "ADD TO CART" button). This was raised directly rather than built around silently, since it appeared to conflict with the Legal page's "not currently offered for sale" language from the Forty-Sixth session (§228). The developer confirmed it was test/demo data left over from building Bazar Jajeer, not a real listing — no conflict — and separately chose to keep the teaser page **generic** (introduce Bazar Jajeer as a platform, don't name or link the Traam and Beyond shop specifically).
+
+---
+
+## 241. First Version — Static Screenshots + Hero Video
+
+Built as: H1 + intro paragraph (marketplace explained, artisans-independent/not-a-party disclaimer per brief §3.7) → a responsive hero-video pair (desktop `hero.webm`/`hero.mp4` + poster, mobile `hero-mobile.mp4` + poster, both `autoPlay muted loop playsInline`) → three screenshots (`HomeFeaturedCrafts`, `HomeShopByCategory`, `MobileHome`, each sized to its exact measured pixel aspect ratio) → a "Visit Bazar Jajeer" CTA → a developer-credit line reusing the Footer's exact pattern, linking to `/developer`.
+
+Assets (videos, posters, 3 screenshots) copied into a new `public/BazarJajeer/` folder — the developer confirmed the videos were already reasonably compressed (~2.4–2.6MB each), no re-encoding needed.
+
+The developer then said this version "looks too cramped" and asked for something closer to the real Bazar Jajeer homepage instead.
+
+---
+
+## 242. Second Version — Porting the Real Homepage Sections, Live
+
+Rather than more screenshots, the developer asked for the actual Hero and "Featured Crafts" sections from Bazar Jajeer's own homepage, ported as live, functioning components — reasoning that the real site's ambient auto-looping carousel would read as "alive" in a way no static image could. This was investigated and answered *before* any code was written, per explicit instruction, by reading Bazar Jajeer's own source (`C:\Users\lenovo\AntiGravity Projects\bazar-jajeer\bazar-jajeer\src`) rather than guessing at feasibility:
+
+- **Fonts were a non-issue.** Bazar Jajeer's `--font-display`/`--font-body` resolve to the exact same Cormorant Garamond + Raleway Google Fonts this site already loads.
+- **Colors needed hardcoding, not remapping.** Bazar Jajeer's own tokens (`bg-olive` `#6E6B41`, `bg-bg-void` `#1A1008`, `text-mustard` `#B07E1E`, `terracotta` `#9C5D3C`, `cream` `#D1C7B5`) don't exist in this site's Tailwind theme and are genuinely different hex values from this site's own `terracotta`/`walnut`/`cream`. Rather than extend this site's global `@theme` with Bazar-Jajeer-specific token names (pollutes the sitewide palette for one page), the exact hex values were hardcoded as arbitrary Tailwind values (`bg-[#1A1008]`, etc.) scoped to just the two ported components — a faithful reproduction of the real site, zero risk to the rest of the design system.
+- **No Firestore dependency needed.** The real `FeaturedCrafts` component takes a `categories` prop sourced from Firestore on Bazar Jajeer, but only ever reads `category.slug` as a lookup key — it never renders `category.name` or anything else Firestore-sourced. A static hardcoded list of the 13 category slugs (matching `CRAFT_IMAGES`' keys) is a behaviourally identical, dependency-free substitute.
+- **Two real bugs, not just a copy-paste.** (1) The real Hero uses a `-mt-14 md:-mt-16` negative top margin to cancel a top offset present in Bazar Jajeer's own layout — this site's `Navbar` is already `bg-transparent` until scrolled (confirmed by reading `Navbar.tsx`), identical to how the home page's own `HeroSection.tsx` already floats under it with no margin trick — so copying the negative margin as-is would have hidden the top ~64px of the video behind the navbar. Dropped entirely. (2) The Hero's "View Crafts"/"View Shops" buttons link to `#categories`/`#shops` — anchors that exist on Bazar Jajeer's homepage but not on this page. Repointed: "View Crafts" → `#featured` (scrolls to the ported carousel section on this same page), "View Shops" → `https://bazarjajeer.com/shops` (confirmed to be a real route by checking Bazar Jajeer's own `src/app/(customer)/` route folders), both external links opening in a new tab.
+- **Named as a real tradeoff, not hidden:** this creates a second, hand-copied version of Bazar Jajeer's own components in a different codebase. If that section is redesigned on the real site later, this page won't follow automatically.
+
+New files: `components/bazar-jajeer/Hero.tsx`, `components/bazar-jajeer/FeaturedCrafts.tsx`, `components/bazar-jajeer/craftData.ts` (13 categories × title/line/size/align/rotate/image/alt/aspect, ported from Bazar Jajeer's `CRAFT_COPY` + `CRAFT_IMAGES`). 13 category `.webp` images (~4.5MB) copied into `public/BazarJajeer/categories/`; the now-redundant `HomeFeaturedCrafts.jpg` screenshot was deleted since the live version replaced it.
+
+`/buy-from-artisans` was restructured to: `BazarJajeerHero` → `BazarJajeerFeaturedCrafts` → an editorial section (the two remaining screenshots — `HomeShopByCategory`, `MobileHome` — each given its own heading and one-sentence intro rather than being crammed together, addressing the earlier "cramped" complaint) → CTA → developer credit.
+
+---
+
+## 243. Third Round — Margins, Restoring the Top Disclaimer, a Heading Fix
+
+Three follow-up requests, each with a reason behind it:
+
+1. **Side margins on the ported Hero + Featured Crafts**, so the embed visually reads as "not part of this website" rather than full-bleed native content. Implemented as a wrapping `<div>` around both components; iterated on the exact value across the conversation — `px-4 sm:px-6 lg:px-8` (this site's standard gutter) → `px-0 lg:px-[60px]` (desktop-only, per developer request to drop mobile entirely) → **`px-0 lg:px-[120px]`** (final).
+2. **The "Buy from the Artisans" H1 and its disclaimer paragraph restored at the top of the page**, above the embedded Hero rather than folded into the editorial section further down — so a visitor reads "this is a separate site" *before* scrolling into content that could otherwise be mistaken for native Traam and Beyond material. A new sentence was added to the disclaimer: *"Bazar Jajeer is still being built and is not yet live for purchases."* The now-redundant mid-page intro block (which said almost the same thing) was removed rather than left duplicated.
+3. **A heading-hierarchy fix this made necessary, caught rather than left broken:** with a real H1 back at the top of the page, the ported Hero's own `<motion.h1>` ("Bazar Jajeer") would have made two H1s on one page. Demoted to `<motion.h2>`.
+
+---
+
+## 244. Post-Launch Text Polish
+
+Four small, developer-requested fixes after the page was live:
+- Margin value adjusted `60px` → `120px` (desktop only, unchanged on mobile).
+- Font-size audit, on request: every heading/paragraph on the page was checked against established sitewide precedent (Legal page's H2/body sizing, `CraftHeritageTimeline`'s caption style, the Footer's credit-line size) rather than eyeballed. One real drift found and fixed: the developer-credit line was `text-sm`, but the Footer line it was meant to copy is `text-xs` — corrected.
+- A genuine inconsistency the developer caught by eye: the top intro's first sentence was `text-lg` (an intentional "tagline" size, matching `/contact`'s convention) while everything else on the page was base size — visually read as an unintended mismatch once flagged, so `text-lg` was removed for a uniform size across all four paragraphs.
+- One line of copy removed from the "Browse by Category" paragraph ("labelled in Kashmiri script") per developer request.
+
+**Left open, not yet decided:** this page's H1 is `text-3xl sm:text-6xl`; `/developer`'s H1 is `text-3xl sm:text-5xl` — a pre-existing mismatch (present since the original stub, not introduced this session) flagged to the developer but not changed pending their answer.
+
+---
+
+## 245. Verification
+
+`npx tsc --noEmit` and `npm run build` clean after every edit in this session. This port carries meaningfully more complex logic than anything else built for this site so far — drag physics, seamless-loop wrap-around math, scroll-linked reveal timing — and was flagged to the developer as the one piece of work in this whole project most worth an actual live look before considering it done, more so than previous pages, since a subtle bug (a visible jump at the carousel's loop seam, reveal timing feeling off) would be easy to miss by reading code alone and easy to spot by eye. Not independently browser-tested in this environment for the same reason as every prior session (no headless-browser tooling available here).
+
+---
+
+## 246. Key Files Modified (Forty-Eighth Build)
+
+| File | Change type |
+|---|---|
+| `app/(public)/buy-from-artisans/page.tsx` | Rebuilt twice — static-screenshot version, then the live-ported-components version with margins, restored top disclaimer, and text polish |
+| `components/bazar-jajeer/Hero.tsx` | **New file** — ported from Bazar Jajeer's `Hero.tsx`; colors hardcoded, negative margin removed, CTA links repointed, heading demoted to h2 |
+| `components/bazar-jajeer/FeaturedCrafts.tsx` | **New file** — ported from Bazar Jajeer's `FeaturedCrafts.tsx`; colors hardcoded, categories sourced statically instead of via Firestore |
+| `components/bazar-jajeer/craftData.ts` | **New file** — 13 categories' copy + image data, ported from Bazar Jajeer's `craftImages.ts` + `CRAFT_COPY` |
+| `public/BazarJajeer/` | **New folder** — hero videos + posters, 13 category `.webp` images, 2 screenshots (`HomeShopByCategory`, `MobileHome`); the initially-added `HomeFeaturedCrafts.jpg` was later deleted as redundant |
