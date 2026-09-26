@@ -73,6 +73,36 @@ export default function BuyFromArtisansPage() {
 
         <div className="border-t border-white/10 mt-16 mb-16" />
 
+        {/* Every shop gets its own page */}
+        <ScrollReveal>
+          <h3 className="font-display text-2xl sm:text-3xl text-cream text-center mb-4">
+            A Storefront of Its Own
+          </h3>
+          <p className="text-stone leading-relaxed text-center max-w-xl mx-auto mb-10">
+            Every shop on Bazar Jajeer gets its own page — its own name, its
+            own story, its own shelf of work — so browsing feels like walking
+            into someone&apos;s workshop, not scrolling a catalogue.
+          </p>
+        </ScrollReveal>
+        <ScrollReveal delay={0.1}>
+          <figure>
+            <div className="relative w-full aspect-[1902/909] rounded-sm overflow-hidden border border-white/10">
+              <Image
+                src="/BazarJajeer/HomeTopRatedShopsNew.jpg"
+                alt="Bazar Jajeer — Shops Worth the Visit, each with its own page"
+                fill
+                sizes="(min-width: 1024px) 960px, 100vw"
+                className="object-cover"
+              />
+            </div>
+            <figcaption className="text-stone/60 text-xs lg:text-sm italic mt-3 text-center">
+              Shops Worth the Visit, as it appears on Bazar Jajeer.
+            </figcaption>
+          </figure>
+        </ScrollReveal>
+
+        <div className="border-t border-white/10 mt-16 mb-16" />
+
         {/* Mobile */}
         <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           <ScrollReveal>

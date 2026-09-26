@@ -5424,3 +5424,29 @@ At the viewport width shown in the developer's screenshot, the quote paragraph's
 | File | Change type |
 |---|---|
 | `components/home/ThirdFeaturedSection.tsx` | Added an unconditional `<br />` inside the quote paragraph to force a specific two-line split |
+
+---
+
+# Fiftieth Build Session — Addendum
+
+**Date:** 2026-09-26
+**Scope:** Added a third screenshot subsection to `/buy-from-artisans` — Bazar Jajeer's "Shops Worth the Visit" section — emphasizing that every shop gets its own page.
+
+---
+
+## 249. "A Storefront of Its Own" — Third Screenshot Subsection
+
+The developer supplied a new screenshot (`public/BazarJajeer/HomeTopRatedShopsNew.jpg`, 1902×909 — same aspect family as the other desktop screenshots on this page) showing Bazar Jajeer's "Shops Worth the Visit" section. Notably, this screenshot resolves the finding flagged back in §240: the shop previously named "Traam And Beyond" (reusing this site's real tagline, selling a ₹1,50,000 "Ewer and Basin") now reads "Test Shop 1" — the developer relabeled it on the Bazar Jajeer side after that conversation.
+
+Added as a new subsection between "Browse by Category" and "Designed for Mobile, Too," matching the established pattern exactly (heading → one-sentence intro → full-width screenshot at its measured aspect ratio → italic caption): **"A Storefront of Its Own,"** with copy centered on the developer's specific ask — that every individual shop gets its own page and identity, not just a listing in a shared catalogue.
+
+`npx tsc --noEmit` and `npm run build` both clean (the build hit the same stale-`.next`-cache error seen in earlier sessions — unrelated to this change, cleared by deleting `.next` and rebuilding).
+
+---
+
+## 250. Key Files Modified (Fiftieth Build)
+
+| File | Change type |
+|---|---|
+| `app/(public)/buy-from-artisans/page.tsx` | New "A Storefront of Its Own" subsection added between the category and mobile subsections |
+| `public/BazarJajeer/HomeTopRatedShopsNew.jpg` | **New asset** — "Shops Worth the Visit" screenshot, supplied by the developer |
